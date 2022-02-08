@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Get the total number of a specific ISE ERS resource.
+See https://cs.co/ise-api for REST API resource names.
 
-Usage: ise_ers_count.py
+Usage: ise_ers_count.py {resource_name}
 
 Requires the following environment variables:
   - ise_rest_hostname : the hostname or IP address of your ISE PAN node
