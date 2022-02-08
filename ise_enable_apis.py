@@ -25,7 +25,6 @@ You may save the export lines in a text file and source it for use:
 
 import requests
 import os
-from time import time
 import sys
 
 
