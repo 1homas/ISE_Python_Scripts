@@ -202,6 +202,5 @@ for resource in resources :
 
 output = {}
 output[object_name] = details
-print(json.dumps(output))
-
+print(json.dumps(output, indent=2))
 if DEBUG : debug(f'Total: {len(resources)}')
