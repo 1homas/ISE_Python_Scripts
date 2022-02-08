@@ -70,5 +70,5 @@ del version_info['patch information']
  version_info['build']
  ) = version_info['version'].split('.')
 
-print(version_info)
+print(json.dumps(version_info))
 
