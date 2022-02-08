@@ -68,43 +68,37 @@ Get the detailed contents of all resources of the specified type :
 
 ```bash
 > ise_get_ers_resource.py downloadableacl
-{"DownloadableAcl": [{"id": "9825aa40-8c01-11e6-996c-525400b48521", "name": "DENY_ALL_IPV4_TRAFFIC", "description": "Deny all ipv4 traffic", "dacl": "deny ip any any", "daclType": "IPV4"}, {"id": "5cc3d850-ea30-11ea-8b14-005056871e13", "name": "DENY_ALL_IPV6_TRAFFIC", "description": "Deny all ipv6 traffic", "dacl": "deny ipv6 any any", "daclType": "IPV6"}, {"id": "982498d0-8c01-11e6-996c-525400b48521", "name": "PERMIT_ALL_IPV4_TRAFFIC", "description": "Allow all ipv4 Traffic", "dacl": "permit ip any any", "daclType": "IPV4"}, {"id": "5cc278c0-ea30-11ea-8b14-005056871e13", "name": "PERMIT_ALL_IPV6_TRAFFIC", "description": "Allow all ipv6 Traffic", "dacl": "permit ipv6 any any", "daclType": "IPV6"}]}
-```
-
-You may pipe the output to other utilities to make it pretty or process it further :
-```bash
-> ise_get_ers_resource.py downloadableacl | jq
 {
-"DownloadableAcl": [
-  {
-    "id": "9825aa40-8c01-11e6-996c-525400b48521",
-    "name": "DENY_ALL_IPV4_TRAFFIC",
-    "description": "Deny all ipv4 traffic",
-    "dacl": "deny ip any any",
-    "daclType": "IPV4"
-  },
-  {
-    "id": "5cc3d850-ea30-11ea-8b14-005056871e13",
-    "name": "DENY_ALL_IPV6_TRAFFIC",
-    "description": "Deny all ipv6 traffic",
-    "dacl": "deny ipv6 any any",
-    "daclType": "IPV6"
-  },
-  {
-    "id": "982498d0-8c01-11e6-996c-525400b48521",
-    "name": "PERMIT_ALL_IPV4_TRAFFIC",
-    "description": "Allow all ipv4 Traffic",
-    "dacl": "permit ip any any",
-    "daclType": "IPV4"
-  },
-  {
-    "id": "5cc278c0-ea30-11ea-8b14-005056871e13",
-    "name": "PERMIT_ALL_IPV6_TRAFFIC",
-    "description": "Allow all ipv6 Traffic",
-    "dacl": "permit ipv6 any any",
-    "daclType": "IPV6"
-  }
-]
+  "DownloadableAcl": [
+    {
+      "id": "9825aa40-8c01-11e6-996c-525400b48521",
+      "name": "DENY_ALL_IPV4_TRAFFIC",
+      "description": "Deny all ipv4 traffic",
+      "dacl": "deny ip any any",
+      "daclType": "IPV4"
+    },
+    {
+      "id": "5cc3d850-ea30-11ea-8b14-005056871e13",
+      "name": "DENY_ALL_IPV6_TRAFFIC",
+      "description": "Deny all ipv6 traffic",
+      "dacl": "deny ipv6 any any",
+      "daclType": "IPV6"
+    },
+    {
+      "id": "982498d0-8c01-11e6-996c-525400b48521",
+      "name": "PERMIT_ALL_IPV4_TRAFFIC",
+      "description": "Allow all ipv4 Traffic",
+      "dacl": "permit ip any any",
+      "daclType": "IPV4"
+    },
+    {
+      "id": "5cc278c0-ea30-11ea-8b14-005056871e13",
+      "name": "PERMIT_ALL_IPV6_TRAFFIC",
+      "description": "Allow all ipv6 Traffic",
+      "dacl": "permit ipv6 any any",
+      "daclType": "IPV6"
+    }
+  ]
 }
 ```
 
@@ -117,13 +111,6 @@ Very simple ISE version query.
 
 ```bash
 > ise_version.py
-{"version": "3.1.0.518", "patch": "1", "major": "3", "minor": "1", "maintenance": "0", "build": "518"}
-```
-
-Pipe it through other tools for pretty printing :
-
-```bash
-> ise_version.py | jq
 {
   "version": "3.1.0.518",
   "patch": "1",
