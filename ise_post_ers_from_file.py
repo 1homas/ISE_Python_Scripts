@@ -69,7 +69,7 @@ r = requests.post(url,
 print(r.status_code)
 
 if r.status_code == 201 :
-    print(f'✅ Get your new {resource_name} at {r.headers["Location"]}')
+    print(f'✅ View your new {resource_name}\n   {r.headers["Location"]}')
 elif r.status_code == 401 :
     print("""
 Verify you have set the environment variables and your credentials are correct:
