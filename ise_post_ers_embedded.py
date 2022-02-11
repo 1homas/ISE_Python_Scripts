@@ -12,12 +12,6 @@ Requires the following environment variables:
   - ise_rest_password : the ISE ERS admin or operator password
   - ise_verify : validate the ISE certificate (true/false)
 
-Set the environment variables using the `export` command:
-  export ise_rest_hostname='1.2.3.4'
-  export ise_rest_username='admin'
-  export ise_rest_password='C1sco12345'
-  export ise_verify=false
-
 You may save the export lines in a text file and source it for use:
   source ise_environment.sh
 
@@ -46,6 +40,12 @@ hostname = env['ise_rest_hostname']
 username = env['ise_rest_username']
 password = env['ise_rest_password']
 verify = False if env['ise_verify'][0].lower() in ['f','n'] else True
+
+
+# Validate command line arguments
+if len(sys.argv) > 1 : 
+    print(USAGE)
+    sys.exit(1)
 
 #
 # Resource Name and Configuration
