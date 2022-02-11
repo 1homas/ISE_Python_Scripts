@@ -1,0 +1,29 @@
+{
+  "NetworkDevice": {
+    "name": "my_network_device",
+    "description": "",
+    "authenticationSettings": {
+      "networkProtocol": "RADIUS",
+      "radiusSharedSecret": "C1sco12345",
+      "enableKeyWrap": false,
+      "dtlsRequired": false,
+      "keyEncryptionKey": "",
+      "messageAuthenticatorCodeKey": "",
+      "keyInputFormat": "ASCII",
+      "enableMultiSecret": "false"
+    },
+    "profileName": "Cisco",
+    "coaPort": 1700,
+    "NetworkDeviceIPList": [
+      {
+        "ipaddress": "10.20.30.40",
+        "mask": 32
+      }
+    ],
+    "NetworkDeviceGroupList": [
+      "Location#All Locations",
+      "IPSEC#Is IPSEC Device#No",
+      "Device Type#All Device Types"
+    ]
+  }
+}
