@@ -68,7 +68,7 @@ Get the raw output from an REST GET for resource list or resource.
 
 A resource list by default :
 ```bash
-ise_get_ers_raw.py networkdevice
+> ise_get_ers_raw.py networkdevice
 {
   "SearchResult": {
     "total": 2,
