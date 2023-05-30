@@ -1,2 +1,18 @@
-.DS_Store
+# Environments
+.env
 .venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+
+# Hidden Files
+.DS_Store
+
+
+# pipenv
+Pipfile*
+
+
