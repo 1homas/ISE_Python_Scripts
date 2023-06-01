@@ -7,14 +7,19 @@ Usage:
   ise_post_ers_from_file.py {resource_name} {resource_file.json}
 
 Requires the following environment variables:
-  - ise_rest_hostname : the hostname or IP address of your ISE PAN node
-  - ise_rest_username : the ISE ERS admin or operator username
-  - ise_rest_password : the ISE ERS admin or operator password
-  - ise_verify : validate the ISE certificate (true/false)
+  - ISE_HOSTNAME : the hostname or IP address of your ISE PAN node
+  - ISE_REST_USERNAME : the ISE ERS admin or operator username
+  - ISE_REST_PASSWORD : the ISE ERS admin or operator password
+  - ISE_CERT_VERIFY : validate the ISE certificate (true/false)
 
-You may save the export lines in a text file and source it for use:
-  source ise_environment.sh
+Set the environment variables using the `export` command:
+  export ISE_HOSTNAME='1.2.3.4'
+  export ISE_REST_USERNAME='admin'
+  export ISE_REST_PASSWORD='C1sco12345'
+  export ISE_CERT_VERIFY=false
 
+You may `source` the export lines from a text file for use:
+  source ise.sh
 """
 
 import requests
@@ -44,10 +49,10 @@ json_filepath = sys.argv[2]
 # Load Environment Variables
 #
 env = { k : v for (k, v) in os.environ.items() }
-hostname = env['ise_rest_hostname']
-username = env['ise_rest_username']
-password = env['ise_rest_password']
-verify = False if env['ise_verify'][0].lower() in ['f','n'] else True
+hostname = env['ISE_HOSTNAME']
+username = env['ISE_REST_USERNAME']
+password = env['ISE_REST_PASSWORD']
+verify = False if env['ISE_CERT_VERIFY'][0].lower() in ['f','n'] else True
 
 #
 # Load the JSON data
@@ -73,10 +78,10 @@ if r.status_code == 201 :
 elif r.status_code == 401 :
     print("""
 Verify you have set the environment variables and your credentials are correct:
-  export ise_rest_hostname='1.2.3.4'
-  export ise_rest_username='admin'
-  export ise_rest_password='C1sco12345'
-  export ise_verify=false
+  export ISE_HOSTNAME='1.2.3.4'
+  export ISE_REST_USERNAME='admin'
+  export ISE_REST_PASSWORD='C1sco12345'
+  export ISE_CERT_VERIFY=false
 """, file=sys.stderr)
 else :
     print(json.dumps(r.json(), indent=2))
