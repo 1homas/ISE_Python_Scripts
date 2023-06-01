@@ -1,21 +1,4 @@
-#!/usr/bin/env python
-"""
-A simple POST request for an ISE ERS resource. 
-See https://cs.co/ise-api for REST API resource names.
-
-Usage: 
-  ise_post_ers_embedded.py {resource_name} {resource.json}
-
-Requires the following environment variables:
-  - ise_rest_hostname : the hostname or IP address of your ISE PAN node
-  - ise_rest_username : the ISE ERS admin or operator username
-  - ise_rest_password : the ISE ERS admin or operator password
-  - ise_verify : validate the ISE certificate (true/false)
-
-You may save the export lines in a text file and source it for use:
-  source ise_environment.sh
-
-"""
+#!/usr/bin/env python3
 
 import requests
 import json
@@ -28,19 +11,22 @@ requests.packages.urllib3.disable_warnings()
 HEADERS_JSON = { 'Accept': 'application/json',
                  'Content-Type': 'application/json' }
 USAGE = """
-Usage: 
-  ise_post_ers_embedded.py
+
+A simple POST request for an ISE ERS resource. 
+See https://cs.co/ise-api for REST API resource names.
+
+Usage:
+  ise_post_ers_embedded.py {resource_name} {resource.json}
+
+Requires setting the these environment variables using the `export` command:
+  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+  export ISE_CERT_VERIFY=false          # validate the ISE certificate
+
+You may `source` the export lines from a text file for use:
+  source ise.sh
 """
-
-#
-# Load Environment Variables
-#
-env = { k : v for (k, v) in os.environ.items() }
-hostname = env['ise_rest_hostname']
-username = env['ise_rest_username']
-password = env['ise_rest_password']
-verify = False if env['ise_verify'][0].lower() in ['f','n'] else True
-
 
 # Validate command line arguments
 if len(sys.argv) > 1 : 
@@ -59,7 +45,7 @@ payload = """
     "description": "",
     "authenticationSettings": {
       "networkProtocol": "RADIUS",
-      "radiusSharedSecret": "C1sco12345",
+      "radiusSharedSecret": "ISEisC00L",
       "enableKeyWrap": false,
       "dtlsRequired": false,
       "keyEncryptionKey": "",
@@ -85,27 +71,26 @@ payload = """
 """
 
 #
+# Load Environment Variables
+#
+env = { k : v for (k, v) in os.environ.items() }
+
+#
 # POST the resource
 #
-url = 'https://'+hostname+'/ers/config/'+resource_name
+url = 'https://'+env['ISE_HOSTNAME']+'/ers/config/'+resource_name
 r = requests.post(url,
-                  auth=(username, password),
+                  auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
                   headers=HEADERS_JSON,
                   data=payload,
-                  verify=verify
+                  verify=(False if env['ISE_CERT_VERIFY'][0].lower() in ['f','n'] else True)
                  )
 print(r.status_code)
 
 if r.status_code == 201 :
     print(f'✅ View your new {resource_name}\n   {r.headers["Location"]}')
 elif r.status_code == 401 :
-    print("""
-Verify you have set the environment variables and your credentials are correct:
-  export ise_rest_hostname='1.2.3.4'
-  export ise_rest_username='admin'
-  export ise_rest_password='C1sco12345'
-  export ise_verify=false
-""", file=sys.stderr)
+    print('Verify you have set the environment variables and your credentials are correct', file=sys.stderr)
     print(r.json())
 else :
     print(json.dumps(r.json(), indent=2))
