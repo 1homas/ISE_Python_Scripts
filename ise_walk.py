@@ -144,6 +144,6 @@ if __name__ == "__main__":
     # Load Environment Variables
     env = { k : v for (k, v) in os.environ.items() }
 
-    print('C▶'+env['ise_rest_hostname'])
+    print('C▶'+env['ISE_HOSTNAME'])
     for resource in RESOURCE_NAMES :
         resource_count(resource)
