@@ -5,17 +5,11 @@ Get the total number of a specific ISE ERS resource.
 
 Usage: ise_walk.py
 
-Requires the following environment variables:
-  - ise_rest_hostname : the hostname or IP address of your ISE PAN node
-  - ise_rest_username : the ISE ERS admin or operator username
-  - ise_rest_password : the ISE ERS admin or operator password
-  - ise_verify : validate the ISE certificate (true/false)
-
-Set the environment variables using the `export` command:
-  export ise_rest_hostname='1.2.3.4'
-  export ise_rest_username='admin'
-  export ise_rest_password='C1sco12345'
-  export ise_verify=false
+Requires setting the these environment variables using the `export` command:
+  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+  export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
 You may save the export lines in a text file and source it for use:
   source ise_environment.sh
@@ -119,11 +113,11 @@ def resource_count (resource) :
     LEAF = ' ┣╸'
     count = 0
     try :
-        url = 'https://'+env['ise_rest_hostname']+'/ers/config/'+resource
+        url = 'https://'+env['ISE_HOSTNAME']+'/ers/config/'+resource
         r = requests.get(url,
-                        auth=(env['ise_rest_username'], env['ise_rest_password']),
+                        auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
                         headers={'Accept': 'application/json'},
-                        verify=env['ise_verify'].lower().startswith('t')
+                        verify=(False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)
                         )
 
         if r.status_code == 401 :
