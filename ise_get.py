@@ -33,7 +33,6 @@ Examples:
     ise_get.py endpointgroup -o id
     ise_get.py endpointgroup -o csv -f endpointgroup.csv
 
-
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
