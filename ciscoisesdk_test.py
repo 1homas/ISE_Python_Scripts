@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ise_sdk_test.py
+ciscoisesdk_test.py
 
 Author: Thomas Howard, thomas@cisco.com
 """
@@ -18,9 +18,9 @@ USAGE = """
 Test ISE Python library.
 
 Examples:
-    ise_sdk_test.py 
-    ise_sdk_test.py -v
-    ise_sdk_test.py -vvv
+    ciscoisesdk_test.py 
+    ciscoisesdk_test.py -i
+    ciscoisesdk_test.py -itv
 
 Requires setting the these environment variables using the `export` command:
     export IDENTITY_SERVICES_ENGINE_USERNAME=admin
@@ -41,6 +41,7 @@ def parse_cli_arguments () :
             description=USAGE,
             formatter_class=argparse.RawDescriptionHelpFormatter,   # keep my format
             )
+    ARGS.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
     ARGS.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
     ARGS.add_argument('-v', '--verbose', action='store_true', default=False, help='Verbosity; multiple allowed')
     # ARGS.add_argument('--version', action='version', version=f'%(prog)s {VERSION}')
@@ -63,9 +64,10 @@ def main():
         start_time = time.time()
 
     ise = IdentityServicesEngineAPI(
-            base_url=f"https://{env['ISE_HOSTNAME']}",
-            username=env['ISE_USERNAME'],
-            password=env['ISE_PASSWORD'],
+            base_url=f"https://{env['ISE_HOSTNAME']}",  # IDENTITY_SERVICES_ENGINE_BASE_URL
+            username=env['ISE_USERNAME'],               # IDENTITY_SERVICES_ENGINE_USERNAME
+            password=env['ISE_PASSWORD'],               # IDENTITY_SERVICES_ENGINE_PASSWORD
+            verify=(False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)
           )
 
     sgts = ise.security_groups.get_security_groups()
