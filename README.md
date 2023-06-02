@@ -5,11 +5,11 @@
 
 1. Create your Python environment and install necessary Python packages :
 
-    ```bash
-    pip install --upgrade pip
-    pip install pipenv
-    pipenv install --python 3.9
-    pipenv install requests
+    ```sh
+    python -m ensurepip --upgrade
+    pip3   install --upgrade pipenv     # use pipenv for virtual development environment
+    pipenv install --python 3.9         # use Python 3.9 or later
+    pipenv install -r requirements.txt  # install required packages (`pip freeze > requirements.txt`)
     pipenv shell
     ```
 
@@ -18,21 +18,20 @@
 
 2. Export your credentials for ISE into your shell environment. 
 
-        # ISE REST API Credentials
-        export ise_rest_hostname='1.2.3.4'
-        export ise_rest_username='admin'
-        export ise_rest_password='C1sco12345'
-        export ise_verify=false
+     export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+     export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+     export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+     export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
-    You may store these in one or more environment files then load them with the source command:
+   You may store these lines to a text file and load with `source`:
 
-        source ise_environment.sh
+      source ise.sh
 
-3. These Python scripts typically invoke ISE REST APIs so ensure your ISE node (Primary Administration Node) has the APIs enabled or you may run this script to enable them:
+1. These Python use ISE REST APIs so ensure your ISE node (Primary Administration Node) has the APIs enabled or you may run this script to enable them:
 
-    ise_enable_apis.py
+    ise_api_enabled.py
 
-4. Run the other scripts.
+2. Run the other scripts.
 
 
 
