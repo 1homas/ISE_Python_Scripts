@@ -3,19 +3,13 @@
 A simple, single GET request for an ISE ERS resource. 
 See https://cs.co/ise-api for REST API resource names.
 
-Requires the following environment variables:
-  - ise_rest_hostname : the hostname or IP address of your ISE PAN node
-  - ise_rest_username : the ISE ERS admin or operator username
-  - ise_rest_password : the ISE ERS admin or operator password
-  - ise_verify : validate the ISE certificate (true/false)
+Requires setting the these environment variables using the `export` command:
+  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+  export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
-Set the environment variables using the `export` command:
-  export ise_rest_hostname='1.2.3.4'
-  export ise_rest_username='admin'
-  export ise_rest_password='C1sco12345'
-  export ise_verify=false
-
-You may save the export lines in a text file and source it for use:
+You may add these export lines to a text file and load with `source`:
   source ise_environment.sh
 
 """
