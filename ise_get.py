@@ -304,7 +304,7 @@ async def post_simple_ise_resources (session, ers, path, df) :
     return resources
 
 
-def show (resources=None, format='dump', filename='-') :
+def show (resources=None, name=None, format='dump', filename='-') :
     """
     Shows the resources in the specified format to the file handle.
     
@@ -347,8 +347,7 @@ def show (resources=None, format='dump', filename='-') :
         print(f"\n{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
 
     elif format == 'yaml':  # YAML
-        # [print(yaml.dump(r, indent=2, default_flow_style=False), file=fh) for r in resources]
-        print(yaml.dump(resources, indent=2, default_flow_style=False), file=fh)
+        print(yaml.dump({ name : resources }, indent=2, default_flow_style=False), file=fh)
 
     else:  # just in case something gets through the CLI parser
         print(MSG_CERTIFICATE_ERROR + f': {args.output}', file=sys.stderr)
@@ -439,7 +438,7 @@ async def main ():
             if type(r) == dict and r.get('id'): 
                 del r['id']
  
-    show(resources, args.output, args.filename)
+    show(resources, args.resource, args.output, args.filename)
 
     if args.timer :
         duration = time.time() - start_time
