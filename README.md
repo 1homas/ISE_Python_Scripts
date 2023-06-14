@@ -63,7 +63,7 @@ Get the total resource count of a specified ISE ERS resource.
 
 ## ise_get.py
 
-Get the output from an ISE ERS REST endpoint and show it in a variety of ways. Optionally save it to a file.
+Show ISE ERS REST API data in a variety of ways.
 
 - `dump`  : Dump the raw JSON output as a single string to the screen
 - `line`  : Show the JSON with each object on it's own line
@@ -74,6 +74,9 @@ Get the output from an ISE ERS REST endpoint and show it in a variety of ways. O
 - `yaml`  : Show the output in a YAML format
 
 ```sh
+❱ ise_get.py sgt
+[{"id": "8337f3e6-fdc7-449b-86a4-ba787c305f21", "name": "Cameras"}, {"id": "93ad6890-8c01-11e6-996c-525400b48521", "name": "Employees", "description": "Employee Security Group"}, {"id": "93c66ed0-8c01-11e6-996c-525400b48521", "name": "Guests", "description": "Guest Security Group"}, {"id": "ccaf14ab-d8d7-438f-832d-0fdab0b07cfb", "name": "IOT"}, {"id": "62cc161e-05c8-48bc-ac8b-cde3d77fad4e", "name": "NetServices", "description": "TrustSec Devices Security Group"}, {"id": "947832a0-8c01-11e6-996c-525400b48521", "name": "TrustSec_Devices", "description": "TrustSec Devices Security Group"}, {"id": "92adf9f0-8c01-11e6-996c-525400b48521", "name": "Unknown", "description": "Unknown Security Group"}]
+
 ❱ ise_get.py sgt -dto table --noid
 ┌──────────────────┬─────────┬────────────────┬───────────────────┬─────────────────────────────────┐
 │ name             │   value │   generationId │ propogateToApic   │ description                     │
