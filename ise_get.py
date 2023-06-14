@@ -24,14 +24,16 @@ Show ISE TrustSec data.
 Examples:
     ise_get.py endpoint 
     ise_get.py endpoint -v
-    ise_get.py endpoint -o pretty
-    ise_get.py endpoint -o line
-    ise_get.py endpoint -o table
-    ise_get.py endpoint -o yaml
-    ise_get.py endpointgroup --details -o pretty
-    ise_get.py endpointgroup -o table
-    ise_get.py endpointgroup -o id
+    ise_get.py endpoint -itv
+    ise_get.py endpointgroup -o csv
     ise_get.py endpointgroup -o csv -f endpointgroup.csv
+    ise_get.py endpointgroup -o id
+    ise_get.py endpointgroup -o line
+    ise_get.py endpointgroup -o pretty
+    ise_get.py endpointgroup -o pretty --details
+    ise_get.py endpointgroup -o table
+    ise_get.py endpointgroup -o table --details --noid
+    ise_get.py endpointgroup -o yaml
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -318,25 +320,8 @@ def show (resources=None, format='dump', filename='-') :
         if args.verbosity >= 3 : print(f"ⓘ Opening {filename}", file=sys.stderr)
         fh = open(filename, 'w')
 
-    if format == 'dump':  # dump json
-        # print(resources, end='\n', file=fh, flush=False)
+    if format == 'dump':  # default: dump json
         print(json.dumps(resources), file=fh)
-
-    elif format == 'pretty':  # pretty-print
-        print(json.dumps(resources, indent=2), file=fh)
-
-    elif format == 'line':  # 1 line per object
-        print('[')
-        [print(json.dumps(r), end=',\n', file=fh) for r in resources]
-        print(']')
-
-    elif format == 'table':  # table
-        print(f"\n{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
-
-    elif format == 'id':  # list of ids
-        ids = [[r['id']] for r in resources]  # single column table
-        # print (f"ⓘ ids : {type(ids)} | {ids}")
-        print(f"\n{tabulate(ids, tablefmt='plain')}", file=fh)
 
     elif format == 'csv':  # CSV
         headers = {}
@@ -346,9 +331,24 @@ def show (resources=None, format='dump', filename='-') :
         for row in resources:
             writer.writerow(row)
 
+    elif format == 'id':  # list of ids
+        ids = [[r['id']] for r in resources]  # single column table
+        print(f"{tabulate(ids, tablefmt='plain')}", file=fh)
+
+    elif format == 'line':  # 1 line per object
+        print('[')
+        [print(json.dumps(r), end=',\n', file=fh) for r in resources]
+        print(']')
+
+    elif format == 'pretty':  # pretty-print
+        print(json.dumps(resources, indent=2), file=fh)
+
+    elif format == 'table':  # table
+        print(f"\n{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
+
     elif format == 'yaml':  # YAML
         # [print(yaml.dump(r, indent=2, default_flow_style=False), file=fh) for r in resources]
-        [print(yaml.dump(r, indent=2), file=fh) for r in resources]
+        print(yaml.dump(resources, indent=2, default_flow_style=False), file=fh)
 
     else:  # just in case something gets through the CLI parser
         print(MSG_CERTIFICATE_ERROR + f': {args.output}', file=sys.stderr)
@@ -364,10 +364,12 @@ async def parse_cli_arguments () :
             )
 
     ARGS.add_argument('resource', type=str, help='resource name')
-    ARGS.add_argument('-c', '--connections', type=int, default=TCP_CONNECTIONS, help='connection pool size')
-    ARGS.add_argument('-d', '--details', action='store_true', default=False, help='get resource details')
-    ARGS.add_argument('-f', '--filename', default='-', required=False, help='save output to filename')
-    # ARGS.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
+    ARGS.add_argument('--connections', type=int, default=TCP_CONNECTIONS, help='Connection pool size')
+    ARGS.add_argument('--pagesize', type=int, default=REST_PAGE_SIZE, help='REST page size')
+    ARGS.add_argument('--noid', action='store_true', default=False, dest='noid', help='hide object UUIDs')
+    ARGS.add_argument('-d', '--details', action='store_true', default=False, help='Get resource details')
+    ARGS.add_argument('-f', '--filename', default='-', required=False, help='Save output to filename')
+    ARGS.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
     ARGS.add_argument('-o', '--output', choices=['dump', 'line', 'pretty', 'table', 'csv', 'id', 'yaml'], default='dump')
     ARGS.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
     ARGS.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
@@ -383,10 +385,16 @@ async def main ():
     global args     # promote to global scope for use in other functions
     args = await parse_cli_arguments()
     if args.verbosity >= 3 : print(f"ⓘ Args: {args}")
-    if args.verbosity : print(f"ⓘ TCP_CONNECTIONS: {TCP_CONNECTIONS}", file=sys.stderr)
-    if args.verbosity : print(f"ⓘ REST_PAGE_SIZE: {REST_PAGE_SIZE}", file=sys.stderr)
-    if args.verbosity : print(f"ⓘ Verbosity: {args.verbosity}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ connections: {args.connections}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ details: {args.details}", file=sys.stderr)
     if args.verbosity : print(f"ⓘ filename: {args.filename}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ insecure: {args.insecure}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ output: {args.output}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ pagesize: {args.pagesize}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ noid: {args.noid}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ timer: {args.timer}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ verbosity: {args.verbosity}", file=sys.stderr)
+
     if args.timer :
         global start_time
         start_time = time.time()
@@ -395,22 +403,23 @@ async def main ():
     global env
     env = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
 
+    resources = []
     try :
         # Create HTTP session
-        ssl_verify = (False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)
+        ssl_verify = (False if (args.insecure or env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n']) else True)
         tcp_conn = aiohttp.TCPConnector(limit=TCP_CONNECTIONS, limit_per_host=TCP_CONNECTIONS, ssl=ssl_verify)
         auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
         base_url = f"https://{env['ISE_HOSTNAME']}"
         session = aiohttp.ClientSession(base_url, auth=auth, connector=tcp_conn, headers=JSON_HEADERS)
 
+        # map the REST endpoint to the ERS object name and URL
         (ers, base_url) = ISE_REST_ENDPOINTS.get(args.resource, (None, None))
         if args.verbosity >= 3 : print(f"\nⓘ ers: {ers} base_url: {base_url}", file=sys.stderr)
+
         if base_url and args.details :
-            resources = await get_ise_resource_details (session, ers, base_url)
-            show(resources, args.output, args.filename)
+            resources = await get_ise_resource_details(session, ers, base_url)
         elif base_url :
-            resources = await get_ise_resources (session, base_url)
-            show(resources, args.output, args.filename)
+            resources = await get_ise_resources(session, base_url)
         else :
             print(f"\nUnknown resource: {args.resource}\n", file=sys.stderr)
     except aiohttp.ContentTypeError as e :
@@ -423,7 +432,14 @@ async def main ():
         print(f"\n❌ Exception: {e}\n", file=sys.stderr)
     finally:
         await session.close()
-        print()
+
+    # remove id?
+    if args.noid :
+        for r in resources:
+            if type(r) == dict and r.get('id'): 
+                del r['id']
+ 
+    show(resources, args.output, args.filename)
 
     if args.timer :
         duration = time.time() - start_time
