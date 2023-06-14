@@ -19,7 +19,7 @@ from tabulate import tabulate
 # Globals
 USAGE = """
 
-Show ISE TrustSec data.
+Show ISE REST APIs data.
 
 Examples:
     ise_get.py endpoint 
@@ -181,6 +181,11 @@ SGT_ANY = {'id':'92bb1950-8c01-11e6-996c-525400b48521', 'name':'ANY', 'descripti
 
 
 async def get_ise_resource (session, url) :
+    """
+    Return the resources from the JSON response.
+    @session : the aiohttp session to reuse
+    @path    : the REST endpoint path
+    """
     async with session.get(url) as resp:
         json = await resp.json()
         if args.verbosity >= 3 : print(f"ⓘ get_ise_resource({url}): {json}", file=sys.stderr)
@@ -189,27 +194,27 @@ async def get_ise_resource (session, url) :
 
 async def get_ise_resources (session, path) :
     """
-    Fetch the resources from ISE.
+    Return the specified resources from ISE.
     @session : the aiohttp session to reuse
-    @path : the REST endpoint path
+    @path    : the REST endpoint path
     """
     if args.verbosity >= 3 : print(f"ⓘ get_ise_resources({path})", file=sys.stderr)
 
     # Get the first page for the total resources
-    response = await session.get(f"{path}?size={REST_PAGE_SIZE}")
+    response = await session.get(f"{path}?size={args.pagesize}")
     json = await response.json()
     total = json['SearchResult']['total']
     resources = json['SearchResult']['resources']
     if args.verbosity >= 3 : print(f"ⓘ get_ise_resources({path}): Total: {total}", file=sys.stderr)
 
     # Get all remaining resources if more than the REST page size
-    if total > REST_PAGE_SIZE :
-        pages = int(total / REST_PAGE_SIZE) + (1 if total % REST_PAGE_SIZE else 0)
+    if total > args.pagesize :
+        pages = int(total / args.pagesize) + (1 if total % args.pagesize else 0)
         
         # Generate all paging URLs 
         urls = []
         for page in range(2, pages + 1): # already fetched first page above
-            urls.append(f"{path}?size={REST_PAGE_SIZE}&page={page}")
+            urls.append(f"{path}?size={args.pagesize}&page={page}")
 
         # Get all pages with asyncio!
         tasks = []
@@ -229,8 +234,8 @@ async def get_ise_resource_details (session, ers, path) :
     """
     Fetch the resources from ISE.
     @session : the aiohttp session to reuse
-    @ers : the ERS object name in the JSON
-    @path : the REST endpoint path
+    @ers     : the ERS object name in the JSON
+    @path    : the REST endpoint path
     """
     if args.verbosity >= 3 : print(f"ⓘ get_ise_resource_details({ers}, {path})", file=sys.stderr)
 
@@ -257,9 +262,9 @@ async def get_ise_resource_details (session, ers, path) :
 async def delete_ise_resources (session, ers, path, resources) :
     """
     POST the resources to ISE.
-    @session : the aiohttp session to reuse
-    @ers : the ERS object name in the JSON
-    @path : the REST endpoint path
+    @session   : the aiohttp session to reuse
+    @ers       : the ERS object name in the JSON
+    @path      : the REST endpoint path
     @resources : a list of resources identifiers (id or name)
     """
     if args.verbosity >= 3 : print(f"ⓘ > delete_ise_resources({ers}, {path}, {len(df)})", file=sys.stderr)
@@ -279,9 +284,9 @@ async def post_simple_ise_resources (session, ers, path, df) :
     """
     POST the resources to ISE.
     @session : the aiohttp session to reuse
-    @ers : the ERS object name in the JSON
-    @path : the REST endpoint path
-    @df : the dataframe of resources to create
+    @ers     : the ERS object name in the JSON
+    @path    : the REST endpoint path
+    @df      : the dataframe of resources to create
     """
     if args.verbosity >= 3 : print(f"ⓘ > post_simple_ise_resources({ers}, {path}, {len(df)})", file=sys.stderr)
 
@@ -307,9 +312,17 @@ async def post_simple_ise_resources (session, ers, path, df) :
 def show (resources=None, name=None, format='dump', filename='-') :
     """
     Shows the resources in the specified format to the file handle.
-    
+
     @resources : the list of dictionary items to format
-    @format    : ['dump', 'line', 'pretty', 'table', 'csv', 'id', 'yaml']
+    @name      : the name of the resource. Example: endpoint, sgt, etc.
+    @format    : 
+        - `dump`  : Dump the raw JSON output as a single string to the screen
+        - `line`  : Show the JSON with each object on it's own line
+        - `pretty`: Pretty-print the JSON
+        - `table` : Show each object in a table/grid row
+        - `csv`   : Show the output in a Comma-Separated Value (CSV) format
+        - `id`    : Show only the id column for the objects (if available)
+        - `yaml`  : Show the output in a YAML format
     @filename  : Default: `sys.stdout`
     """
     if args.verbosity >= 3 : print(f"ⓘ > show(): {len(resources)} resources of type {type(resources[0])}", file=sys.stderr)
@@ -331,7 +344,7 @@ def show (resources=None, name=None, format='dump', filename='-') :
         for row in resources:
             writer.writerow(row)
 
-    elif format == 'id':  # list of ids
+    elif format == 'id':  # list of ids only
         ids = [[r['id']] for r in resources]  # single column table
         print(f"{tabulate(ids, tablefmt='plain')}", file=fh)
 
@@ -344,7 +357,7 @@ def show (resources=None, name=None, format='dump', filename='-') :
         print(json.dumps(resources, indent=2), file=fh)
 
     elif format == 'table':  # table
-        print(f"\n{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
+        print(f"{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
 
     elif format == 'yaml':  # YAML
         print(yaml.dump({ name : resources }, indent=2, default_flow_style=False), file=fh)
