@@ -40,8 +40,8 @@
 
 Enable the ISE ERS and OpenAPI APIs.
 
-```bash
-> ise_enable_apis.py
+```sh
+❱ ise_enable_apis.py
 ✅ ISE Open APIs Enabled
 ✅ ISE ERS APIs Enabled
 ```
@@ -53,12 +53,49 @@ Enable the ISE ERS and OpenAPI APIs.
 
 Get the total resource count of a specified ISE ERS resource.
 
-```bash
-> ise_ers_count.py endpointgroup
+```sh
+❱ ise_ers_count.py endpointgroup
 20
 ```
 
 
+
+
+## ise_get.py
+
+Get the output from an ISE ERS REST endpoint and show it in a variety of ways. Optionally save it to a file.
+
+- `dump`  : Dump the raw JSON output as a single string to the screen
+- `line`  : Show the JSON with each object on it's own line
+- `pretty`: Pretty-print the JSON
+- `table` : Show each object in a table/grid row
+- `csv`   : Show the output in a Comma-Separated Value (CSV) format
+- `id`    : Show only the id column for the objects (if available)
+- `yaml`  : Show the output in a YAML format
+
+```sh
+❱ ise_get.py sgt -dto table --noid
+┌──────────────────┬─────────┬────────────────┬───────────────────┬─────────────────────────────────┐
+│ name             │   value │   generationId │ propogateToApic   │ description                     │
+├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
+│ Cameras          │       7 │              8 │ False             │                                 │
+├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
+│ Employees        │       4 │             28 │ True              │ Employee Security Group         │
+├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
+│ Guests           │       6 │             28 │ True              │ Guest Security Group            │
+├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
+│ IOT              │       5 │              8 │ False             │                                 │
+├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
+│ NetServices      │       3 │              8 │ False             │ TrustSec Devices Security Group │
+├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
+│ TrustSec_Devices │       2 │             28 │ True              │ TrustSec Devices Security Group │
+├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
+│ Unknown          │       0 │             28 │ False             │ Unknown Security Group          │
+└──────────────────┴─────────┴────────────────┴───────────────────┴─────────────────────────────────┘
+
+ 🕒 0.6915860176086426 seconds
+
+```
 
 
 ## ise_get_ers_raw.py
@@ -66,8 +103,8 @@ Get the total resource count of a specified ISE ERS resource.
 Get the raw output from an REST GET for resource list or resource.
 
 A resource list by default :
-```bash
-> ise_get_ers_raw.py networkdevice
+```sh
+❱ ise_get_ers_raw.py networkdevice
 {
   "SearchResult": {
     "total": 2,
@@ -98,8 +135,8 @@ A resource list by default :
 ```
 
 A specific resource with the UUID :
-```bash
-> ise_get_ers_raw.py networkdevice/0b6e9500-8b4a-11ec-ac96-46ca1867e58d
+```sh
+❱ ise_get_ers_raw.py networkdevice/0b6e9500-8b4a-11ec-ac96-46ca1867e58d
 {
   "NetworkDevice": {
     "id": "0b6e9500-8b4a-11ec-ac96-46ca1867e58d",
@@ -144,8 +181,8 @@ A specific resource with the UUID :
 
 Get the detailed contents of all resources of the specified type :
 
-```bash
-> ise_get_ers_resource.py downloadableacl
+```sh
+❱ ise_get_ers_resource.py downloadableacl
 {
   "DownloadableAcl": [
     {
@@ -188,8 +225,8 @@ Get the detailed contents of all resources of the specified type :
 A simple REST POST example using JSON data embedded in the script. You may use `ise_get_ers_raw.py` to get sample resource JSON data to embed in your script.
 
 
-```bash
-> ise_post_ers_embedded.py
+```sh
+❱ ise_post_ers_embedded.py
 201
 ✅ View your new networkdevice
    https://198.18.133.27/ers/config/networkdevice/4aedf8f0-8b5a-11ec-ac96-46ca1867e58d
@@ -202,8 +239,8 @@ A simple REST POST example using JSON data embedded in the script. You may use `
 
 Another REST POST example using JSON data in a separate file. This allows more flexibility to specify any resource type and the data file on the command line.
 
-```bash
-> ise_post_ers_from_file.py networkdevice my_network_device.json
+```sh
+❱ ise_post_ers_from_file.py networkdevice my_network_device.json
 201
 ✅ View your new networkdevice
    https://198.18.133.27/ers/config/networkdevice/a1f86c60-8b5b-11ec-ac96-46ca1867e58d
@@ -216,8 +253,8 @@ Another REST POST example using JSON data in a separate file. This allows more f
 
 Very simple ISE version query.
 
-```bash
-> ise_version.py
+```sh
+❱ ise_version.py
 {
   "version": "3.1.0.518",
   "patch": "1",
@@ -235,8 +272,8 @@ Very simple ISE version query.
 
 Walk the ISE ERS resources to get a summary count of all of the objects.
 
-```bash
-> ise_walk.py
+```sh
+❱ ise_walk.py
 C▶198.18.133.27
  ┣╸node [1]
  ┣╸sessionservicenode [0]
