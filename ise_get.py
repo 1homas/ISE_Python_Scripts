@@ -66,108 +66,108 @@ TCP_CONNECTIONS=TCP_CONNECTIONS_DEFAULT
 ISE_REST_ENDPOINTS = {
     # 'Resource',       : ( 'Object',           'Base_URL' )
     # -----------------   ----------------------  -----------------------
-    'egressmatrixcell'  : ( 'EgressMatrixCell', '/ers/config/egressmatrixcell' ),
+    'egressmatrixcell'      : ( 'EgressMatrixCell', '/ers/config/egressmatrixcell' ),
 
     #
     # ERS
     #
 
     # Deployment
-    'info' : ( 'ERSDeploymentInfo', '/deploymentinfo/getAllInfo' ),    # 'deploymentinfo'=> deploymentinfo/getAllInfo
-    'node'                      : ( 'Node', '/ers/config/node' ),
-    # 'service'                   : ( 'Service', '/ers/config/service' ),    # 🛑 empty resource; link:service/null gives 404
-    'sessionservicenode'        : ( 'SessionServiceNode', '/ers/config/sessionservicenode' ),
+    'info'                  : ( 'ERSDeploymentInfo', '/deploymentinfo/getAllInfo' ),  # 'deploymentinfo'=> deploymentinfo/getAllInfo
+    'node'                  : ( 'Node', '/ers/config/node' ),
+    # 'service'             : ( 'Service', '/ers/config/service' ),  # 🛑 empty resource; link:service/null gives 404
+    'sessionservicenode'    : ( 'SessionServiceNode', '/ers/config/sessionservicenode' ),
 
     # Network Devices
-    'networkdevice'             : ( 'NetworkDevice',    '/ers/config/networkdevice' ),
-    'networkdevicegroup'        : ( 'NetworkDeviceGroup', '/ers/config/networkdevicegroup' ),
+    'networkdevice'         : ( 'NetworkDevice',        '/ers/config/networkdevice' ),
+    'networkdevicegroup'    : ( 'NetworkDeviceGroup',   '/ers/config/networkdevicegroup' ),
 
     # Endpoints
-    'endpoint'                  : ( 'ERSEndPoint',      '/ers/config/endpoint' ),
-    'endpointcert'              : ( 'ERSEndPointCert',     '/ers/config/endpointcert' ),  # POST(create) only!!!
-    'endpointgroup'             : ( 'EndPointGroup',    '/ers/config/endpointgroup' ),
-    'profilerprofile'           : ( 'ProfilerProfile',  '/ers/config/profilerprofile' ),
+    'endpoint'              : ( 'ERSEndPoint',          '/ers/config/endpoint' ),
+    'endpointcert'          : ( 'ERSEndPointCert',      '/ers/config/endpointcert' ),  # POST(create) only!!!
+    'endpointgroup'         : ( 'EndPointGroup',        '/ers/config/endpointgroup' ),
+    'profilerprofile'       : ( 'ProfilerProfile',      '/ers/config/profilerprofile' ),
 
     # RADIUS Authentications
-    'activedirectory'  : ( 'ERSActiveDirectory', '/ers/config/activedirectory' ),
-    'allowedprotocols'  : ( 'AllowedProtocols', '/ers/config/allowedprotocols' ),
-    'adminuser'  : ( 'AdminUser', '/ers/config/adminuser' ),
-    'identitygroup'  : ( 'IdentityGroup', '/ers/config/identitygroup' ),
-    'internaluser'  : ( 'InternalUser', '/ers/config/internaluser' ),
+    'activedirectory'       : ( 'ERSActiveDirectory',   '/ers/config/activedirectory' ),
+    'allowedprotocols'      : ( 'AllowedProtocols',     '/ers/config/allowedprotocols' ),
+    'adminuser'             : ( 'AdminUser',            '/ers/config/adminuser' ),
+    'identitygroup'         : ( 'IdentityGroup',        '/ers/config/identitygroup' ),
+    'internaluser'          : ( 'InternalUser',         '/ers/config/internaluser' ),
     'externalradiusserver'  : ( 'ExternalRadiusServer', '/ers/config/externalradiusserver' ),
     'radiusserversequence'  : ( 'RadiusServerSequence', '/ers/config/radiusserversequence' ),
-    'idstoresequence'  : ( 'IdStoreSequence', '/ers/config/idstoresequence' ),
-    'restidstore'  : ( 'ERSRestIDStore', '/ers/config/restidstore' ),  # RESTIDStore must be enabled / 404 if none configured
+    'idstoresequence'       : ( 'IdStoreSequence',      '/ers/config/idstoresequence' ),
+    'restidstore'           : ( 'ERSRestIDStore',       '/ers/config/restidstore' ),  # RESTIDStore must be enabled / 404 if none configured
 
     # RADIUS Authorizations / Policy
     'authorizationprofile'  : ( 'AuthorizationProfile', '/ers/config/authorizationprofile' ),
-    'downloadableacl'  : ( 'DownloadableAcl', '/ers/config/downloadableacl' ),
-    'filterpolicy'  : ( 'ERSFilterPolicy', '/ers/config/filterpolicy' ),  # 404 if none configured
+    'downloadableacl'       : ( 'DownloadableAcl',      '/ers/config/downloadableacl' ),
+    'filterpolicy'          : ( 'ERSFilterPolicy',      '/ers/config/filterpolicy' ),  # 404 if none configured
 
     # Portals
-    'portal'  : ( 'ERSPortal', '/ers/config/portal' ),
-    'portalglobalsetting'  : ( 'PortalCustomizationGlobalSetting', '/ers/config/portalglobalsetting' ),
-    'portaltheme'  : ( 'PortalTheme', '/ers/config/portaltheme' ),
-    'hotspotportal'  : ( 'HotspotPortal', '/ers/config/hotspotportal' ),
-    'selfregportal'  : ( 'SelfRegPortal', '/ers/config/selfregportal' ),
+    'portal'                : ( 'ERSPortal',            '/ers/config/portal' ),
+    'portalglobalsetting'   : ( 'PortalCustomizationGlobalSetting', '/ers/config/portalglobalsetting' ),
+    'portaltheme'           : ( 'PortalTheme',          '/ers/config/portaltheme' ),
+    'hotspotportal'         : ( 'HotspotPortal',        '/ers/config/hotspotportal' ),
+    'selfregportal'         : ( 'SelfRegPortal',        '/ers/config/selfregportal' ),
 
     # Guest
-    'guestlocation'  : ( 'LocationIdentification', '/ers/config/guestlocation' ),
-    'guestsmtpnotificationsettings'  : ( 'ERSGuestSmtpNotificationSettings', '/ers/config/guestsmtpnotificationsettings' ),
-    'guestssid'  : ( 'GuestSSID', '/ers/config/guestssid' ),
-    'guesttype'  : ( 'GuestType', '/ers/config/GuestType' ),
-    'guestuser'  : ( 'GuestUser', '/ers/config/___GuestUser__' ),          # 🛑 requires sponsor account!!!
-    'smsprovider'  : ( 'SmsProviderIdentification', '/ers/config/smsprovider' ),
-    'sponsorportal'  : ( 'SponsoredPortal', '/ers/config/sponsorportal' ),
+    'guestlocation'         : ( 'LocationIdentification', '/ers/config/guestlocation' ),
+    'guestsmtpnotificationsettings' : ( 'ERSGuestSmtpNotificationSettings', '/ers/config/guestsmtpnotificationsettings' ),
+    'guestssid'             : ( 'GuestSSID',            '/ers/config/guestssid' ),
+    'guesttype'             : ( 'GuestType',            '/ers/config/GuestType' ),
+    'guestuser'             : ( 'GuestUser',            '/ers/config/___GuestUser__' ), # 🛑 requires sponsor account!!!
+    'smsprovider'           : ( 'SmsProviderIdentification', '/ers/config/smsprovider' ),
+    'sponsorportal'         : ( 'SponsoredPortal',      '/ers/config/sponsorportal' ),
     'sponsoredguestportal'  : ( 'SponsoredGuestPortal', '/ers/config/sponsoredguestportal' ),
-    'sponsorgroup'  : ( 'SponsorGroup', '/ers/config/sponsorgroup' ),
-    'sponsorgroupmember'  : ( 'SponsorGroupMember', '/ers/config/sponsorgroupmember' ),
+    'sponsorgroup'          : ( 'SponsorGroup',         '/ers/config/sponsorgroup' ),
+    'sponsorgroupmember'    : ( 'SponsorGroupMember',   '/ers/config/sponsorgroupmember' ),
 
     # BYOD
-    'certificateprofile'  : ( 'CertificateProfile', '/ers/config/certificateprofile' ),
-    'certificatetemplate'  : ( 'ERSCertificateTemplate', '/ers/config/certificatetemplate' ),
-    'byodportal'  : ( 'BYODPortal', '/ers/config/byodportal' ),
-    'mydeviceportal'  : ( 'MyDevicePortal', '/ers/config/mydeviceportal' ),
-    'nspprofile'  : ( 'ERSNSPProfile', '/ers/config/nspprofile' ),
+    'certificateprofile'    : ( 'CertificateProfile',   '/ers/config/certificateprofile' ),
+    'certificatetemplate'   : ( 'ERSCertificateTemplate', '/ers/config/certificatetemplate' ),
+    'byodportal'            : ( 'BYODPortal',           '/ers/config/byodportal' ),
+    'mydeviceportal'        : ( 'MyDevicePortal',       '/ers/config/mydeviceportal' ),
+    'nspprofile'            : ( 'ERSNSPProfile',        '/ers/config/nspprofile' ),
 
     # SDA
-    'sgt'               : ( 'Sgt',              '/ers/config/sgt' ),
-    'sgacl'             : ( 'Sgacl',            '/ers/config/sgacl' ),
-    'sgmapping'  : ( 'SGMapping', '/ers/config/sgmapping' ),
-    'sgmappinggroup'  : ( 'SGMappingGroup', '/ers/config/sgmappinggroup' ),
-    'sgtvnvlan'  : ( 'SgtVNVlanContainer', '/ers/config/sgtvnvlan' ),
-    'egressmatrixcell'  : ( 'EgressMatrixCell', '/ers/config/egressmatrixcell' ),
-    'sxpconnections'  : ( 'ERSSxpConnection', '/ers/config/sxpconnections' ),
-    'sxplocalbindings'  : ( 'ERSSxpLocalBindings', '/ers/config/sxplocalbindings' ),
-    'sxpvpns'  : ( 'ERSSxpVpn', '/ers/config/sxpvpns' ),
+    'sgt'                   : ( 'Sgt',                  '/ers/config/sgt' ),
+    'sgacl'                 : ( 'Sgacl',                '/ers/config/sgacl' ),
+    'sgmapping'             : ( 'SGMapping',            '/ers/config/sgmapping' ),
+    'sgmappinggroup'        : ( 'SGMappingGroup',       '/ers/config/sgmappinggroup' ),
+    'sgtvnvlan'             : ( 'SgtVNVlanContainer',   '/ers/config/sgtvnvlan' ),
+    'egressmatrixcell'      : ( 'EgressMatrixCell',     '/ers/config/egressmatrixcell' ),
+    'sxpconnections'        : ( 'ERSSxpConnection',     '/ers/config/sxpconnections' ),
+    'sxplocalbindings'      : ( 'ERSSxpLocalBindings',  '/ers/config/sxplocalbindings' ),
+    'sxpvpns'               : ( 'ERSSxpVpn',            '/ers/config/sxpvpns' ),
 
     # Support / Operations
-    # 'supportbundle'  : ( '_____', '/ers/config/_____' ),
-    # 'supportbundledownload'  : ( '_____', '/ers/config/_____' ),
-    # 'supportbundlestatus'  : ( '_____', '/ers/config/_____' ),
+    # 'supportbundle'       : ( '_____', '/ers/config/_____' ),
+    # 'supportbundledownload': ( '_____', '/ers/config/_____' ),
+    # 'supportbundlestatus' : ( '_____', '/ers/config/_____' ),
 
     # TACACS
-    'tacacscommandsets'  : ( 'TacacsCommandSets', '/ers/config/tacacscommandsets' ),
-    'tacacsexternalservers'  : ( 'TacacsExternalServer', '/ers/config/tacacsexternalservers' ),  # 404 if none configured
-    # 'tacacsprofile'  : ( 'TacacsProfile', '/ers/config/tacacsprofile' ),
-    # 'tacacsserversequence'  : ( 'TacacsServerSequence', '/ers/config/tacacsserversequence' ),  # 404 if none configured
+    'tacacscommandsets'     : ( 'TacacsCommandSets',    '/ers/config/tacacscommandsets' ),
+    'tacacsexternalservers' : ( 'TacacsExternalServer', '/ers/config/tacacsexternalservers' ),  # 404 if none configured
+    # 'tacacsprofile'       : ( 'TacacsProfile', '/ers/config/tacacsprofile' ),
+    # 'tacacsserversequence': ( 'TacacsServerSequence', '/ers/config/tacacsserversequence' ),  # 404 if none configured
 
     # pxGrid / ANC / RTC / TC-NAC
-    'pxgridsettings'    : ( 'PxgridSettings', '/ers/config/pxgridsettings/autoapprove' ), # 🛑 PUT only; GET not supported!
-    'pxgridnode'        : ( 'pxGridNode', '/ers/config/pxgridnode' ),  # 🐛 🛑 404 always whether pxGrid is enabled or not
-    # 'ancendpoint'  : ( '_____', '/ers/config/_____' ),
-    # 'ancpolicy'  : ( '_____', '/ers/config/_____' ),
+    'pxgridsettings'        : ( 'PxgridSettings',       '/ers/config/pxgridsettings/autoapprove' ), # 🛑 PUT only; GET not supported!
+    'pxgridnode'            : ( 'pxGridNode',           '/ers/config/pxgridnode' ),  # 🐛 🛑 404 always whether pxGrid is enabled or not
+    # 'ancendpoint'         : ( '_____', '/ers/config/_____' ),
+    # 'ancpolicy'           : ( '_____', '/ers/config/_____' ),
     # 'clearThreatsAndVulneribilities'  : ( 'ERSIrfThreatContext', '/ers/config/threat/clearThreatsAndVulneribilities' ),  # 🛑 PUT only; GET not supported!
 
     'telemetryinfo' : ( 'TelemetryInfo', '/ers/config/telemetryinfo' ),
     # ACI
-    # 'acibindings'  : ( '_____', '/ers/config/_____' ),    # Custom URL: /ers/config/acibindings/getall
-    # 'acisettings'  : ( '_____', '/ers/config/_____' ),
+    # 'acibindings'         : ( '_____', '/ers/config/_____' ),    # Custom URL: /ers/config/acibindings/getall
+    # 'acisettings'         : ( '_____', '/ers/config/_____' ),
 
     # Operations
-    # 'op'  : ( '_____', '/ers/config/_____' ),
-    # 'op/systemconfig'  : ( '_____', '/ers/config/_____' ),
-    # 'op/systemconfig/iseversion'  : ( '_____', '/ers/config/_____' ),
+    # 'op'                  : ( '_____', '/ers/config/_____' ),
+    # 'op/systemconfig'     : ( '_____', '/ers/config/_____' ),
+    # 'op/systemconfig/iseversion' : ( '_____', '/ers/config/_____' ),
     
     
     #
