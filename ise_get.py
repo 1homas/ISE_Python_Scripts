@@ -317,7 +317,8 @@ def show (resources=None, name=None, format='json', filename='-') :
     @name      : the name of the resource. Example: endpoint, sgt, etc.
     @format    : 
         - `csv`   : Show the items in a Comma-Separated Value (CSV) format
-        - `grid`  : Show the items to a grid/table
+        - `grid`  : Show the items in a grid/table
+        - `table` : Show the items in a grid/table
         - `id`    : Show only the id column for the objects (if available)
         - `json`  : Show the items as a single JSON string
         - `line`  : Show the items as JSON with each item on it's own line
@@ -347,7 +348,7 @@ def show (resources=None, name=None, format='json', filename='-') :
         ids = [[r['id']] for r in resources]  # single column table
         print(f"{tabulate(ids, tablefmt='plain')}", file=fh)
 
-    elif format == 'grid':  # grid
+    elif format in ['grid', 'table'] : # grid
         print(f"{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
 
     elif format == 'json':  # JSON, one long string
@@ -385,7 +386,7 @@ async def parse_cli_arguments () :
     ARGS.add_argument('--filename', default='-', required=False, help='Save output to filename. Default: stdout')
     ARGS.add_argument('-d', '--details', action='store_true', default=False, help='Get resource details')
     ARGS.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
-    ARGS.add_argument('-f', '--format', choices=['csv', 'id', 'grid', 'json', 'line', 'pretty', 'yaml'], default='dump')
+    ARGS.add_argument('-f', '--format', choices=['csv', 'id', 'grid', 'table', 'json', 'line', 'pretty', 'yaml'], default='pretty')
     ARGS.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
     ARGS.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
 
