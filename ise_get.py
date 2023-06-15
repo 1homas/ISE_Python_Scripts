@@ -31,8 +31,8 @@ Examples:
     ise_get.py endpointgroup -o line
     ise_get.py endpointgroup -o pretty
     ise_get.py endpointgroup -o pretty --details
-    ise_get.py endpointgroup -o table
-    ise_get.py endpointgroup -o table --details --noid
+    ise_get.py endpointgroup -o grid
+    ise_get.py endpointgroup -o grid --details --noid
     ise_get.py endpointgroup -o yaml
 
 Requires setting the these environment variables using the `export` command:
@@ -309,22 +309,24 @@ async def post_simple_ise_resources (session, ers, path, df) :
     return resources
 
 
-def show (resources=None, name=None, format='dump', filename='-') :
+def show (resources=None, name=None, format='json', filename='-') :
     """
     Shows the resources in the specified format to the file handle.
 
     @resources : the list of dictionary items to format
     @name      : the name of the resource. Example: endpoint, sgt, etc.
     @format    : 
-        - `dump`  : Dump the raw JSON output as a single string to the screen
-        - `line`  : Show the JSON with each object on it's own line
-        - `pretty`: Pretty-print the JSON
-        - `table` : Show each object in a table/grid row
-        - `csv`   : Show the output in a Comma-Separated Value (CSV) format
+        - `csv`   : Show the items in a Comma-Separated Value (CSV) format
+        - `grid`  : Show the items to a grid/table
         - `id`    : Show only the id column for the objects (if available)
-        - `yaml`  : Show the output in a YAML format
+        - `json`  : Show the items as a single JSON string
+        - `line`  : Show the items as JSON with each item on it's own line
+        - `pretty`: Show the items as JSON pretty-printed with 2-space indents
+        - `yaml`  : Show the items as YAML with 2-space indents
     @filename  : Default: `sys.stdout`
     """
+    if resources == None : return
+
     if args.verbosity >= 3 : print(f"ⓘ > show(): {len(resources)} resources of type {type(resources[0])}", file=sys.stderr)
 
     # 💡 Do not close sys.stdout or it may not be re-opened
@@ -333,10 +335,7 @@ def show (resources=None, name=None, format='dump', filename='-') :
         if args.verbosity >= 3 : print(f"ⓘ Opening {filename}", file=sys.stderr)
         fh = open(filename, 'w')
 
-    if format == 'dump':  # default: dump json
-        print(json.dumps(resources), file=fh)
-
-    elif format == 'csv':  # CSV
+    if format == 'csv':  # CSV
         headers = {}
         [headers.update(r) for r in resources]  # find all unique keys
         writer = csv.DictWriter(fh, headers.keys(), quoting=csv.QUOTE_MINIMAL)
@@ -348,22 +347,26 @@ def show (resources=None, name=None, format='dump', filename='-') :
         ids = [[r['id']] for r in resources]  # single column table
         print(f"{tabulate(ids, tablefmt='plain')}", file=fh)
 
+    elif format == 'grid':  # grid
+        print(f"{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
+
+    elif format == 'json':  # JSON, one long string
+        print(json.dumps({ name : resources }), file=fh)
+
     elif format == 'line':  # 1 line per object
-        print('[')
+        print('{')
+        print(f'{name} = [')
         [print(json.dumps(r), end=',\n', file=fh) for r in resources]
-        print(']')
+        print(']\n}')
 
     elif format == 'pretty':  # pretty-print
-        print(json.dumps(resources, indent=2), file=fh)
-
-    elif format == 'table':  # table
-        print(f"{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
+        print(json.dumps({ name : resources }, indent=2), file=fh)
 
     elif format == 'yaml':  # YAML
         print(yaml.dump({ name : resources }, indent=2, default_flow_style=False), file=fh)
 
     else:  # just in case something gets through the CLI parser
-        print(MSG_CERTIFICATE_ERROR + f': {args.output}', file=sys.stderr)
+        print(f' 🛑 Unknown format: {format}', file=sys.stderr)
 
 
 async def parse_cli_arguments () :
@@ -379,10 +382,10 @@ async def parse_cli_arguments () :
     ARGS.add_argument('--connections', type=int, default=TCP_CONNECTIONS, help='Connection pool size')
     ARGS.add_argument('--pagesize', type=int, default=REST_PAGE_SIZE, help='REST page size')
     ARGS.add_argument('--noid', action='store_true', default=False, dest='noid', help='hide object UUIDs')
+    ARGS.add_argument('--filename', default='-', required=False, help='Save output to filename. Default: stdout')
     ARGS.add_argument('-d', '--details', action='store_true', default=False, help='Get resource details')
-    ARGS.add_argument('-f', '--filename', default='-', required=False, help='Save output to filename')
     ARGS.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
-    ARGS.add_argument('-o', '--output', choices=['dump', 'line', 'pretty', 'table', 'csv', 'id', 'yaml'], default='dump')
+    ARGS.add_argument('-f', '--format', choices=['csv', 'id', 'grid', 'json', 'line', 'pretty', 'yaml'], default='dump')
     ARGS.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
     ARGS.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
 
@@ -401,7 +404,7 @@ async def main ():
     if args.verbosity : print(f"ⓘ details: {args.details}", file=sys.stderr)
     if args.verbosity : print(f"ⓘ filename: {args.filename}", file=sys.stderr)
     if args.verbosity : print(f"ⓘ insecure: {args.insecure}", file=sys.stderr)
-    if args.verbosity : print(f"ⓘ output: {args.output}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ format: {args.format}", file=sys.stderr)
     if args.verbosity : print(f"ⓘ pagesize: {args.pagesize}", file=sys.stderr)
     if args.verbosity : print(f"ⓘ noid: {args.noid}", file=sys.stderr)
     if args.verbosity : print(f"ⓘ timer: {args.timer}", file=sys.stderr)
@@ -451,7 +454,7 @@ async def main ():
             if type(r) == dict and r.get('id'): 
                 del r['id']
  
-    show(resources, args.resource, args.output, args.filename)
+    show(resources, args.resource, args.format, args.filename)
 
     if args.timer :
         duration = time.time() - start_time
