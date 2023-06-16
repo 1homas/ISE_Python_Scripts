@@ -50,6 +50,10 @@ You may add these export lines to a text file and load with `source`:
 DATA_DIR = './'
 DEFAULT_TRUSTSEC_FILENAME = 'ise_trustsec_matrix.xlsx'
 
+# DateTime Formats for strftime()
+DT_ISO8601 = "%Y-%m-%dT%H:%M:%S"
+
+
 # REST Options
 JSON_HEADERS = {'Accept':'application/json', 'Content-Type':'application/json'}
 REST_PAGE_SIZE_DEFAULT=20
@@ -555,7 +559,7 @@ async def main ():
     if args.timer :
         global start_time
         start_time = time.time()
-        print(f"▶ {start_time}", file=sys.stderr)
+        print(f"▶ {time.strftime(DT_ISO8601, time.localtime(start_time))}", file=sys.stderr) # ⏰
 
     # Load Environment Variables
     global env
@@ -601,8 +605,8 @@ async def main ():
 
     if args.timer :
         stop_time = time.time()
-        print(f"■ {stop_time}", file=sys.stderr) # ⏰
-        print(f"⏲ {stop_time - start_time} seconds", file=sys.stderr)
+        print(f"■ {time.strftime(DT_ISO8601, time.localtime(stop_time))}", file=sys.stderr)
+        print(f"⏲ {'{0:.3f}'.format(stop_time - start_time)} seconds", file=sys.stderr)
 
 
 if __name__ == '__main__':
