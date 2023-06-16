@@ -4,7 +4,7 @@ Enable the ISE APIs using APIs!
 
 Usage:
 
-  ise_enable_apis.py
+  ise_api_enabled.py
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -34,14 +34,14 @@ env = { k : v for (k, v) in os.environ.items() }
 
 
 def ise_open_api_enable () :
-    url = 'https://'+env['ise_rest_hostname']+'/admin/API/apiService/update'
+    url = 'https://'+env['ISE_HOSTNAME']+'/admin/API/apiService/update'
     data = '{ "papIsEnabled":true, "psnsIsEnabled":true }'
     r = requests.post(url,
-                    auth=(env['ise_rest_username'], env['ise_rest_password']),
+                    auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
                     data=data,
                     headers={'Content-Type': CONTENT_TYPE_JSON,
                              'Accept': CONTENT_TYPE_JSON},
-                    verify=env['ise_verify'].lower().startswith('t')
+                    verify=env['ISE_CERT_VERIFY'].lower().startswith('t')
                     )
     if (r.status_code == 200 or r.status_code == 500 ) :
         print("✅ ISE Open APIs Enabled")
@@ -51,7 +51,7 @@ def ise_open_api_enable () :
 
 
 def ise_ers_api_enable () :
-    url = 'https://'+env['ise_rest_hostname']+'/admin/API/NetworkAccessConfig/ERS'
+    url = 'https://'+env['ISE_HOSTNAME']+'/admin/API/NetworkAccessConfig/ERS'
     data = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ersConfig>
 <id>1</id>
@@ -62,11 +62,11 @@ def ise_ers_api_enable () :
 """
 
     r = requests.put(url,
-                    auth=(env['ise_rest_username'], env['ise_rest_password']),
+                    auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
                     data=data,
                     headers={'Content-Type': CONTENT_TYPE_XML,
                              'Accept': CONTENT_TYPE_XML},
-                    verify=env['ise_verify'].lower().startswith('t')
+                    verify=env['ISE_CERT_VERIFY'].lower().startswith('t')
                     )
     if (r.status_code == 200) :
         print("✅ ISE ERS APIs Enabled")

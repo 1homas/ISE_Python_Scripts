@@ -154,14 +154,8 @@ def parse_cli_arguments () :
             description=USAGE,
             formatter_class=argparse.RawDescriptionHelpFormatter,   # keep my format
             )
-    ARGS.add_argument(
-            'resource', action='store', default=None, 
-            help='ISE API endpoint name',
-            )
-    ARGS.add_argument(
-            '--verbose', '-v', action='count', default=0,
-            help='Verbosity',
-            )
+    ARGS.add_argument('resource', action='store', default=None, help='ISE API endpoint name')
+    ARGS.add_argument('--verbose', '-v', action='count', default=0, help='Verbosity')
 
     return ARGS.parse_args()
 
@@ -185,19 +179,20 @@ def main () :
         sys.exit(1)
 
     # Load Environment Variables
-    env = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
-    hostname = env['ISE_HOSTNAME']
-    username = env['ISE_REST_USERNAME']
-    password = env['ISE_REST_PASSWORD']
-    verify = (True if env['ISE_CERT_VERIFY'][0:1].lower() in ['t','y','o'] else False)
+    ENV = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
+    # if args.verbose : print(f"ⓘ ENV: {ENV}")
 
     # Get resource IDs
     resources = []
-    url = f"https://{hostname}/ers/config/{resource_name}?size={ISE_PAGING_MAX}"
-    if args.verbose : print("ⓘ URL: {url}")
+    url = f"https://{ENV['ISE_HOSTNAME']}/ers/config/{resource_name}?size={ISE_PAGING_MAX}"
+    if args.verbose : print(f"ⓘ URL: {url}")
 
     while (url) :
-        r = requests.get(url, auth=(username, password), headers=HEADERS_JSON, verify=verify)
+        r = requests.get(url,
+                         auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
+                         headers=HEADERS_JSON,
+                         verify=(True if ENV['ISE_CERT_VERIFY'][0:1].lower() in ['t','y','o'] else False)
+                         )
         if DEBUG : debug(r.text)
         resources += r.json()["SearchResult"]["resources"]
         try :
@@ -214,9 +209,13 @@ def main () :
     for resource in resources :
         # if DEBUG : debug(resource)
 
-        url = f"https://{hostname}/ers/config/{resource_name}/{resource['id']}"
-        if args.verbose : print("ⓘ URL: {url}")
-        r = requests.get(url, auth=(username, password), headers=HEADERS_JSON, verify=verify)
+        url = f"https://{ENV['ISE_HOSTNAME']}/ers/config/{resource_name}/{resource['id']}"
+        if args.verbose : print(f"ⓘ URL: {url}")
+        r = requests.get(url,
+                         auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
+                         headers=HEADERS_JSON,
+                         verify=(True if ENV['ISE_CERT_VERIFY'][0:1].lower() in ['t','y','o'] else False)
+                         )
 
         detail = r.json()
         object_name = list(detail)[0]   # save the resource name for the output
@@ -225,11 +224,10 @@ def main () :
         if DEBUG : debug(detail)
         details.append( detail )
 
-
     output = {}
     output[object_name] = details
-    if args.verbose : print("ⓘ {json.dumps(output, indent=2)}")
-    if args.verbose : print("ⓘ Total: {len(resources)}")
+    print(json.dumps(output, indent=2))
+    if args.verbose : print(f"ⓘ Total: {len(resources)}")
 
 
 
