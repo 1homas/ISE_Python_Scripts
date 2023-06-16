@@ -311,7 +311,7 @@ ISE_REST_ENDPOINTS = {
 }
 
 
-async def get_ise_resource (session, path) :
+async def get_ers_resources (session, path) :
     """
     Return the resources from the JSON response.
     @session : the aiohttp session to reuse
@@ -320,11 +320,11 @@ async def get_ise_resource (session, path) :
     """
     async with session.get(path) as resp:
         json = await resp.json()
-        if args.verbosity >= 3 : print(f"ⓘ get_ise_resource({path}): {json}", file=sys.stderr)
+        if args.verbosity >= 3 : print(f"ⓘ get_ers_resources({path}): {json}", file=sys.stderr)
         return json['SearchResult']['resources']
 
 
-async def get_ise_resources (session=None, name=None, path=None, detailed=False) :
+async def get (session=None, name=None, path=None, detailed=False) :
     """
     Return the specified resources from ISE.
     @session : the aiohttp session to reuse
@@ -332,7 +332,7 @@ async def get_ise_resources (session=None, name=None, path=None, detailed=False)
     @path    : the REST endpoint path
     @detailed: True to get all object details, False otherwise
     """
-    if args.verbosity >= 3 : print(f"ⓘ get_ise_resources({path})", file=sys.stderr)
+    if args.verbosity >= 3 : print(f"ⓘ get({path})", file=sys.stderr)
 
     # Get the first page for the total resources
     response = await session.get(f"{path}?size={args.pagesize}")
@@ -369,7 +369,7 @@ async def get_ise_resources (session=None, name=None, path=None, detailed=False)
         if args.verbosity >= 3 : print(f"ⓘ type(json): {type(path)})", file=sys.stderr)
 
         
-    if args.verbosity >= 3 : print(f"ⓘ get_ise_resources({path}): Total: {total}", file=sys.stderr)
+    if args.verbosity >= 3 : print(f"ⓘ get({path}): Total: {total}", file=sys.stderr)
 
     # Get all remaining resources if more than the REST page size
     if is_ers and total > args.pagesize :
@@ -382,7 +382,7 @@ async def get_ise_resources (session=None, name=None, path=None, detailed=False)
 
         # Get all pages with asyncio!
         tasks = []
-        [ tasks.append(asyncio.ensure_future(get_ise_resource(session, url))) for url in urls ]
+        [ tasks.append(asyncio.ensure_future(get_ers_resources(session, url))) for url in urls ]
         responses = await asyncio.gather(*tasks)
         [ resources.extend(response) for response in responses ]
 
@@ -400,56 +400,6 @@ async def get_ise_resources (session=None, name=None, path=None, detailed=False)
     for r in resources:
         if type(r) == dict and r.get('link'): 
             del r['link']
-
-    return resources
-
-
-async def delete_ise_resources (session, name, path, resources) :
-    """
-    POST the resources to ISE.
-    @session   : the aiohttp session to reuse
-    @name      : the ERS object name in the JSON
-    @path      : the REST endpoint path
-    @resources : a list of resources identifiers (id or name)
-    """
-    if args.verbosity >= 3 : print(f"ⓘ > delete_ise_resources({name}, {path}, {len(df)})", file=sys.stderr)
-
-    for resource in resources :
-        if args.verbosity >= 3 : print(f"delete resource: {path}/{resource}", file=sys.stderr)
-        async with session.delete(f"{path}/{resource}") as resp:
-            if resp.ok : print(f"⌫ {resp.status} {resource}")
-            # elif resp.status == 400 : print(f"ⓘ  {resp.status} {row['name']} {(await resp.json())['ERSResponse']['messages'][0]['title']}")
-            else : print(f"❌ {resp.status} {(await resp.json())['ERSResponse']['messages'][0]['title']}")
-
-    if args.verbosity >= 3 : print(f"ⓘ < delete_ise_resources({name}, {path}) {len(resources)}", file=sys.stderr)
-
-
-
-async def post_simple_ise_resources (session, name, path, df) :
-    """
-    POST the resources to ISE.
-    @session : the aiohttp session to reuse
-    @name    : the ERS object name in the JSON
-    @path    : the REST endpoint path
-    @df      : the dataframe of resources to create
-    """
-    if args.verbosity >= 3 : print(f"ⓘ > post_simple_ise_resources({name}, {path}, {len(df)})", file=sys.stderr)
-
-    for row in df.to_dict('records'):
-        if args.verbosity >= 3 : print(f"row: {row}", file=sys.stderr)
-        resource = { name : row }
-        if args.verbosity >= 3 : print(f"resource: {resource}", file=sys.stderr)
-        if args.verbosity >= 3 : print(f"resource as json: {json.dumps(resource)}", file=sys.stderr)
-        async with session.post(f"{path}", data=json.dumps(resource)) as resp:
-            if resp.ok : print(f"🌟 {resp.status} {row['name']}", file=sys.stderr)
-            elif resp.status == 400 : print(f"ⓘ  {resp.status} {row['name']} {(await resp.json())['ERSResponse']['messages'][0]['title']}", file=sys.stderr)
-            else : print(f"❌ {resp.status} {(await resp.json())['ERSResponse']['messages'][0]['title']}", file=sys.stderr)
-
-    # Get newly created resources
-    resources = await get_ise_resources(session, path)
-    # resources = await get_ise_resource_details(session, name, path)
-
-    if args.verbosity >= 3 : print(f"ⓘ < post_simple_ise_resources({name}, {path}) {len(resources)}", file=sys.stderr)
 
     return resources
 
@@ -579,7 +529,7 @@ async def main ():
         if args.verbosity >= 3 : print(f"\nⓘ object: '{name}' base_url: {base_url}", file=sys.stderr)
 
         if base_url :
-            resources = await get_ise_resources(session, name, base_url, args.details)
+            resources = await get(session, name, base_url, args.details)
         else :
             print(f"\nUnknown resource: {args.resource}\n", file=sys.stderr)
     except aiohttp.ContentTypeError as e :
