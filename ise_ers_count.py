@@ -2,7 +2,9 @@
 """
 Get the total number of a specific ISE ERS resource.
 See https://cs.co/ise-api for REST API resource names.
+"""
 
+USAGE = """
 Usage: ise_ers_count.py {resource_name}
 
 Requires setting the these environment variables using the `export` command:
@@ -31,11 +33,10 @@ Return the number of resources of type resource.
 """
 def ise_ers_resource_count (resource) :
     count = 0
-    url = 'https://'+env['ise_rest_hostname']+'/ers/config/'+resource_name
-    r = requests.get(url,
-                    auth=(env['ise_rest_username'], env['ise_rest_password']),
-                    headers={'Accept': 'application/json'},
-                    verify=env['ise_verify'].lower().startswith('t')
+    r = requests.get(f"https://{ENV['ISE_HOSTNAME']}/ers/config/{resource_name}",
+                     auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
+                     headers={'Accept': 'application/json'},
+                     verify=ENV['ISE_CERT_VERIFY'].lower().startswith('t')
                     )
     if r.status_code == 200 :
         count = r.json()['SearchResult']['total']
@@ -56,10 +57,11 @@ if __name__ == "__main__":
     """
 
     # Load Environment Variables
-    env = { k : v for (k, v) in os.environ.items() }
+    ENV = { k : v for (k, v) in os.environ.items() }
 
     if len(sys.argv) <= 1 :
         print('❌ Missing resource name', file=sys.stderr)
+        print(USAGE, file=sys.stderr)
         sys.exit(1) # not OK
     resource_name = sys.argv[1]
 
