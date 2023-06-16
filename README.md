@@ -16,32 +16,38 @@
     If you have any problems installing Python or Ansible, see [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
 
 
-2. Export your credentials for ISE into your shell environment. 
+2. These scripts require the use of these environment variables using the `export` command:
 
-     export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
-     export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
-     export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
-     export ISE_CERT_VERIFY=false          # validate the ISE certificate
+   ```sh
+   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+   export ISE_CERT_VERIFY=false          # validate the ISE certificate
+   ```
 
-   You may store these lines to a text file and load with `source`:
+   You may add these export lines to a text file and load with `source`:
 
-      source ise.sh
+   ```sh
+   source ise_environment.sh
+   ```
 
-1. These Python use ISE REST APIs so ensure your ISE node (Primary Administration Node) has the APIs enabled or you may run this script to enable them:
+3. These Python use ISE REST APIs so ensure your ISE node (Primary Administration Node) has the APIs enabled or you may run this script to enable them:
 
-    ise_api_enabled.py
+   ```sh
+   ise_api_enabled.py
+   ```
 
-2. Run the other scripts.
+4. Run the other scripts.
 
 
 
 
-## ise_enable_apis.py / ise_enable_apis_async.py
+## ise_api_enabled.py / ise_api_enabled_aio.py
 
 Enable the ISE ERS and OpenAPI APIs.
 
 ```sh
-❱ ise_enable_apis.py
+❱ ise_api_enabled.py
 ✅ ISE Open APIs Enabled
 ✅ ISE ERS APIs Enabled
 ```
@@ -65,19 +71,57 @@ Get the total resource count of a specified ISE ERS resource.
 
 Show ISE ERS REST API data in a variety of ways.
 
-- `dump`  : Dump the raw JSON output as a single string to the screen
-- `line`  : Show the JSON with each object on it's own line
-- `pretty`: Pretty-print the JSON
-- `table` : Show each object in a table/grid row
-- `csv`   : Show the output in a Comma-Separated Value (CSV) format
+- `csv`   : Show the items in a Comma-Separated Value (CSV) format
+- `grid`  : Show the items in a grid/table
+- `table` : Show the items in a grid/table
 - `id`    : Show only the id column for the objects (if available)
-- `yaml`  : Show the output in a YAML format
+- `json`  : Show the items as a single JSON string
+- `line`  : Show the items as JSON with each item on it's own line
+- `pretty`: Show the items as JSON pretty-printed with 2-space indents
+- `yaml`  : Show the items as YAML with 2-space indents
 
 ```sh
 ❱ ise_get.py sgt
-[{"id": "8337f3e6-fdc7-449b-86a4-ba787c305f21", "name": "Cameras"}, {"id": "93ad6890-8c01-11e6-996c-525400b48521", "name": "Employees", "description": "Employee Security Group"}, {"id": "93c66ed0-8c01-11e6-996c-525400b48521", "name": "Guests", "description": "Guest Security Group"}, {"id": "ccaf14ab-d8d7-438f-832d-0fdab0b07cfb", "name": "IOT"}, {"id": "62cc161e-05c8-48bc-ac8b-cde3d77fad4e", "name": "NetServices", "description": "TrustSec Devices Security Group"}, {"id": "947832a0-8c01-11e6-996c-525400b48521", "name": "TrustSec_Devices", "description": "TrustSec Devices Security Group"}, {"id": "92adf9f0-8c01-11e6-996c-525400b48521", "name": "Unknown", "description": "Unknown Security Group"}]
+{
+  "sgt": [
+    {
+      "id": "8337f3e6-fdc7-449b-86a4-ba787c305f21",
+      "name": "Cameras"
+    },
+    {
+      "id": "93ad6890-8c01-11e6-996c-525400b48521",
+      "name": "Employees",
+      "description": "Employee Security Group"
+    },
+    {
+      "id": "93c66ed0-8c01-11e6-996c-525400b48521",
+      "name": "Guests",
+      "description": "Guest Security Group"
+    },
+    {
+      "id": "ccaf14ab-d8d7-438f-832d-0fdab0b07cfb",
+      "name": "IOT"
+    },
+    {
+      "id": "62cc161e-05c8-48bc-ac8b-cde3d77fad4e",
+      "name": "NetServices",
+      "description": "TrustSec Devices Security Group"
+    },
+    {
+      "id": "947832a0-8c01-11e6-996c-525400b48521",
+      "name": "TrustSec_Devices",
+      "description": "TrustSec Devices Security Group"
+    },
+    {
+      "id": "92adf9f0-8c01-11e6-996c-525400b48521",
+      "name": "Unknown",
+      "description": "Unknown Security Group"
+    }
+  ]
+}
 
-❱ ise_get.py sgt -dto table --noid
+❱ ise_get.py sgt -dtf grid --noid
+▶ 2023-06-16T10:01:11
 ┌──────────────────┬─────────┬────────────────┬───────────────────┬─────────────────────────────────┐
 │ name             │   value │   generationId │ propogateToApic   │ description                     │
 ├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
@@ -95,9 +139,8 @@ Show ISE ERS REST API data in a variety of ways.
 ├──────────────────┼─────────┼────────────────┼───────────────────┼─────────────────────────────────┤
 │ Unknown          │       0 │             28 │ False             │ Unknown Security Group          │
 └──────────────────┴─────────┴────────────────┴───────────────────┴─────────────────────────────────┘
-
- 🕒 0.6915860176086426 seconds
-
+■ 2023-06-16T10:01:12
+⏲ 0.774 seconds
 ```
 
 
