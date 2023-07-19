@@ -16,7 +16,10 @@ import time
 import yaml
 from tabulate import tabulate
 
+
+#------------------------------------------------------------------------------
 # Globals
+#------------------------------------------------------------------------------
 USAGE = """
 
 Show ISE REST APIs data.
@@ -49,10 +52,7 @@ You may add these export lines to a text file and load with `source`:
 
 DATA_DIR = './'
 DEFAULT_TRUSTSEC_FILENAME = 'ise_trustsec_matrix.xlsx'
-
-# DateTime Formats for strftime()
-DT_ISO8601 = "%Y-%m-%dT%H:%M:%S"
-
+DT_ISO8601 = "%Y-%m-%dT%H:%M:%S" # DateTime Formats for strftime()
 
 # REST Options
 JSON_HEADERS = {'Accept':'application/json', 'Content-Type':'application/json'}
@@ -324,7 +324,7 @@ async def get_ers_resources (session, path) :
         return json['SearchResult']['resources']
 
 
-async def get (session=None, name=None, path=None, detailed=False) :
+async def get (session=None, name=None, path=None, detailed=False, ssl_verify=ssl_verify) :
     """
     Return the specified resources from ISE.
     @session : the aiohttp session to reuse
@@ -335,7 +335,7 @@ async def get (session=None, name=None, path=None, detailed=False) :
     if args.verbosity >= 3 : print(f"ⓘ get({path})", file=sys.stderr)
 
     # Get the first page for the total resources
-    response = await session.get(f"{path}?size={args.pagesize}")
+    response = await session.get(f"{path}?size={args.pagesize}", verify_ssl=ssl_verify)
     json = await response.json()
     if args.verbosity >= 3 : print(f"ⓘ JSON:\n{json}", file=sys.stderr)
 
@@ -391,7 +391,7 @@ async def get (session=None, name=None, path=None, detailed=False) :
         uuids = [r['id'] for r in resources]
         resources = [] # clear list for detailed data
         for uuid in uuids:
-            async with session.get(f"{path}/{uuid}") as resp:
+            async with session.get(f"{path}/{uuid}", verify_ssl=ssl_verify) as resp:
                 json = await resp.json()
                 if args.verbosity >= 3 : print(f"json: {json}", file=sys.stderr)
                 resources.append(json[name])
@@ -519,7 +519,7 @@ async def main ():
     try :
         # Create HTTP session
         ssl_verify = (False if (args.insecure or env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n']) else True)
-        tcp_conn = aiohttp.TCPConnector(limit=TCP_CONNECTIONS, limit_per_host=TCP_CONNECTIONS, ssl=ssl_verify)
+        tcp_conn = aiohttp.TCPConnector(limit=TCP_CONNECTIONS, limit_per_host=TCP_CONNECTIONS)
         auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
         base_url = f"https://{env['ISE_HOSTNAME']}"
         session = aiohttp.ClientSession(base_url, auth=auth, connector=tcp_conn, headers=JSON_HEADERS)
@@ -529,7 +529,7 @@ async def main ():
         if args.verbosity >= 3 : print(f"\nⓘ object: '{name}' base_url: {base_url}", file=sys.stderr)
 
         if base_url :
-            resources = await get(session, name, base_url, args.details)
+            resources = await get(session, name, base_url, args.details, verify_ssl=ssl_verify)
         else :
             print(f"\nUnknown resource: {args.resource}\n", file=sys.stderr)
     except aiohttp.ContentTypeError as e :
