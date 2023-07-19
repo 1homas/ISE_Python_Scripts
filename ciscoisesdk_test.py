@@ -12,6 +12,7 @@ import os
 import sys
 import time
 from ciscoisesdk import IdentityServicesEngineAPI
+import ciscoisesdk
 
 USAGE = """
 
@@ -32,6 +33,22 @@ You may add these export lines to a text file and load with `source`:
   source ise.sh
 
 """
+
+def remove_ise_ids_and_links (resources:list=[]) :
+    """
+    Remove `id` and 'link' attributes to flatten ISE JSON data.
+    """
+    new_resources = []
+    for r in resources:
+        key, r = r.popitem() # unwrap ISE object name
+        if type(r) == ciscoisesdk.models.mydict.MyDict :
+            if r.get('id'): 
+                del r['id']
+            if r.get('link'): 
+                del r['link']
+        new_resources.append(r)
+    return new_resources
+
 
 def parse_cli_arguments () :
     """
@@ -71,17 +88,21 @@ def main():
           )
 
     sgts = ise.security_groups.get_security_groups()
-    print(json.dumps(sgts.response, indent=2))
-    sgts = sgts.response['SearchResult']['resources']
-    print(sgts)
-    uuids = list(map(lambda x: x['id'], sgts))
-    print(uuids)
-    responses = [ise.security_groups.get_security_group_by_id(uuid).response for uuid in uuids ]
-    print(responses)
+    print(f"SGTs JSON:\n{json.dumps(sgts.response, indent=2)}", file=sys.stderr)
 
-    
+    sgts = sgts.response['SearchResult']['resources']
+    print(f"SGT resources JSON:\n{json.dumps(sgts, indent=2)}", file=sys.stderr)
+
+    sgt_ids = list(map(lambda x: x['id'], sgts))
+    print(f"SGT IDs List:\n{sgt_ids}", file=sys.stderr)
+
+    # Use the IDs to get all SGT details
+    sgt_details = [ise.security_groups.get_security_group_by_id(id).response for id in sgt_ids ]
+    sgt_details = remove_ise_ids_and_links(sgt_details)
+    print(f"SGT Details:\n{sgt_details}", file=sys.stderr)
+
     nads = ise.network_device.get_all()
-    print(nads.response)
+    print(f"NADS:\n{nads.response}", file=sys.stderr)
 
     if args.timer :
         duration = time.time() - start_time
