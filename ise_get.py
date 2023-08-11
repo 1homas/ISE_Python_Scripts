@@ -28,15 +28,15 @@ Examples:
     ise_get.py endpoint 
     ise_get.py endpoint -v
     ise_get.py endpoint -itv
-    ise_get.py endpointgroup -o csv
-    ise_get.py endpointgroup -o csv -f endpointgroup.csv
-    ise_get.py endpointgroup -o id
-    ise_get.py endpointgroup -o line
-    ise_get.py endpointgroup -o pretty
-    ise_get.py endpointgroup -o pretty --details
-    ise_get.py endpointgroup -o grid
-    ise_get.py endpointgroup -o grid --details --noid
-    ise_get.py endpointgroup -o yaml
+    ise_get.py endpointgroup -f  csv
+    ise_get.py endpointgroup -f  csv -f endpointgroup.csv
+    ise_get.py endpointgroup -f  id
+    ise_get.py endpointgroup -f  line
+    ise_get.py endpointgroup -f  pretty
+    ise_get.py endpointgroup -f  pretty --details
+    ise_get.py endpointgroup -f  grid
+    ise_get.py endpointgroup -f  grid --details --noid
+    ise_get.py endpointgroup -f  yaml
     ise_get.py --format yaml --noid pxgd-connector-config > pxgd-connector-config.yaml
 
 Requires setting the these environment variables using the `export` command:
