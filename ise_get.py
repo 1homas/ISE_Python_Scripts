@@ -311,20 +311,20 @@ ISE_REST_ENDPOINTS = {
 }
 
 
-async def get_ers_resources (session, path) :
+async def get_ers_resources (session, path, verify_ssl=True) :
     """
     Return the resources from the JSON response.
     @session : the aiohttp session to reuse
     @name    : the ERS object name in the JSON
     @path    : the REST endpoint path
     """
-    async with session.get(path) as resp:
+    async with session.get(path, ssl=verify_ssl) as resp:
         json = await resp.json()
         if args.verbosity >= 3 : print(f"ⓘ get_ers_resources({path}): {json}", file=sys.stderr)
         return json['SearchResult']['resources']
 
 
-async def get (session=None, name=None, path=None, detailed=False, verify_ssl=True) :
+async def ise_get (session=None, name=None, path=None, detailed=False, verify_ssl=True) :
     """
     Return the specified resources from ISE.
     @session : the aiohttp session to reuse
@@ -332,7 +332,7 @@ async def get (session=None, name=None, path=None, detailed=False, verify_ssl=Tr
     @path    : the REST endpoint path
     @detailed: True to get all object details, False otherwise
     """
-    if args.verbosity >= 3 : print(f"ⓘ get({path})", file=sys.stderr)
+    if args.verbosity >= 3 : print(f"ⓘ ise_get({path})", file=sys.stderr)
 
     # Get the first page for the total resources
     response = await session.get(f"{path}?size={args.pagesize}", ssl=verify_ssl)
@@ -369,7 +369,7 @@ async def get (session=None, name=None, path=None, detailed=False, verify_ssl=Tr
         if args.verbosity >= 3 : print(f"ⓘ type(json): {type(path)})", file=sys.stderr)
 
         
-    if args.verbosity >= 3 : print(f"ⓘ get({path}): Total: {total}", file=sys.stderr)
+    if args.verbosity >= 3 : print(f"ⓘ ise_get({path}): Total: {total}", file=sys.stderr)
 
     # Get all remaining resources if more than the REST page size
     if is_ers and total > args.pagesize :
@@ -382,7 +382,7 @@ async def get (session=None, name=None, path=None, detailed=False, verify_ssl=Tr
 
         # Get all pages with asyncio!
         tasks = []
-        [ tasks.append(asyncio.ensure_future(get_ers_resources(session, url))) for url in urls ]
+        [ tasks.append(asyncio.ensure_future(get_ers_resources(session, url, verify_ssl))) for url in urls ]
         responses = await asyncio.gather(*tasks)
         [ resources.extend(response) for response in responses ]
 
@@ -529,7 +529,7 @@ async def main ():
         if args.verbosity >= 3 : print(f"\nⓘ object: '{name}' base_url: {base_url}", file=sys.stderr)
 
         if base_url :
-            resources = await get(session, name, base_url, args.details, verify_ssl=verify_ssl)
+            resources = await ise_get(session, name, base_url, args.details, verify_ssl=verify_ssl)
         else :
             print(f"\nUnknown resource: {args.resource}\n", file=sys.stderr)
     except aiohttp.ContentTypeError as e :
