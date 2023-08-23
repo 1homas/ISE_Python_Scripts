@@ -36,7 +36,8 @@ Examples:
     cmdb_ci_generator.py -f pretty -tvn 1_000_000 > CMDB_1M.json
 """
 
-ITEM_COUNT = 1  # the default number of config items to generate
+ITEM_COUNT = 1                  # default number of config items to generate
+PARENT_OBJECT_NAME = 'table'    # Parent Object Name for JSON & YAML output
 
 #
 # 💡 Un/comment locations or create your own as needed
@@ -524,12 +525,12 @@ def get_ouis_by_org (org:str=None) :
     return df_ouis[df_ouis.Organization.str.lower().str.contains(org.lower())]['OUI'].tolist()
 
 
-def show (resources=None, name=None, format='pretty', filename='-') :
+def show (resources=None, resource_name=None, format='pretty', filename='-') :
     """
     Shows the resources in the specified format to the file handle.
 
     @resources : the list of dictionary items to format
-    @name      : the name of the resource. Example: endpoint, sgt, etc.
+    @resource_name : the name of the resource. Example: endpoint, sgt, etc.
     @format    : 
         - `csv`   : Show the items in a Comma-Separated Value (CSV) format
         - `grid`  : Show the items to a grid/table
@@ -562,18 +563,18 @@ def show (resources=None, name=None, format='pretty', filename='-') :
 
     elif format == 'line':  # JSON, 1 line per object
         print('{')
-        print(f'{name} = [')
+        print(f'"{resource_name}" = [')
         [print(json.dumps(r), end=',\n', file=fh) for r in resources]
         print(']\n}')
 
     elif format == 'json':  # JSON, one long string
-        print(json.dumps({ name : resources }), file=fh)
+        print(json.dumps({ resource_name : resources }), file=fh)
 
     elif format == 'pretty':  # pretty-print
-        print(json.dumps({ name : resources }, indent=2), file=fh)
+        print(json.dumps({ resource_name : resources }, indent=2), file=fh)
 
     elif format == 'yaml':  # YAML
-        print(yaml.dump({ name : resources }, indent=2, default_flow_style=False), file=fh)
+        print(yaml.dump({ resource_name : resources }, indent=2, default_flow_style=False), file=fh)
 
     else:  # just in case something gets through the CLI parser
         print(f' 🛑 Unknown format: {format}', file=sys.stderr)
@@ -625,15 +626,11 @@ def main():
 
     if args.verbosity : print(f"ⓘ Total Config Items = {len(items)}", file=sys.stderr)
 
-    if args.timer :
-        duration = time.time() - start_time
-        print(f"\n 🕒 {duration} seconds\n", file=sys.stderr)
-
-    show(items, 'result', args.format, args.filename)
+    show(items, PARENT_OBJECT_NAME, args.format, args.filename)
 
     if args.timer :
         duration = time.time() - start_time
-        print(f"\n 🕒 {duration} seconds\n", file=sys.stderr)
+        print(f"🕒 {duration} seconds\n", file=sys.stderr)
 
 
 if __name__ == '__main__':     # Runs main() if file wasn't imported.  
