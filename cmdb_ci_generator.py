@@ -36,6 +36,7 @@ Examples:
     cmdb_ci_generator.py -f pretty -tvn 1_000_000 > CMDB_1M.json
 """
 
+ITEM_COUNT = 1  # the default number of config items to generate
 
 #
 # 💡 Un/comment locations or create your own as needed
@@ -588,7 +589,7 @@ def parse_cli_arguments () :
             )
 
     ARGS.add_argument('--filename', default='-', required=False, help='Save output to filename. Default: stdout')
-    ARGS.add_argument('-n', '--number', type=int, default=100, help='Number of items')
+    ARGS.add_argument('-n', '--number', type=int, default=ITEM_COUNT, help='Number of config items to generate')
     ARGS.add_argument('-f', '--format', choices=['csv', 'grid', 'json', 'line', 'pretty', 'yaml'], default='pretty')
     ARGS.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
     ARGS.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
