@@ -1,46 +1,60 @@
 # README
 
+A collection of useful Python scripts for working with the Cisco Identity Services Engine (ISE).
 
 ## Quick Start
 
-1. Create your Python environment and install necessary Python packages :
+1.  Create your Python environment and install necessary Python packages :
 
     ```sh
-    python -m ensurepip --upgrade
-    pip3   install --upgrade pipenv     # use pipenv for virtual development environment
-    pipenv install --python 3.9         # use Python 3.9 or later
-    pipenv install -r requirements.txt  # install required packages (`pip freeze > requirements.txt`)
+    python_environment_install.sh
     pipenv shell
     ```
 
-    If you have any problems installing Python or Ansible, see [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
+2.  Some of these scripts (when communicating with ISE) require the use of these environment variables using the `export` command:
 
+    ```sh
+    export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+    export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+    export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+    export ISE_CERT_VERIFY=false          # validate the ISE certificate
+    ```
 
-2. These scripts require the use of these environment variables using the `export` command:
+    You may conveniently edit these export lines in the `ise_environment.sh` text file and load them into your terminal environment with `source`:
 
-   ```sh
-   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
-   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
-   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
-   export ISE_CERT_VERIFY=false          # validate the ISE certificate
-   ```
+    ```sh
+    source ise_environment.sh
+    ```
 
-   You may add these export lines to a text file and load with `source`:
+    Then verify your environment variables 
 
-   ```sh
-   source ise_environment.sh
-   ```
+    ```sh
+    env
+    echo $ISE_HOSTNAME
+    ```
 
-3. These Python use ISE REST APIs so ensure your ISE node (Primary Administration Node) has the APIs enabled or you may run this script to enable them:
+3.  These Python use ISE REST APIs so ensure your ISE node (Primary Administration Node) has the APIs enabled or you may run this script to enable them:
 
-   ```sh
-   ise_api_enabled.py
-   ```
+    ```sh
+    ise_api_enabled.py
+    ```
 
 4. Run the other scripts.
 
 
+## cmdb_ci_generator.py
 
+Cisco Identity Services Engine (ISE) 3.2 and later has a feature called pxGrid Direct with the ability to retrieve JSON-formatted data representing tables of endpoint attributes and save them to data dictionaries in ISE. This capability is used to download configuration items (CIs) from configuration management databases (CMDBs) for use in authorizing endpoints as shown in the [Cisco ISE Webinar](https://cs.co/ise-webinars) [ISE pxGrid Direct with CMDBs](https://youtu.be/g8fzBPY8gU8).
+
+In order to test this feature, it is very useful to generate a sample set of JSON data records that you can serve from any HTTP/S server as an ISE pxGrid Direct Connector. This script generates random data for functional and scale testing.
+
+```sh
+cmdb_ci_generator.py --help                 # see all of your options
+cmdb_ci_generator.py                        # create a single, random config item in JSON
+cmdb_ci_generator.py -n 10                  # create 10 config items on the screen
+cmdb_ci_generator.py -n 1000 > CMDB.json    # create 1000 items saved to `CMDB.json`
+cmdb_ci_generator.py -f line -tvn 1_000_000 > CMDB_1M.json  # save 1M CIs and time it
+```
 
 ## ise_api_enabled.py / ise_api_enabled_aio.py
 
@@ -52,9 +66,6 @@ Enable the ISE ERS and OpenAPI APIs.
 ✅ ISE ERS APIs Enabled
 ```
 
-
-
-
 ## ise_ers_count.py
 
 Get the total resource count of a specified ISE ERS resource.
@@ -63,9 +74,6 @@ Get the total resource count of a specified ISE ERS resource.
 ❱ ise_ers_count.py endpointgroup
 20
 ```
-
-
-
 
 ## ise_get.py
 
