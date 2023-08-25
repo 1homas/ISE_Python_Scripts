@@ -194,14 +194,14 @@ def main () :
                          verify=(True if ENV['ISE_CERT_VERIFY'][0:1].lower() in ['t','y','o'] else False)
                          )
         if DEBUG : debug(r.text)
+        if args.verbose : print(f'ⓘ Total {resource_name}: {r.json()["SearchResult"]["total"]}')
         resources += r.json()["SearchResult"]["resources"]
         try :
             url = r.json()["SearchResult"]["nextPage"]["href"]
         except Exception as e :
             url = None
 
-    if args.verbose : print(f"ⓘ Got {len(resources)} resources")
-    if args.verbose : print(f"ⓘ Getting details...")
+    if args.verbose : print(f"ⓘ Got {len(resources)} resources, getting their details...")
 
     # Show resource details
     object_name = ''
