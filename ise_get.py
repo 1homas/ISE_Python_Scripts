@@ -196,7 +196,7 @@ ISE_REST_ENDPOINTS = {
     'profile'               : ( '',          '/api/v1/profile/{hostname}' ),
 
     # Endpoints
-    'endpoint'              : ( '',          '/api/v1/endpoint' ),
+    'endpoints'              : ( '',          '/api/v1/endpoint' ),
     # 'endpoint-value'      : ( '',          '/api/v1/endpoint/{value}' ),
     'endpoint-summary'      : ( '',          '/api/v1/endpoint/deviceType/summary' ),
 
@@ -332,7 +332,7 @@ async def ise_get (session=None, name=None, path=None, detailed=False, verify_ss
     @path    : the REST endpoint path
     @detailed: True to get all object details, False otherwise
     """
-    if args.verbosity >= 3 : print(f"ⓘ ise_get({path})", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ ise_get({path})", file=sys.stderr)
 
     # Get the first page for the total resources
     response = await session.get(f"{path}?size={args.pagesize}", ssl=verify_ssl)
@@ -352,7 +352,7 @@ async def ise_get (session=None, name=None, path=None, detailed=False, verify_ss
             is_ers = True
             total = json['SearchResult']['total']
             resources = json['SearchResult']['resources']
-            if args.verbosity >= 3 : print(f"ⓘ ERS: {total} resources", file=sys.stderr)
+            if args.verbosity : print(f"ⓘ ERS: {total} resources", file=sys.stderr)
         else :  # OpenAPI
             if json.get('response') :
                 resources = json['response']
@@ -361,7 +361,7 @@ async def ise_get (session=None, name=None, path=None, detailed=False, verify_ss
                 # hotpatch / patch
                 resources = json
                 total = 1
-            if args.verbosity >= 3 : print(f"ⓘ OpenAPI: {total} resources", file=sys.stderr)
+            if args.verbosity : print(f"ⓘ OpenAPI: {total} resources", file=sys.stderr)
 
     elif isinstance(json, list) :
         resources = json
@@ -369,7 +369,7 @@ async def ise_get (session=None, name=None, path=None, detailed=False, verify_ss
         if args.verbosity >= 3 : print(f"ⓘ type(json): {type(path)})", file=sys.stderr)
 
         
-    if args.verbosity >= 3 : print(f"ⓘ ise_get({path}): Total: {total}", file=sys.stderr)
+    if args.verbosity : print(f"ⓘ ise_get({path}): Total: {total}", file=sys.stderr)
 
     # Get all remaining resources if more than the REST page size
     if is_ers and total > args.pagesize :
@@ -559,7 +559,7 @@ async def main ():
     if args.timer :
         stop_time = time.time()
         print(f"■ {time.strftime(DT_ISO8601, time.localtime(stop_time))}", file=sys.stderr)
-        print(f"⏲ {'{0:.3f}'.format(stop_time - start_time)} seconds", file=sys.stderr)
+        print(f"⏲ {len(resources)} {args.resource} in {'{0:.3f}'.format(stop_time - start_time)} seconds", file=sys.stderr)
 
 
 if __name__ == '__main__':
