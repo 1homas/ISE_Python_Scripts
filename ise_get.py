@@ -412,8 +412,8 @@ def show (resources=None, name=None, format='json', filename='-') :
     @name      : the name of the resource. Example: endpoint, sgt, etc.
     @format    : 
         - `csv`   : Show the items in a Comma-Separated Value (CSV) format
-        - `grid`  : Show the items in a grid/table
-        - `table` : Show the items in a grid/table
+        - `grid`  : Show the items in a table grid with borders
+        - `table` : Show the items in a text-based table
         - `id`    : Show only the id column for the objects (if available)
         - `json`  : Show the items as a single JSON string
         - `line`  : Show the items as JSON with each item on it's own line
@@ -443,8 +443,11 @@ def show (resources=None, name=None, format='json', filename='-') :
         ids = [[r['id']] for r in resources]  # single column table
         print(f"{tabulate(ids, tablefmt='plain')}", file=fh)
 
-    elif format in ['grid', 'table'] : # grid
+    elif format == 'grid' : # grid
         print(f"{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
+
+    elif format == 'table' : # table
+        print(f"{tabulate(resources, headers='keys', tablefmt='table')}", file=fh)
 
     elif format == 'json':  # JSON, one long string
         print(json.dumps({ name : resources }), file=fh)
