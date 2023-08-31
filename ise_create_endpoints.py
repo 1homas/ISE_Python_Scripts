@@ -6,12 +6,12 @@
 import aiohttp
 import asyncio
 import argparse
-from faker import Faker     # generate fake endpoints, MACs, IPs
 import csv
 import io
 import json
 import os
 import random
+from faker import Faker     # generate fake endpoints, MACs, IPs
 
 # Globals
 USAGE = """
@@ -42,8 +42,10 @@ TCP_CONNECTIONS=5
 
 ENDPOINT_GROUP_UNKNOWN = "aa0e8b20-8bff-11e6-996c-525400b48521"
 
+
 faker = Faker('en-US')    # fake data generator
-mac_cache = {}       # NAS identifier name cache to ensure uniqueness
+mac_cache = {}       # MAC cache to ensure uniqueness
+
 
 def get_random_mac () :
     """
@@ -57,9 +59,6 @@ def get_random_mac () :
     return mac
 
 
-#------------------------------------------------------------------------------
-#
-#------------------------------------------------------------------------------
 def generate_random_endpoint_data () :
     """
     Return an endpoint object ready for conversion to JSON.
@@ -67,23 +66,23 @@ def generate_random_endpoint_data () :
     mac = get_random_mac()
     endpoint_group = ENDPOINT_GROUP_UNKNOWN
     resource = {
-        "ERSEndPoint" : {
-            # "id" : "f92ced60-46ff-11ee-88e0-8e8c4f37e52e",
-            "name" : mac,
-            "mac" : mac,
-            'description' : faker.sentence(nb_words=8),
-            "profileId" : "",
-            "staticProfileAssignment" : False,
-            "staticProfileAssignmentDefined" : True,
-            "groupId" : "aa0e8b20-8bff-11e6-996c-525400b48521", # Unknown Endpoint Identity Group
-            "staticGroupAssignment" : False,
-            "staticGroupAssignmentDefined" : True,
-            "portalUser" : "",
-            "identityStore" : "",
-            "identityStoreId" : "",
-            "customAttributes" : {
-                "customAttributes" : { }
-            }
+        'ERSEndPoint' : {
+            'name' : mac,
+            'mac'  : mac,
+            'description' : faker.sentence(nb_words=8), # optional
+            'groupId' : 'aa0e8b20-8bff-11e6-996c-525400b48521', # Unknown Endpoint Identity Group
+            'staticGroupAssignment'          : False,
+            'staticGroupAssignmentDefined'   : False,  # optional
+            'profileId' : '',                # optional
+            'staticProfileAssignment'        : False,
+            'staticProfileAssignmentDefined' : False,  # optional
+            # 'portalUser' : '',        # optional
+            # 'identityStore' : '',     # optional
+            # 'identityStoreId' : '',   # optional
+            'customAttributes' : {    # optional
+                'customAttributes' : { }
+            },
+            # 'mdmAttributes' : { },    # optional
         }
     }
     return resource
