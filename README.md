@@ -62,7 +62,12 @@ You may customize the script to included more or fewer columns/fields representi
 Enable the ISE ERS and OpenAPI APIs.
 
 ```sh
-❱ ise_api_enabled.py
+ise_api_enabled.py
+```
+
+Response:
+
+```text
 ✅ ISE Open APIs Enabled
 ✅ ISE ERS APIs Enabled
 ```
@@ -72,7 +77,12 @@ Enable the ISE ERS and OpenAPI APIs.
 Get the total resource count of a specified ISE ERS resource.
 
 ```sh
-❱ ise_ers_count.py endpointgroup
+ise_ers_count.py endpointgroup
+```
+
+Response:
+
+```text
 20
 ```
 
@@ -90,7 +100,12 @@ Show ISE ERS REST API data in a variety of ways.
 - `yaml`  : Show the items as YAML with 2-space indents
 
 ```sh
-❱ ise_get.py sgt
+ise_get.py sgt
+```
+
+Response:
+
+```json
 {
   "sgt": [
     {
@@ -128,8 +143,15 @@ Show ISE ERS REST API data in a variety of ways.
     }
   ]
 }
+```
 
-❱ ise_get.py sgt -dtf grid --noid
+```sh
+ise_get.py sgt -dtf grid --noid
+```
+
+Response:
+
+```text
 ▶ 2023-06-16T10:01:11
 ┌──────────────────┬─────────┬────────────────┬───────────────────┬─────────────────────────────────┐
 │ name             │   value │   generationId │ propogateToApic   │ description                     │
@@ -156,10 +178,13 @@ Show ISE ERS REST API data in a variety of ways.
 
 Get the raw output from an REST GET for resource list or resource.
 
-A resource list by default :
+### Resource list by default
 
 ```sh
-❱ ise_get_ers_raw.py networkdevice
+ise_get_ers_raw.py networkdevice
+```
+
+```json
 {
   "SearchResult": {
     "total": 2,
@@ -189,10 +214,21 @@ A resource list by default :
 }
 ```
 
-A specific resource with the UUID :
+### Filter JSON Output with `jq`
 
 ```sh
-❱ ise_get_ers_raw.py networkdevice/0b6e9500-8b4a-11ec-ac96-46ca1867e58d
+ise_get_ers_raw.py profilerprofile | jq .SearchResult.total
+```
+
+### Resource with the UUID
+
+```sh
+ise_get_ers_raw.py networkdevice/0b6e9500-8b4a-11ec-ac96-46ca1867e58d
+```
+
+Response:
+
+```json
 {
   "NetworkDevice": {
     "id": "0b6e9500-8b4a-11ec-ac96-46ca1867e58d",
@@ -235,7 +271,12 @@ A specific resource with the UUID :
 Get the detailed contents of all resources of the specified type :
 
 ```sh
-❱ ise_get_ers_resource.py downloadableacl
+ise_get_ers_resource.py downloadableacl
+```
+
+Response:
+
+```json
 {
   "DownloadableAcl": [
     {
@@ -275,7 +316,12 @@ Get the detailed contents of all resources of the specified type :
 A simple REST POST example using JSON data embedded in the script. You may use `ise_get_ers_raw.py` to get sample resource JSON data to embed in your script.
 
 ```sh
-❱ ise_post_ers_embedded.py
+ise_post_ers_embedded.py
+```
+
+Response:
+
+```text
 201
 ✅ View your new networkdevice
    https://198.18.133.27/ers/config/networkdevice/4aedf8f0-8b5a-11ec-ac96-46ca1867e58d
@@ -286,7 +332,12 @@ A simple REST POST example using JSON data embedded in the script. You may use `
 Another REST POST example using JSON data in a separate file. This allows more flexibility to specify any resource type and the data file on the command line.
 
 ```sh
-❱ ise_post_ers_from_file.py networkdevice my_network_device.json
+ise_post_ers_from_file.py networkdevice my_network_device.json
+```
+
+Response:
+
+```text
 201
 ✅ View your new networkdevice
    https://198.18.133.27/ers/config/networkdevice/a1f86c60-8b5b-11ec-ac96-46ca1867e58d
@@ -297,7 +348,12 @@ Another REST POST example using JSON data in a separate file. This allows more f
 Very simple ISE version query.
 
 ```sh
-❱ ise_version.py
+ise_version.py
+```
+
+Response:
+
+```json
 {
   "version": "3.1.0.518",
   "patch": "1",
@@ -313,7 +369,12 @@ Very simple ISE version query.
 Walk the ISE ERS resources to get a summary count of all of the objects.
 
 ```sh
-❱ ise_walk.py
+ise_walk.py
+```
+
+Response:
+
+```text
 C▶198.18.133.27
  ┣╸node [1]
  ┣╸sessionservicenode [0]
