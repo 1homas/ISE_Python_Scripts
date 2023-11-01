@@ -180,134 +180,134 @@ ISE_REST_ENDPOINTS = {
     #
 
     # Certificates
-    'trusted-certificate'   : ( '', '/api/v1/certs/trusted-certificate' ),
-    'system-certificate'    : ( '', '/api/v1/certs/system-certificate/{hostName}' ),
-    'certificate-signing-request' : ( '', '/api/v1/certs/certificate-signing-request' ),
+    'trusted-certificate'   : ( '-', '/api/v1/certs/trusted-certificate' ),
+    'system-certificate'    : ( '-', '/api/v1/certs/system-certificate/{hostName}' ),
+    'certificate-signing-request' : ( '-', '/api/v1/certs/certificate-signing-request' ),
 
     # Backup Restore
-    'last-backup-status'    : ( '', '/api/v1/backup-restore/config/last-backup-status' ),
+    'last-backup-status'    : ( '-', '/api/v1/backup-restore/config/last-backup-status' ),
 
     # Deployment
-    'deployment-node'       : ( '',             '/api/v1//deployment/node' ),
-    'node-group'            : ( '',       '/api/v1//deployment/node-group' ),
-    'pan-ha'                : ( '',           '/api/v1//deployment/pan-ha' ),
-    'node-interface'        : ( '',   '/api/v1/node/{hostname}/interface' ),
-    'sxp-interface'         : ( '',    '/api/v1/node/{hostname}/sxp-interface' ),
-    'profile'               : ( '',          '/api/v1/profile/{hostname}' ),
+    'deployment-node'       : ( '-', '/api/v1//deployment/node' ),
+    'node-group'            : ( '-', '/api/v1//deployment/node-group' ),
+    'pan-ha'                : ( '-', '/api/v1//deployment/pan-ha' ),
+    'node-interface'        : ( '-', '/api/v1/node/{hostname}/interface' ),
+    'sxp-interface'         : ( '-', '/api/v1/node/{hostname}/sxp-interface' ),
+    'profile'               : ( '-', '/api/v1/profile/{hostname}' ),
 
     # Endpoints
-    'endpoints'              : ( '',          '/api/v1/endpoint' ),
-    # 'endpoint-value'      : ( '',          '/api/v1/endpoint/{value}' ),
-    'endpoint-summary'      : ( '',          '/api/v1/endpoint/deviceType/summary' ),
+    'endpoints'             : ( '-', '/api/v1/endpoint' ),
+    # 'endpoint-value'      : ( '-', '/api/v1/endpoint/{value}' ),
+    'endpoint-summary'      : ( '-', '/api/v1/endpoint/deviceType/summary' ),
 
     # Endpoint Custom Atributes
-    'endpoint-custom-attribute' : ( '', '/api/v1/endpoint-custom-attribute' ),
+    'endpoint-custom-attribute' : ( '-', '/api/v1/endpoint-custom-attribute' ),
 
     # IPsec
-    'ipsec'                 : ( 'ipsec',            '/api/v1/ipsec' ),
-    # 'ipsec'               : ( 'ipsec',          '/api/v1/ipsec/{hostName}/{nadIp}' ),
+    'ipsec'                 : ( 'ipsec', '/api/v1/ipsec' ),
+    # 'ipsec'               : ( 'ipsec', '/api/v1/ipsec/{hostName}/{nadIp}' ),
     'ipsec-certificates'    : ( 'ipsec-certificates','/api/v1/ipsec/certificates' ),
 
     # LDAP
-    'ldap'                  : ( '',                 '/api/v1/ldap' ),
-    'ldap-rootcacertificates': ( '',                '/api/v1/ldap/rootcacertificates ' ),
-    'ldap-hosts'            : ( '',                 '/api/v1/ldap/hosts' ),
-    # 'ldap'                : ( '',                 '/api/v1/ldap/name/{name} ' ),
-    # 'ldap'                : ( '',                 '/api/v1/ldap/{id}' ),
+    'ldap'                  : ( '-', '/api/v1/ldap' ),
+    'ldap-rootcacertificates': ( '-', '/api/v1/ldap/rootcacertificates ' ),
+    'ldap-hosts'            : ( '-', '/api/v1/ldap/hosts' ),
+    # 'ldap'                : ( '-', '/api/v1/ldap/name/{name} ' ),
+    # 'ldap'                : ( '-', '/api/v1/ldap/{id}' ),
 
     # License
-    'license-system-smart-state' : ( '',            '/api/v1/license/system/smart-state' ),
-    'license-system-register'    : ( '',            '/api/v1/license/system/register' ),
-    'license-system-tier-state'  : ( '',            '/api/v1/license/system/tier-state' ),
-    'license-system-eval-license': ( '',            '/api/v1/license/system/eval-license' ),
-    'license-system-connection-type': ( '',         '/api/v1/license/system/connection-type' ),
-    'license-system-feature-to-tier-mapping': ( '', '/api/v1/license/system/feature-to-tier-mapping' ),
+    'license-system-smart-state' : ( '-', '/api/v1/license/system/smart-state' ),
+    'license-system-register'    : ( '-', '/api/v1/license/system/register' ),
+    'license-system-tier-state'  : ( '-', '/api/v1/license/system/tier-state' ),
+    'license-system-eval-license': ( '-', '/api/v1/license/system/eval-license' ),
+    'license-system-connection-type': ( '-', '/api/v1/license/system/connection-type' ),
+    'license-system-feature-to-tier-mapping': ( '-', '/api/v1/license/system/feature-to-tier-mapping' ),
 
     # LSD
-    'lsd'                   : ( '', '/api/v1/lsd/updateLsdSettings' ),
+    'lsd'                   : ( '-', '/api/v1/lsd/updateLsdSettings' ),
 
     # Device Admin
     # ⓘ All Device Admin policy objects have the prefix "da-"
-    'da-command-sets'       : ( '', '/api/v1/policy/device-admin/command-sets' ),
-    'da-condition'          : ( '', '/api/v1/policy/device-admin/condition' ),
-    # 'da-condition-id'     : ( '', '/api/v1/policy/device-admin/condition/{conditionId}' ),
-    'da-condition-policyset': ( '', '/api/v1/policy/device-admin/condition/policyset' ),
-    'da-condition-authn'    : ( '', '/api/v1/policy/device-admin/condition-authentication' ),
-    'da-condition-authz'    : ( '', '/api/v1/policy/device-admin/condition-authorization' ),
-    'da-dict-authn'         : ( '', '/api/v1/policy/device-admin/dictionaries/authentication' ),
-    'da-dict-authz'         : ( '', '/api/v1/policy/device-admin/dictionaries/authorization' ),
-    'da-dict-policyset'     : ( '', '/api/v1/policy/device-admin/dictionaries/policyset' ),
-    'da-identity-stores'    : ( '', '/api/v1/policy/device-admin/identity-stores' ),
-    'da-policy-set'         : ( '', '/api/v1/policy/device-admin/policy-set' ),
-    # 'da-policy-set-id'    : ( '', '/api/v1/policy/device-admin/policy-set/{id}' ),
-    'da-global-exception'   : ( '', '/api/v1/policy/device-admin/policy-set/global-exception' ),
-    'da-service-names'      : ( '', '/api/v1/policy/device-admin/service-names' ),
-    'da-shell-profiles'     : ( '', '/api/v1/policy/device-admin/shell-profiles' ),
-    'da-time-condition'     : ( '', '/api/v1/policy/device-admin/time-condition' ),
+    'da-command-sets'       : ( '-', '/api/v1/policy/device-admin/command-sets' ),
+    'da-condition'          : ( '-', '/api/v1/policy/device-admin/condition' ),
+    # 'da-condition-id'     : ( '-', '/api/v1/policy/device-admin/condition/{conditionId}' ),
+    'da-condition-policyset': ( '-', '/api/v1/policy/device-admin/condition/policyset' ),
+    'da-condition-authn'    : ( '-', '/api/v1/policy/device-admin/condition-authentication' ),
+    'da-condition-authz'    : ( '-', '/api/v1/policy/device-admin/condition-authorization' ),
+    'da-dict-authn'         : ( '-', '/api/v1/policy/device-admin/dictionaries/authentication' ),
+    'da-dict-authz'         : ( '-', '/api/v1/policy/device-admin/dictionaries/authorization' ),
+    'da-dict-policyset'     : ( '-', '/api/v1/policy/device-admin/dictionaries/policyset' ),
+    'da-identity-stores'    : ( '-', '/api/v1/policy/device-admin/identity-stores' ),
+    'da-policy-set'         : ( '-', '/api/v1/policy/device-admin/policy-set' ),
+    # 'da-policy-set-id'    : ( '-', '/api/v1/policy/device-admin/policy-set/{id}' ),
+    'da-global-exception'   : ( '-', '/api/v1/policy/device-admin/policy-set/global-exception' ),
+    'da-service-names'      : ( '-', '/api/v1/policy/device-admin/service-names' ),
+    'da-shell-profiles'     : ( '-', '/api/v1/policy/device-admin/shell-profiles' ),
+    'da-time-condition'     : ( '-', '/api/v1/policy/device-admin/time-condition' ),
 
     # Network Access Policy
     # ⓘ Network Access policy is the assumed default; prefix "na-" not required
-    'authorization-profiles': ( '', '/api/v1/policy/network-access/authorization-profiles' ),
-    # 'condition-id'        : ( '', '/api/v1/policy/network-access/condition/{conditionId}' ),
-    'condition-policyset'   : ( '', '/api/v1/policy/network-access/condition/policyset' ),
-    'condition-authn'       : ( '', '/api/v1/policy/network-access/condition-authentication' ),
-    'condition-authz'       : ( '', '/api/v1/policy/network-access/condition-authorization' ),
-    'dict'                  : ( '', '/api/v1/policy/network-access/dictionaries' ),
-    # 'dict-name'           : ( '', '/api/v1/policy/network-access/dictionaries/{name}' ),
-    'dict-authn'            : ( '', '/api/v1/policy/network-access/dictionaries/authentication' ),
-    'dict-authz'            : ( '', '/api/v1/policy/network-access/dictionaries/authorization' ),
-    'dict-policyset'        : ( '', '/api/v1/policy/network-access/dictionaries/policyset' ),
-    'identity-stores'       : ( '', '/api/v1/policy/network-access/identity-stores' ),
-    'network-condition'     : ( '', '/api/v1/policy/network-access/network-condition' ),
-    'policy-set'            : ( '', '/api/v1/policy/network-access/policy-set' ),
-    # 'policy-set-id'       : ( '', '/api/v1/policy/network-access/policy-set/{id}' ),
-    # 'policy-set-id-authn' : ( '', '/api/v1/policy/network-access/policy-set/{policyId}/authentication' ),
-    # 'policy-set-id-authz' : ( '', '/api/v1/policy/network-access/policy-set/{policyId}/authorization' ),
-    # 'policy-set-id-exception': ( '', '/api/v1/policy/network-access/policy-set/{policyId}/exception' ),
-    'global-exception'      : ( '', '/api/v1/policy/network-access/policy-set/global-exception' ),
-    'security-groups'       : ( '', '/api/v1/policy/network-access/security-groups' ),
-    'service-names'         : ( '', '/api/v1/policy/network-access/service-names' ),
-    'time-condition'        : ( '', '/api/v1/policy/network-access/time-condition' ),
+    'authorization-profiles': ( '-', '/api/v1/policy/network-access/authorization-profiles' ),
+    # 'condition-id'        : ( '-', '/api/v1/policy/network-access/condition/{conditionId}' ),
+    'condition-policyset'   : ( '-', '/api/v1/policy/network-access/condition/policyset' ),
+    'condition-authn'       : ( '-', '/api/v1/policy/network-access/condition-authentication' ),
+    'condition-authz'       : ( '-', '/api/v1/policy/network-access/condition-authorization' ),
+    'dict'                  : ( '-', '/api/v1/policy/network-access/dictionaries' ),
+    # 'dict-name'           : ( '-', '/api/v1/policy/network-access/dictionaries/{name}' ),
+    'dict-authn'            : ( '-', '/api/v1/policy/network-access/dictionaries/authentication' ),
+    'dict-authz'            : ( '-', '/api/v1/policy/network-access/dictionaries/authorization' ),
+    'dict-policyset'        : ( '-', '/api/v1/policy/network-access/dictionaries/policyset' ),
+    'identity-stores'       : ( '-', '/api/v1/policy/network-access/identity-stores' ),
+    'network-condition'     : ( '-', '/api/v1/policy/network-access/network-condition' ),
+    'policy-set'            : ( '-', '/api/v1/policy/network-access/policy-set' ),
+    # 'policy-set-id'       : ( '-', '/api/v1/policy/network-access/policy-set/{id}' ),
+    # 'policy-set-id-authn' : ( '-', '/api/v1/policy/network-access/policy-set/{policyId}/authentication' ),
+    # 'policy-set-id-authz' : ( '-', '/api/v1/policy/network-access/policy-set/{policyId}/authorization' ),
+    # 'policy-set-id-exception': ( '-', '/api/v1/policy/network-access/policy-set/{policyId}/exception' ),
+    'global-exception'      : ( '-', '/api/v1/policy/network-access/policy-set/global-exception' ),
+    'security-groups'       : ( '-', '/api/v1/policy/network-access/security-groups' ),
+    'service-names'         : ( '-', '/api/v1/policy/network-access/service-names' ),
+    'time-condition'        : ( '-', '/api/v1/policy/network-access/time-condition' ),
 
     # pxGrid Direct
-    'pxgd-config'           : ( '', '/api/v1/pxgrid-direct/connector-config' ),
-    # 'pxgd-config-name': ( '', '/api/v1/pxgrid-direct/connector-config/{name}' ),
-    'pxgd-references'       : ( '', '/api/v1/pxgrid-direct/dictionary-references' ),
+    'pxgd-config'           : ( '-', '/api/v1/pxgrid-direct/connector-config' ),
+    # 'pxgd-config-name': ( '-', '/api/v1/pxgrid-direct/connector-config/{name}' ),
+    'pxgd-references'       : ( '-', '/api/v1/pxgrid-direct/dictionary-references' ),
 
     # SgtRangeReservation
-    'sgt-reservation'       : ( '', '/api/v1/sgt/reservation' ),
-    # 'sgt-reservation-id'  : ( '', '/api/v1/sgt/reservation/{id}' ),
+    'sgt-reservation'       : ( '-', '/api/v1/sgt/reservation' ),
+    # 'sgt-reservation-id'  : ( '-', '/api/v1/sgt/reservation/{id}' ),
 
     # System Settings
-    'proxy'                 : ( '', '/api/v1/system-settings/proxy' ),
-    'transport-gateway'     : ( '', '/api/v1/system-settings/telemetry/transport-gateway' ),
+    'proxy'                 : ( '-', '/api/v1/system-settings/proxy' ),
+    'transport-gateway'     : ( '-', '/api/v1/system-settings/telemetry/transport-gateway' ),
 
     # TrustSec
-    'trustsec-sgacl-nbarapp': ( '', '/api/v1/trustsec/sgacl/nbarapp' ),
-    'trustsec-sgvnmapping'  : ( '', '/api/v1/trustsec/sgvnmapping' ),
-    'trustsec-virtualnetwork': ( '', '/api/v1/trustsec/virtualnetwork' ),
-    'trustsec-vnvlanmapping': ( '', '/api/v1/trustsec/vnvlanmapping' ),
+    'trustsec-sgacl-nbarapp': ( '-', '/api/v1/trustsec/sgacl/nbarapp' ),
+    'trustsec-sgvnmapping'  : ( '-', '/api/v1/trustsec/sgvnmapping' ),
+    'trustsec-virtualnetwork': ( '-', '/api/v1/trustsec/virtualnetwork' ),
+    'trustsec-vnvlanmapping': ( '-', '/api/v1/trustsec/vnvlanmapping' ),
 
-    'repository'            : ( '', '/api/v1/repository' ),
-    # 'repository-name'     : ( '', '/api/v1/repository/{name}' ),
-    # 'repository-name-files': ( '', '/api/v1/repository/{name}/files' ),
+    'repository'            : ( '-', '/api/v1/repository' ),
+    # 'repository-name'     : ( '-', '/api/v1/repository/{name}' ),
+    # 'repository-name-files': ( '-', '/api/v1/repository/{name}/files' ),
 
     # Data Connect
-    'mnt-data-connect-details': ( '', '/api/v1/mnt/data-connect/details' ),
-    'mnt-data-connect-settings': ( '', '/api/v1/mnt/data-connect/settings' ),
+    'mnt-data-connect-details': ( '-', '/api/v1/mnt/data-connect/details' ),
+    'mnt-data-connect-settings': ( '-', '/api/v1/mnt/data-connect/settings' ),
 
-    'task'                  : ( '', '/api/v1/task' ),
-    # 'task-id'             : ( '', '/api/v1/task/{id}' ),
+    'task'                  : ( '-', '/api/v1/task' ),
+    # 'task-id'             : ( '-', '/api/v1/task/{id}' ),
 
     # Patching
-    'hotpatch'              : ( '', '/api/v1/hotpatch' ),
-    'patch'                 : ( '', '/api/v1/patch' ),
+    'hotpatch'              : ( '-', '/api/v1/hotpatch' ),
+    'patch'                 : ( '-', '/api/v1/patch' ),
 
     # Upgrade
-    'upgrade-prepare-status': ( '', '/api/v1/upgrade/prepare/get-status' ),
-    'upgrade-proceed-status': ( '', '/api/v1/upgrade/proceed/get-status' ),
-    'upgrade-stage-status'  : ( '', '/api/v1/upgrade/stage/get-status' ),
-    'upgrade-summary-status': ( '', '/api/v1/upgrade/summary/get-status' ),
+    'upgrade-prepare-status': ( '-', '/api/v1/upgrade/prepare/get-status' ),
+    'upgrade-proceed-status': ( '-', '/api/v1/upgrade/proceed/get-status' ),
+    'upgrade-stage-status'  : ( '-', '/api/v1/upgrade/stage/get-status' ),
+    'upgrade-summary-status': ( '-', '/api/v1/upgrade/summary/get-status' ),
 }
 
 
