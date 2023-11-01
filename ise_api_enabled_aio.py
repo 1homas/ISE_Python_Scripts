@@ -44,10 +44,7 @@ async def ise_open_api_enable () :
     data = '{ "papIsEnabled":true, "psnsIsEnabled":true }'
 
     auth = aiohttp.BasicAuth(login=ENV['ISE_REST_USERNAME'], password=ENV['ISE_REST_PASSWORD'], encoding='utf-8')
-    connector = aiohttp.TCPConnector(
-        limit=TCP_CONNECTIONS_DEFAULT,
-        ssl=(False if ENV['ISE_CERT_VERIFY'] else None),
-    )
+    connector = aiohttp.TCPConnector(limit=TCP_CONNECTIONS_DEFAULT, ssl=False)
 
     session = aiohttp.ClientSession(auth=auth, connector=connector)
     session.headers['Content-Type'] = CONTENT_TYPE_JSON
@@ -73,10 +70,7 @@ async def ise_ers_api_enable () :
 """
 
     auth = aiohttp.BasicAuth(login=ENV['ISE_REST_USERNAME'], password=ENV['ISE_REST_PASSWORD'], encoding='utf-8')
-    connector = aiohttp.TCPConnector(
-        limit=TCP_CONNECTIONS_DEFAULT,
-        ssl=(False if ENV['ISE_CERT_VERIFY'] else None),
-    )
+    connector = aiohttp.TCPConnector(limit=TCP_CONNECTIONS_DEFAULT, ssl=False)
 
     session = aiohttp.ClientSession(auth=auth, connector=connector)
     session.headers['Content-Type'] = CONTENT_TYPE_XML
