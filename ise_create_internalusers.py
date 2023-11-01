@@ -85,14 +85,16 @@ def generate_random_internaluser_data () :
         'identityGroups' : 'a1740510-8c01-11e6-996c-525400b48521', # Employees
         'passwordIDStore' : "Internal Users",
         'changePassword' : True,
-        'passwordNeverExpires' : True,
-        'dateModified' : faker.past_date(start_date='-1m').isoformat(),
-        'dateCreated' : faker.past_date(start_date='-1m').isoformat(),
         # 'enablePassword' : "enablePassword",
-        # 'accountNameAlias' : 'user123'
-        # 'daysForPasswordExpiration' : 60
-        # 'expiryDateEnabled' : True
+        'expiryDateEnabled' : False,
         # 'expiryDate' : faker.past_date(start_date='+3M').isoformat(),
+        # 💡 ISE 3.2+ :
+        'passwordNeverExpires' : True,
+        # 'accountNameAlias' : 'user123',
+        # 'daysForPasswordExpiration' : 60,
+        # 💡 ISE 3.3+ :
+        # 'dateModified' : faker.past_date(start_date='-1m').isoformat(),
+        # 'dateCreated' : faker.past_date(start_date='-1m').isoformat(),
     
         # Custom Attributes
         'customAttributes' : {},
