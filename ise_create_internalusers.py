@@ -84,7 +84,7 @@ def generate_random_internaluser_data () :
         'lastName' : lastname,
         'identityGroups' : 'a1740510-8c01-11e6-996c-525400b48521', # Employees
         'passwordIDStore' : "Internal Users",
-        'changePassword' : True,
+        'changePassword' : False,
         # 'enablePassword' : "enablePassword",
         'expiryDateEnabled' : False,
         # 'expiryDate' : faker.past_date(start_date='+3M').isoformat(),
