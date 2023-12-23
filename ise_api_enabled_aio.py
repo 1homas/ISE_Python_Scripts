@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
-"""
-Enable the ISE APIs
-Author: Thomas Howard, thomas@cisco.com
+
+import asyncio
+import aiohttp
+import os
+import sys
+
+CONTENT_TYPE_JSON = 'application/json'
+CONTENT_TYPE_XML = 'application/xml'
+USAGE = """
+Enable the ISE APIs using (asynchronous) APIs!
 
 Usage:
 
@@ -13,53 +20,25 @@ Requires setting the these environment variables using the `export` command:
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
-You may add these export lines to a text file and load with `source`:
+You may add these `export` lines to a text file, customize them, and load with `source`:
   source ise_environment.sh
 
 """
 
-import asyncio
-import aiohttp
-import os
-from time import time
-import sys
-
-
-CONTENT_TYPE_JSON = 'application/json'
-CONTENT_TYPE_XML = 'application/xml'
-
-#
-# ISE ERS Connection Limits (see https://cs.co/ise-scale)
-#   ISE 2.4: 10 
-#   ISE 2.6: 30
-#
-TCP_CONNECTIONS_MAX = 30
-TCP_CONNECTIONS_DEFAULT = 10
-
-ENV = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
-
-
-async def ise_open_api_enable () :
-    url = f"https://{ENV['ISE_HOSTNAME']}/admin/API/apiService/update"
+async def ise_open_api_enable (session:aiohttp.ClientSession=None, ssl:bool=True) :
+    """
+    """
+    url = '/admin/API/apiService/update'
     data = '{ "papIsEnabled":true, "psnsIsEnabled":true }'
-
-    auth = aiohttp.BasicAuth(login=ENV['ISE_REST_USERNAME'], password=ENV['ISE_REST_PASSWORD'], encoding='utf-8')
-    connector = aiohttp.TCPConnector(limit=TCP_CONNECTIONS_DEFAULT, ssl=False)
-
-    session = aiohttp.ClientSession(auth=auth, connector=connector)
-    session.headers['Content-Type'] = CONTENT_TYPE_JSON
-    session.headers['Accept'] = CONTENT_TYPE_JSON
-
-    async with session.post(url, data=data) as response :
-        # print(response.status)
-        # print(await response.text())
-        if (response.status == 200 or response.status == 500 ) :
+    async with session.post(url, data=data, ssl=ssl) as response :
+        if response.status == 200 or response.status == 500 :
             print("✅ ISE Open APIs Enabled")
-    await session.close()
 
 
-async def ise_ers_api_enable () :
-    url = f"https://{ENV['ISE_HOSTNAME']}/admin/API/NetworkAccessConfig/ERS"
+async def ise_ers_api_enable (session:aiohttp.ClientSession=None, ssl:bool=True) :
+    """
+    """
+    url = '/admin/API/NetworkAccessConfig/ERS'
     data = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ersConfig>
 <id>1</id>
@@ -68,30 +47,33 @@ async def ise_ers_api_enable () :
 <isPsnsEnabled>true</isPsnsEnabled>
 </ersConfig>
 """
-
-    auth = aiohttp.BasicAuth(login=ENV['ISE_REST_USERNAME'], password=ENV['ISE_REST_PASSWORD'], encoding='utf-8')
-    connector = aiohttp.TCPConnector(limit=TCP_CONNECTIONS_DEFAULT, ssl=False)
-
-    session = aiohttp.ClientSession(auth=auth, connector=connector)
-    session.headers['Content-Type'] = CONTENT_TYPE_XML
-    session.headers['Accept'] = CONTENT_TYPE_XML
-
-    async with session.put(url, data=data) as response :
-        if (response.status == 200) :
+    async with session.put(url, data=data, headers={'Accept':CONTENT_TYPE_XML, 'Content-Type':CONTENT_TYPE_XML}, ssl=ssl) as response :
+        if response.status == 200 or response.status == 500 :
             print("✅ ISE ERS APIs Enabled")
-    await session.close()
+        else :
+            print("❌ ISE ERS APIs Disabled")
 
 
 
 async def main():
+    """
+    Entrypoint for packaged script.
+    """
+    env = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
+    ssl_verify = False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
 
-    await ise_open_api_enable()
-    await ise_ers_api_enable()
+    auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
+    session = aiohttp.ClientSession(f"https://{env['ISE_HOSTNAME']}", auth=auth, headers={'Accept':CONTENT_TYPE_JSON, 'Content-Type':CONTENT_TYPE_JSON})
+    await asyncio.gather(
+      ise_ers_api_enable(session, ssl_verify),
+      ise_open_api_enable(session, ssl_verify),
+    )
+    await session.close()
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
-loop.close()
-
-sys.exit(0) # 0 is ok
-
+if __name__ == "__main__":
+    """
+    Entrypoint for local script.
+    """
+    asyncio.run(main())
+    sys.exit(0) # 0 is ok
