@@ -1,18 +1,10 @@
 #!/usr/bin/env python3
-
-import asyncio
-import aiohttp
-import os
-import sys
-
-CONTENT_TYPE_JSON = 'application/json'
-CONTENT_TYPE_XML = 'application/xml'
-USAGE = """
-Enable the ISE APIs using (asynchronous) APIs!
+"""
+Enable the ISE APIs using (synchronous) APIs!
 
 Usage:
 
-  ise_api_enabled_aio.py
+  ise_api_enabled.py
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -24,18 +16,27 @@ You may add these `export` lines to a text file, customize them, and load with `
   source ise_environment.sh
 
 """
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
 
-async def ise_open_api_enable (session:aiohttp.ClientSession=None, ssl:bool=True) :
+import asyncio
+import aiohttp
+import os
+import sys
+
+
+async def ise_open_api_enable (session:aiohttp.ClientSession=None, ssl_verify:bool=True) :
     """
     """
     url = '/admin/API/apiService/update'
     data = '{ "papIsEnabled":true, "psnsIsEnabled":true }'
-    async with session.post(url, data=data, ssl=ssl) as response :
+    async with session.post(url, data=data, ssl=ssl_verify) as response :
         if response.status == 200 or response.status == 500 :
-            print("✅ ISE Open APIs Enabled")
+            print(f"✅ {response.status} ISE Open APIs Enabled")
 
 
-async def ise_ers_api_enable (session:aiohttp.ClientSession=None, ssl:bool=True) :
+async def ise_ers_api_enable (session:aiohttp.ClientSession=None, ssl_verify:bool=True) :
     """
     """
     url = '/admin/API/NetworkAccessConfig/ERS'
@@ -47,11 +48,11 @@ async def ise_ers_api_enable (session:aiohttp.ClientSession=None, ssl:bool=True)
 <isPsnsEnabled>true</isPsnsEnabled>
 </ersConfig>
 """
-    async with session.put(url, data=data, headers={'Accept':CONTENT_TYPE_XML, 'Content-Type':CONTENT_TYPE_XML}, ssl=ssl) as response :
+    async with session.put(url, data=data, headers={'Accept':'application/xml', 'Content-Type':'application/xml'}, ssl=ssl_verify) as response :
         if response.status == 200 or response.status == 500 :
-            print("✅ ISE ERS APIs Enabled")
+            print(f"✅ {response.status} ISE ERS APIs Enabled")
         else :
-            print("❌ ISE ERS APIs Disabled")
+            print(f"❌ {response.status} ISE ERS APIs Disabled")
 
 
 
@@ -59,11 +60,11 @@ async def main():
     """
     Entrypoint for packaged script.
     """
-    env = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
+    env = { k : v for (k,v) in os.environ.items() } # Load environment variables
     ssl_verify = False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
 
     auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
-    session = aiohttp.ClientSession(f"https://{env['ISE_HOSTNAME']}", auth=auth, headers={'Accept':CONTENT_TYPE_JSON, 'Content-Type':CONTENT_TYPE_JSON})
+    session = aiohttp.ClientSession(f"https://{env['ISE_HOSTNAME']}", auth=auth, headers={'Accept':'application/json', 'Content-Type':'application/json'})
     await asyncio.gather(
       ise_ers_api_enable(session, ssl_verify),
       ise_open_api_enable(session, ssl_verify),
