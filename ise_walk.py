@@ -107,9 +107,10 @@ RESOURCE_NAMES = [
 
 
 
-"""
-"""
 def resource_count (resource) :
+    """
+    Walk through the list of ISE Resources and count them. 
+    """
     LEAF = ' ┣╸'
     count = 0
     try :
