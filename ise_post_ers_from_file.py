@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-USAGE = """
+"""
 A simple POST request for an ISE ERS resource. 
 See https://cs.co/ise-api for REST API resource names.
 
@@ -23,24 +23,15 @@ import json
 import os
 import sys
 
-# Silence any warnings about certificates
-requests.packages.urllib3.disable_warnings()
-
-HEADERS_JSON = { 'Accept': 'application/json',
-                 'Content-Type': 'application/json' }
+requests.packages.urllib3.disable_warnings() # Silence any warnings about certificates
 
 # Validate command line arguments
 if len(sys.argv) < 3 : 
-    print(USAGE)
+    print(__doc__)
     sys.exit(1)
 
 resource_name = sys.argv[1]
 json_filepath = sys.argv[2]
-
-#
-# Load Environment Variables
-#
-ENV = { k : v for (k, v) in os.environ.items() }
 
 #
 # Load the JSON data
@@ -49,16 +40,16 @@ json_data = ''
 with open(json_filepath) as f: json_data = f.read()
 print(json_data)
 
+env = {k:v for (k,v) in os.environ.items() } # Load Environment Variables
+
 #
 # POST the resource
 #
-url = f"https://{ENV['ISE_HOSTNAME']}/ers/config/{resource_name}"
-r = requests.post(url,
-                  auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
-                  headers=HEADERS_JSON,
-                  data=json_data,
-                  verify=(False if ENV['ISE_CERT_VERIFY'][0].lower() in ['f','n'] else True)
-                 )
+url = f"https://{env['ISE_HOSTNAME']}/ers/config/{resource_name}"
+basic_auth = (env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'])
+json_headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+ssl_verify = False if env['ISE_CERT_VERIFY'][0].lower() in ['f','n'] else True
+r = requests.post(url, auth=basic_auth, headers=json_headers, data=json_data, verify=ssl_verify)
 print(r.status_code)
 
 if r.status_code == 201 :
