@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Get the ISE node version information.
 
@@ -21,19 +20,14 @@ import json
 import os
 import sys
 
-# Silence any warnings about certificates
-requests.packages.urllib3.disable_warnings()
+requests.packages.urllib3.disable_warnings() # Silence any warnings about certificates
 
-# Load Environment Variables
-env = { k : v for (k, v) in os.environ.items() }
-
+env = { k:v for (k, v) in os.environ.items() } # Load Environment Variables
 url = 'https://'+env['ISE_HOSTNAME']+'/ers/config/op/systemconfig/iseversion'
-# print(f"URL: {url}")
-r = requests.get(url,
-                 auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
-                 headers={'Accept': 'application/json'},
-                 verify=(False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)
-                )
+basic_auth = (env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'])
+json_headers = {'Accept': 'application/json'}
+ssl_verify = False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
+r = requests.get(url, auth=basic_auth, headers=json_headers, verify=ssl_verify)
 
 # Sample output:
 #
@@ -52,7 +46,7 @@ r = requests.get(url,
 
 values = r.json()['OperationResult']['resultValue']
 version_info = {}
-for item in values :
+for item in values:
     version_info[item['name']] = item['value']
 
 # Rename patch key
