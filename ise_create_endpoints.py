@@ -1,8 +1,21 @@
 #!/usr/bin/env python3
-#------------------------------------------------------------------------------
-# @author: Thomas Howard
-# @email: thomas@cisco.com
-#------------------------------------------------------------------------------
+"""
+Creates the specified number of ISE endpoint resources using REST APIs.
+
+Requires setting the these environment variables using the `export` command:
+  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+  export ISE_CERT_VERIFY=false          # validate the ISE certificate
+
+You may add these `export` lines to a text file, customize them, and load with `source`:
+  source ise_environment.sh
+
+"""
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
+
 import aiohttp
 import asyncio
 import argparse
@@ -13,21 +26,6 @@ import os
 import random
 from faker import Faker     # generate fake endpoints, MACs, IPs
 
-# Globals
-USAGE = """
-
-Creates the specified number of ISE endpoint resources using REST APIs.
-
-Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
-  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
-  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
-  export ISE_CERT_VERIFY=false          # validate the ISE certificate
-
-You may add these export lines to a text file and load with `source`:
-  source ise_environment.sh
-
-"""
 JSON_HEADERS = {'Accept':'application/json', 'Content-Type':'application/json'}
 REST_PAGE_SIZE_DEFAULT=20
 REST_PAGE_SIZE_MAX=100
@@ -41,6 +39,42 @@ TCP_CONNECTIONS_MAX=30
 TCP_CONNECTIONS=5
 
 ENDPOINT_GROUP_UNKNOWN = "aa0e8b20-8bff-11e6-996c-525400b48521"
+
+# ISE Context Visibility > Export columns
+# ⚠ Note that ISE does not include custom endpoint attributes!
+ISE_CV_DEFAULT_ENDPOINT_EXPORT_COLUMNS = [
+    'MACAddress',
+    'EndPointPolicy',
+    'IdentityGroup',
+    'Description',
+    'DeviceRegistrationStatus',
+    'BYODRegistration',
+    'Device Type',
+    'EmailAddress',
+    'ip',
+    'FirstName',
+    'host-name',
+    'LastName',
+    'MDMServerID',
+    'MDMServerName',
+    'MDMEnrolled',
+    'Location',
+    'PortalUser',
+    'User-Name',
+    'StaticAssignment',
+    'StaticGroupAssignment',
+    'MDMOSVersion',
+    'PortalUser.FirstName',
+    'PortalUser.LastName',
+    'PortalUser.EmailAddress',
+    'PortalUser.PhoneNumber',
+    'PortalUser.GuestType',
+    'PortalUser.GuestStatus',
+    'PortalUser.Location',
+    'PortalUser.GuestSponsor',
+    'PortalUser.CreationType',
+    'AUPAccepted',
+]
 
 
 faker = Faker('en-US')    # fake data generator
@@ -134,22 +168,11 @@ async def cache_existing_endpoints (session) :
 
 async def parse_cli_arguments () :
     """
-    Parse the command line arguments
+    Returns the parsed command line arguments.
     """
-    
-    ARGS = argparse.ArgumentParser(
-            description=USAGE,
-            formatter_class=argparse.RawDescriptionHelpFormatter,   # keep my format
-            )
-    ARGS.add_argument(
-            'number', action='store', type=int, default=1, 
-            help='Number of endpoints to create',
-            )
-    ARGS.add_argument(
-            '--verbose', '-v', action='count', default=0,
-            help='Verbosity',
-            )
-
+    ARGS = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ARGS.add_argument('number', action='store', type=int, default=1, help='Number of endpoints to create',)
+    ARGS.add_argument('--verbose', '-v', action='count', default=0, help='Verbosity',)
     return ARGS.parse_args()
 
 

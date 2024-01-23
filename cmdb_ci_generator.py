@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-#------------------------------------------------------------------------------
-# CMDB Config Item Generator, cmdb_ci_generator.py
-#
-# @author: Thomas Howard
-# @email: thomas@cisco.com
-#------------------------------------------------------------------------------
+"""
+Generate configuration management database (CMDB) configuration items (CIs).
+
+Examples:
+    cmdb_ci_generator.py
+    cmdb_ci_generator.py --help
+    cmdb_ci_generator.py -v > CMDB.json
+    cmdb_ci_generator.py -n 1000 
+    cmdb_ci_generator.py -f pretty -tvn 1_000_000 > CMDB_1M.json
+"""
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
+
 import argparse
 import csv
 import json
@@ -20,21 +28,6 @@ import pandas as pd         # dataframes
 import sys
 import time
 
-#------------------------------------------------------------------------------
-# Globals
-#------------------------------------------------------------------------------
-
-USAGE = """
-
-Generate configuration management database (CMDB) configuration items (CIs).
-
-Examples:
-    cmdb_ci_generator.py
-    cmdb_ci_generator.py --help
-    cmdb_ci_generator.py -v > CMDB.json
-    cmdb_ci_generator.py -n 1000 
-    cmdb_ci_generator.py -f pretty -tvn 1_000_000 > CMDB_1M.json
-"""
 
 ITEM_COUNT = 1                  # default number of config items to generate
 PARENT_OBJECT_NAME = 'table'    # Parent Object Name for JSON & YAML output
@@ -331,9 +324,9 @@ username_cache = {}       # NAS identifier name cache to ensure uniqueness
 
 
 def get_username (firstname=faker.first_name(), lastname=faker.last_name()) :
-    '''
+    """
     Returns the next available instance (name-#) of a name
-    '''
+    """
     # print(f"get_username({firstname},{lastname})")
     n = 1
     username = (firstname[0:1] + lastname[0:8]).lower()
@@ -346,14 +339,10 @@ def get_username (firstname=faker.first_name(), lastname=faker.last_name()) :
     return username
 
 
-#------------------------------------------------------------------------------
-#
-#------------------------------------------------------------------------------
-
 def generate_cmdb_ci_6_columns (count=1) :
-    '''
+    """
     6 attributes
-    '''
+    """
     items = []
     for record in range(1,count+1) :
 
@@ -371,9 +360,10 @@ def generate_cmdb_ci_6_columns (count=1) :
 
     return items # list of dicts 
 
+
 def generate_cmdb_ci (count=1) :
-    '''
-    '''
+    """
+    """
     items = []
     for record in range(1,count+1) :
 
@@ -428,9 +418,9 @@ def generate_cmdb_ci (count=1) :
 
 
 def load_IEEE_OUIs () :
-    '''
+    """
     Return a DataFrame of IEEE OUIs, downloading the data from the IEEE, if necessary.
-    '''
+    """
     IEEE_OUI_URL = 'https://standards-oui.ieee.org/oui/oui.txt'
     IEEE_OUI_FILENAME = IEEE_OUI_URL.split('/')[-1]
     IEEE_OUI_CSV_FILENAME = 'oui.csv'
@@ -472,6 +462,9 @@ def load_IEEE_OUIs () :
 
 
 def load_dataframes () :
+    """
+    Return a DataFrame of IEEE OUIs, downloading the data from the IEEE, if necessary.
+    """
     if args.verbosity : print(f"ⓘ load_dataframes()", file=sys.stderr)
 
     # Load Locations
@@ -517,11 +510,10 @@ def load_dataframes () :
     # print(f"University Department: {df_university_departments[random.randint(0,len(df_university_departments))]['Name'].strip()}")
 
 
-
 def get_ouis_by_org (org:str=None) :
-    '''
+    """
     Returns a list of OUIs containing the org string in the organization field.
-    '''
+    """
     return df_ouis[df_ouis.Organization.str.lower().str.contains(org.lower())]['OUI'].tolist()
 
 
@@ -580,31 +572,19 @@ def show (resources=None, resource_name=None, format='pretty', filename='-') :
         print(f' 🛑 Unknown format: {format}', file=sys.stderr)
 
 
-def parse_cli_arguments () :
-    """
-    Parse the command line arguments
-    """
-    ARGS = argparse.ArgumentParser(
-            description=USAGE,
-            formatter_class=argparse.RawDescriptionHelpFormatter,   # keep my format
-            )
-
-    ARGS.add_argument('--filename', default='-', required=False, help='Save output to filename. Default: stdout')
-    ARGS.add_argument('-n', '--number', type=int, default=ITEM_COUNT, help='Number of config items to generate')
-    ARGS.add_argument('-f', '--format', choices=['csv', 'grid', 'json', 'line', 'pretty', 'yaml'], default='pretty')
-    ARGS.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
-    ARGS.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
-
-    return ARGS.parse_args()
-
-
 def main():
     """
     Entrypoint for script.
     """
-
     global args     # promote to global scope for use in other functions
-    args = parse_cli_arguments()
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter) # Keep __doc__ format
+    argp.add_argument('--filename', default='-', required=False, help='Save output to filename. Default: stdout')
+    argp.add_argument('-n', '--number', type=int, default=ITEM_COUNT, help='Number of config items to generate')
+    argp.add_argument('-f', '--format', choices=['csv', 'grid', 'json', 'line', 'pretty', 'yaml'], default='pretty')
+    argp.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
+    argp.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
+    args = argp.parse_args()
+
     if args.verbosity >= 3 : print(f"ⓘ Args: {args}")
     if args.verbosity : print(f"ⓘ filename: {'- (stdout)' if args.filename == '-' else args.filename}", file=sys.stderr)
     if args.verbosity : print(f"ⓘ format: {args.format}", file=sys.stderr)
@@ -633,5 +613,8 @@ def main():
         print(f"🕒 {duration} seconds\n", file=sys.stderr)
 
 
-if __name__ == '__main__':     # Runs main() if file wasn't imported.  
+if __name__ == '__main__':
+    """
+    Runs main() if file wasn't imported.  
+    """
     main()

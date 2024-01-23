@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
-#------------------------------------------------------------------------------
-# @author: Thomas Howard
-# @email: thomas@cisco.com
-#------------------------------------------------------------------------------
+"""
+Creates the specified number of ISE internaluser resources using REST APIs.
+
+Requires setting the these environment variables using the `export` command:
+  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+  export ISE_CERT_VERIFY=false          # validate the ISE certificate
+
+You may add these `export` lines to a text file, customize them, and load with `source`:
+  source ise_environment.sh
+
+"""
+
 import aiohttp
 import asyncio
 import argparse
@@ -12,37 +22,14 @@ import io
 import json
 import os
 import random
+import sys
 
 # Globals
-USAGE = """
-
-Creates the specified number of ISE internaluser resources using REST APIs.
-
-Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
-  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
-  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
-  export ISE_CERT_VERIFY=false          # validate the ISE certificate
-
-You may add these export lines to a text file and load with `source`:
-  source ise_environment.sh
-
-"""
-JSON_HEADERS = {'Accept':'application/json', 'Content-Type':'application/json'}
 REST_PAGE_SIZE_DEFAULT=20
 REST_PAGE_SIZE_MAX=100
 REST_PAGE_SIZE=REST_PAGE_SIZE_MAX
+WORKERS_MAX=20
 
-# Limit TCP connection pool size to prevent connection refusals by ISE!
-# 30 for ISE 2.6+; See https://cs.co/ise-scale for Concurrent ERS Connections.
-# Testing with ISE 3.0 shows *no* performance gain for >5-10
-TCP_CONNECTIONS_DEFAULT=10
-TCP_CONNECTIONS_MAX=30
-TCP_CONNECTIONS=5
-
-#_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△
-# 🛑  No user-serviceable parts below here 🛑 
-#_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△_△
 
 faker = Faker('en-US')    # fake data generator
 username_cache = {}       # NAS identifier name cache to ensure uniqueness
@@ -61,9 +48,6 @@ def get_username (firstname=faker.first_name(), lastname=faker.last_name()) :
     return username
 
 
-#------------------------------------------------------------------------------
-#
-#------------------------------------------------------------------------------
 def generate_random_internaluser_data () :
     """
     Return an internaluser object ready for conversion to JSON.
@@ -130,28 +114,26 @@ def generate_random_internaluser_data () :
 
 
 async def get_resource (session, url) :
-    async with session.get(url) as resp:
+    async with session.get(url, ssl=False) as resp:
         response = await resp.json()
         return response['SearchResult']['resources']
 
 
 async def cache_existing_internalusers (session) :
     """
-    Reads existing ISE internalusers and saves them to the username_cache 
-    so we do not create an existing user.
+    Reads existing ISE internalusers and saves them to the username_cache so we do not create an existing user.
     """
-
+    print(f"ⓘ Caching existing users ...", file=sys.stderr)
     rest_endpoint_path = '/ers/config/internaluser'
     response = await session.get(f"{rest_endpoint_path}?size={REST_PAGE_SIZE}")
-    if response.status != 200:
-        raise ValueError(f'Bad status: {response}')
+    if response.status != 200: raise ValueError(f'Bad status: {response}')
     json = await response.json()
 
     resources = json['SearchResult']['resources']
-    if args.verbose : print(f"ⓘ Fetched {len(resources)} resources")
+    if args.verbose : print(f"ⓘ Fetched {len(resources)} resources", file=sys.stderr)
 
     existing_user_count = json['SearchResult']['total']
-    if args.verbose : print(f"ⓘ Existing ISE Internal Users: {existing_user_count}")
+    if args.verbose : print(f"ⓘ Existing ISE Internal Users: {existing_user_count}", file=sys.stderr)
 
     if existing_user_count > REST_PAGE_SIZE :  # we will need more than one fetch
         pages = int(existing_user_count / REST_PAGE_SIZE) + (1 if existing_user_count % REST_PAGE_SIZE else 0)
@@ -159,96 +141,73 @@ async def cache_existing_internalusers (session) :
         for page in range(1, pages + 1):
             urls.append(f"{rest_endpoint_path}?size={REST_PAGE_SIZE}&page={page}")
         urls.pop(0)  # discard first URL; used for the count above
-
-        tasks = []
-        [ tasks.append(asyncio.ensure_future(get_resource(session, url))) for url in urls ]
-
+        tasks = [asyncio.ensure_future(get_resource(session, url)) for url in urls]
         responses = await asyncio.gather(*tasks)
-        [ resources.extend(response) for response in responses ]
+        [resources.extend(response) for response in responses]
 
-    # add users to the cache
-    if args.verbose : print(f"ⓘ Adding {len(resources)} users to username_cache")
-    for resource in resources :
+    for resource in resources :  # add users to the cache
         username_cache[resource['name']] = 1
+    print(f"ⓘ Cached {len(username_cache)} users", file=sys.stderr)
+
+    return username_cache
 
 
-async def parse_cli_arguments () :
-    """
-    Parse the command line arguments
-    """
-    
-    ARGS = argparse.ArgumentParser(
-            description=USAGE,
-            formatter_class=argparse.RawDescriptionHelpFormatter,   # keep my format
-            )
-    ARGS.add_argument(
-            'number', action='store', type=int, default=1, 
-            help='Number of users to create',
-            )
-    ARGS.add_argument(
-            '--verbose', '-v', action='count', default=0,
-            help='Verbosity',
-            )
-
-    return ARGS.parse_args()
-
-
-async def create_ise_internalusers () :
-
-    global args     # promote to global scope for use in other functions
-    args = await parse_cli_arguments()
-    if args.verbose >= 3 : print(f"ⓘ Args: {args}")
-    if args.verbose : print(f"ⓘ TCP_CONNECTIONS: {TCP_CONNECTIONS}")
-    if args.verbose : print(f"ⓘ REST_PAGE_SIZE: {REST_PAGE_SIZE}")
-
-    # Load Environment Variables
-    env = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
-    if args.verbose >= 4 : print(f"ⓘ env: {env}")
-
-    # Create HTTP session
-    ssl_verify = (False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)
-    tcp_conn = aiohttp.TCPConnector(limit=TCP_CONNECTIONS, limit_per_host=TCP_CONNECTIONS, ssl=ssl_verify)
-    auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
-    base_url = f"https://{env['ISE_HOSTNAME']}"
-    session = aiohttp.ClientSession(base_url, auth=auth, connector=tcp_conn, headers=JSON_HEADERS)
-
-    # Cache existing ISE users to prevent duplicates and HTTP 400 errors 
-    await asyncio.wait_for(cache_existing_internalusers(session), 60)
-    if args.verbose : print(f"ⓘ username_cache size: {len(username_cache)}")
-
-    # Generate requested number of users
-    users = []
-    for n in range(1, args.number + 1) :
-        users.append( generate_random_internaluser_data() )
-    if args.verbose : print(f"ⓘ Generated {len(users)} users")
-
-    # Create the users with asyncio!
-    tasks = []
-    [ tasks.append(asyncio.ensure_future(session.post('/ers/config/internaluser', data=json.dumps(user)))) for user in users ]
-    responses = await asyncio.gather(*tasks)
-    if args.verbose : print(f"ⓘ Created {len(responses)} responses")
-    
-    for n,response in enumerate(responses, start=1) :
+async def ise_internaluser_creator (queue, session):
+    PATH = '/ers/config/internaluser'
+    while True:
+        user_dict = await queue.get() # Get an item from the queue
+        response = await session.post(PATH, data=json.dumps(user_dict))
         if response.status == 201 :
-            print(f"✔ {n} {response.status} {response.headers['Location']}")
+            print(f"✔ {response.status} | {user_dict['InternalUser']['name']} | {response.headers['Location'].split('/')[-1]}", file=sys.stderr)
+        elif response.status == 400 and (await response.json())['ERSResponse']['messages'][0]['title'].find('Password') :
+            # 🐞 ISE will randomly complain about Password Policy even though it's fine
+            print(f"🐞 Password Policy error: Re-queue {user_dict['InternalUser']['name']}", file=sys.stderr)
+            queue.put_nowait( user_dict )
         elif response.status == 401 :
-            print("Set the environment variables and verify your credentials are correct!")
-            print(await response.json())
+            print(f"Set the environment variables and verify your credentials are correct! {await response.json()}", file=sys.stderr)
+            break
         else :
-            print(f"✖ {n} {response.status} :\n{json.dumps(await response.json(), indent=2)}")
+            error = await response.json()
+            print(f"✖ {response.status} {user_dict['InternalUser']['name']} {error['ERSResponse']['messages'][0]['title']}", file=sys.stderr)
+        queue.task_done()  # Notify queue the item is processed
 
-    await session.close()
 
-
-def main ():
+async def main ():
     """
     Entrypoint for packaged script.
     """
-    asyncio.run(create_ise_internalusers())
+    global args
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter) # keep my format
+    argp.add_argument('number', action='store', type=int, default=1, help='Number of users to create')
+    argp.add_argument('-t','--timer', action='store_true', default=False, help='time', required=False)
+    argp.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity')
+    args = argp.parse_args()
+    if args.verbose >= 3 : print(f"ⓘ args: {args}", file=sys.stderr)
+    if args.timer : start_time = time.time()
+
+    env = {k:v for (k, v) in os.environ.items()} # Load environment variables
+
+    # Create HTTP session
+    base_url = f"https://{env['ISE_HOSTNAME']}"
+    conn = aiohttp.TCPConnector(ssl=(False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True))
+    basic_auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
+    json_headers = {'Accept':'application/json', 'Content-Type':'application/json'}
+    async with aiohttp.ClientSession(base_url, auth=basic_auth, connector=conn, headers=json_headers) as session:
+        # Cache existing ISE users to prevent duplicates and HTTP 400 errors 
+        username_cache = await asyncio.wait_for(cache_existing_internalusers(session), 60)
+        if args.verbose : print(f"ⓘ username_cache size: {len(username_cache)}")
+        users_queue = asyncio.Queue() # Create a queue for the user workload
+
+        # Create worker tasks to process the queue concurrently
+        tasks = [asyncio.create_task(ise_internaluser_creator(users_queue, session)) for ii in range(WORKERS_MAX)]
+        [users_queue.put_nowait(generate_random_internaluser_data()) for n in range(1, args.number + 1)] # enqueue a user for creation
+        await users_queue.join()  # Wait until the queue is finished
+
+    if args.timer : print(f"⏲ {'{0:.3f}'.format(time.time() - start_time)} seconds", file=sys.stderr)
 
 
 if __name__ == '__main__':
     """
     Entrypoint for local script.
     """
-    asyncio.run(create_ise_internalusers())
+    asyncio.run(main())

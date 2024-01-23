@@ -1,26 +1,5 @@
 #!/usr/bin/env python3
-#------------------------------------------------------------------------------
-# @author: Thomas Howard
-# @email: thomas@cisco.com
-#------------------------------------------------------------------------------
-import aiohttp
-import asyncio
-import argparse
-import csv
-import io
-import json
-import os
-import random
-import sys
-import time
-import yaml
-from tabulate import tabulate
-
-
-#------------------------------------------------------------------------------
-# Globals
-#------------------------------------------------------------------------------
-USAGE = """
+"""
 
 Show ISE REST APIs data.
 
@@ -50,12 +29,24 @@ You may add these export lines to a text file and load with `source`:
 
 """
 
-DATA_DIR = './'
-DEFAULT_TRUSTSEC_FILENAME = 'ise_trustsec_matrix.xlsx'
-DT_ISO8601 = "%Y-%m-%dT%H:%M:%S" # DateTime Formats for strftime()
+import aiohttp
+import asyncio
+import argparse
+import csv
+import io
+import json
+import math
+import os
+import random
+import sys
+import time
+import yaml
+from tabulate import tabulate
 
-# REST Options
-JSON_HEADERS = {'Accept':'application/json', 'Content-Type':'application/json'}
+
+DATA_DIR = './data'
+DT_ISO8601 = "%Y-%m-%d %H:%M:%S" # DateTime Formats for strftime()
+
 REST_PAGE_SIZE_DEFAULT=20
 REST_PAGE_SIZE_MAX=100
 REST_PAGE_SIZE=REST_PAGE_SIZE_MAX
@@ -311,20 +302,32 @@ ISE_REST_ENDPOINTS = {
 }
 
 
-async def get_ers_resources (session, path, verify_ssl=True) :
+async def get_ers_resources (session, path):
     """
     Return the resources from the JSON response.
     @session : the aiohttp session to reuse
     @name    : the ERS object name in the JSON
     @path    : the REST endpoint path
     """
-    async with session.get(path, ssl=verify_ssl) as resp:
-        json = await resp.json()
-        if args.verbosity >= 3 : print(f"ⓘ get_ers_resources({path}): {json}", file=sys.stderr)
-        return json['SearchResult']['resources']
+    async with session.get(path) as resp:
+        data = await resp.json()
+        # print('.', end='', file=sys.stderr, flush=True)
+        # if args.verbosity >= 3: print(f"ⓘ get_ers_resources({path}): {data}", file=sys.stderr)
+        return data['SearchResult']['resources']
+
+async def get_ers_resource_detail (session, path):
+    """
+    Return the resources from the JSON response.
+    @session : the aiohttp session to reuse
+    @path    : the REST endpoint path
+    """
+    async with session.get(path) as resp:
+        print('.', end='', file=sys.stderr, flush=True)
+        # if args.verbosity >= 3: print(f"ⓘ get_ers_resource_detail({path}): {data}", file=sys.stderr)
+        return (await resp.json())
 
 
-async def ise_get (session=None, name=None, path=None, detailed=False, verify_ssl=True) :
+async def ise_get_old (session=None, name=None, path=None, detailed=False):
     """
     Return the specified resources from ISE.
     @session : the aiohttp session to reuse
@@ -332,79 +335,63 @@ async def ise_get (session=None, name=None, path=None, detailed=False, verify_ss
     @path    : the REST endpoint path
     @detailed: True to get all object details, False otherwise
     """
-    if args.verbosity : print(f"ⓘ ise_get({path})", file=sys.stderr)
-
     # Get the first page for the total resources
-    response = await session.get(f"{path}?size={args.pagesize}", ssl=verify_ssl)
+    response = await session.get(f"{path}?size={REST_PAGE_SIZE}")
     json = await response.json()
-    if args.verbosity >= 3 : print(f"ⓘ JSON:\n{json}", file=sys.stderr)
-
-    total = 0
     resources = []
-    is_ers = False
     #
     # ISE ERS or OpenAPI?
-    # ERS:     {'SearchResult': {'total': 7, 'resources': [{'id': ...
-    # OpenAPI: {'response': [{'id': ...
+    # ERS is a dict: {'SearchResult': {'total': 7, 'resources': [{'id': ...
+    # OpenAPI is a list: {'response': [{'id': ...
     #
-    if isinstance(json, dict) :
-        if json.get('SearchResult') :   # ERS
-            is_ers = True
-            total = json['SearchResult']['total']
-            resources = json['SearchResult']['resources']
-            if args.verbosity : print(f"ⓘ ERS: {total} resources", file=sys.stderr)
-        else :  # OpenAPI
-            if json.get('response') :
-                resources = json['response']
-                total = len(resources)
-            else :
-                # hotpatch / patch
-                resources = json
-                total = 1
-            if args.verbosity : print(f"ⓘ OpenAPI: {total} resources", file=sys.stderr)
+    if result:= json.get('SearchResult', None) != None:
+        print(f"Getting {total} {name} resources ...", file=sys.stderr)
 
-    elif isinstance(json, list) :
-        resources = json
-    else :
-        if args.verbosity >= 3 : print(f"ⓘ type(json): {type(path)})", file=sys.stderr)
+        total = json['SearchResult']['total']
+        resources = json['SearchResult']['resources']
 
-        
-    if args.verbosity : print(f"ⓘ ise_get({path}): Total: {total}", file=sys.stderr)
+        # Get all remaining resources if more than the REST page size
+        if total > REST_PAGE_SIZE:
+            urls = [] # Generate all paging URLs
+            for page in range(2, math.ceil(total / REST_PAGE_SIZE)+1): # already fetched first page above
+                urls.append(f"{path}?size={REST_PAGE_SIZE}&page={page}")
+            # Get all pages with asyncio!
+            tasks = []
+            [tasks.append(asyncio.ensure_future(get_ers_resources(session, url))) for url in urls]
+            responses = await asyncio.gather(*tasks)
+            [resources.extend(response) for response in responses]
 
-    # Get all remaining resources if more than the REST page size
-    if is_ers and total > args.pagesize :
-        pages = int(total / args.pagesize) + (1 if total % args.pagesize else 0)
-        
-        # Generate all paging URLs 
-        urls = []
-        for page in range(2, pages + 1): # already fetched first page above
-            urls.append(f"{path}?size={args.pagesize}&page={page}")
+        if total > 0 and detailed:
+            print(f"Getting {len(resources)} {name} details ", end='', file=sys.stderr, flush=True)
+            # Extract UUIDs and get all resource details
+            uuids = [r['id'] for r in resources]
+            resources = [] # clear list for detailed data
+            for uuid in uuids:
+                print('.', end='', file=sys.stderr, flush=True)
+                async with session.get(f"{path}/{uuid}") as r:
+                    json = await r.json()
+                    # if args.verbosity >= 3: print(f"json: {json}", file=sys.stderr)
+                    resources.append(json[name])
+            print(file=sys.stderr, flush=True)
 
-        # Get all pages with asyncio!
-        tasks = []
-        [ tasks.append(asyncio.ensure_future(get_ers_resources(session, url, verify_ssl))) for url in urls ]
-        responses = await asyncio.gather(*tasks)
-        [ resources.extend(response) for response in responses ]
+    else:
+        if json.get('response'): # OpenAPI
+            resources = json['response']
+            total = len(resources)
+        else: # hotpatch / patch
+            resources = json
+            total = 1
 
-    if is_ers and detailed:
-        # Extract UUIDs and get all resource details
-        uuids = [r['id'] for r in resources]
-        resources = [] # clear list for detailed data
-        for uuid in uuids:
-            async with session.get(f"{path}/{uuid}", ssl=verify_ssl) as resp:
-                json = await resp.json()
-                if args.verbosity >= 3 : print(f"json: {json}", file=sys.stderr)
-                resources.append(json[name])
+    if args.verbosity: print(f"ⓘ ise_get({path}): Total: {total}", file=sys.stderr)
 
     # remove ugly 'link' attribute to flatten data
     for r in resources:
         if type(r) == dict and r.get('link'): 
             del r['link']
-
     return resources
 
 
-def show (resources=None, name=None, format='json', filename='-') :
+def show (resources=None, name=None, format='json', filename='-'):
     """
     Shows the resources in the specified format to the file handle.
 
@@ -421,14 +408,14 @@ def show (resources=None, name=None, format='json', filename='-') :
         - `yaml`  : Show the items as YAML with 2-space indents
     @filename  : Default: `sys.stdout`
     """
-    if resources == None : return
+    if resources == None: return
     object_type = None if len(resources) <= 0 else type(resources[0]) 
-    if args.verbosity >= 3 : print(f"ⓘ show(): {len(resources)} x '{name}' resources of type {type(object_type)}", file=sys.stderr)
+    if args.verbosity >= 3: print(f"ⓘ show(): {len(resources)} x '{name}' resources of type {type(object_type)}", file=sys.stderr)
 
     # 💡 Do not close sys.stdout or it may not be re-opened
     fh = sys.stdout # write to terminal by default
-    if filename != '-' :
-        if args.verbosity >= 3 : print(f"ⓘ Opening {filename}", file=sys.stderr)
+    if filename != '-':
+        if args.verbosity >= 3: print(f"ⓘ Opening {filename}", file=sys.stderr)
         fh = open(filename, 'w')
 
     if format == 'csv':  # CSV
@@ -438,133 +425,158 @@ def show (resources=None, name=None, format='json', filename='-') :
         writer.writeheader()
         for row in resources:
             writer.writerow(row)
-
     elif format == 'id':  # list of ids only
         ids = [[r['id']] for r in resources]  # single column table
         print(f"{tabulate(ids, tablefmt='plain')}", file=fh)
-
-    elif format == 'grid' : # grid
+    elif format == 'grid': # grid
         print(f"{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
-
-    elif format == 'table' : # table
+    elif format == 'table': # table
         print(f"{tabulate(resources, headers='keys', tablefmt='table')}", file=fh)
-
     elif format == 'json':  # JSON, one long string
-        print(json.dumps({ name : resources }), file=fh)
-
+        print(json.dumps({ name: resources }), file=fh)
     elif format == 'line':  # 1 line per object
         print('{')
         print(f'{name} = [')
         [print(json.dumps(r), end=',\n', file=fh) for r in resources]
         print(']\n}')
-
     elif format == 'pretty':  # pretty-print
-        print(json.dumps({ name : resources }, indent=2), file=fh)
-
+        print(json.dumps({ name: resources }, indent=2), file=fh)
     elif format == 'yaml':  # YAML
-        print(yaml.dump({ name : resources }, indent=2, default_flow_style=False), file=fh)
-
+        print(yaml.dump({ name: resources }, indent=2, default_flow_style=False), file=fh)
     else:  # just in case something gets through the CLI parser
         print(f' 🛑 Unknown format: {format}', file=sys.stderr)
 
 
-async def parse_cli_arguments () :
+async def ise_get (session=None, name=None, path=None, detailed=False):
     """
-    Parse the command line arguments
+    Return the specified resources from ISE.
+    @session : the aiohttp session to reuse
+    @name    : the ERS object name
+    @path    : the REST endpoint path
+    @detailed: True to get all object details, False otherwise
     """
-    ARGS = argparse.ArgumentParser(
-            description=USAGE,
-            formatter_class=argparse.RawDescriptionHelpFormatter,   # keep my format
-            )
+    print(f"ise_get(name:{name}, path:{path}, detailed:{detailed})")
+    resources = []
+    response = await session.get(f"{path}") # Get the first page for the `total` resources
+    data = await response.json()
+    # print(f"data: {data})")
+    if path.startswith('/ers'):
+        # ERS is a dict: {'SearchResult': {'total': 7, 'resources': [{'id': ...
+        total = data['SearchResult']['total']
+        if total > 1000: print(f"Getting {total} {name} resources", file=sys.stderr, flush=True)
+        # Get all resources if more than the REST page size
+        urls = [f"{path}?size={REST_PAGE_SIZE}&page={page}" for page in range(1, 1+int(total/REST_PAGE_SIZE)+(1 if total%REST_PAGE_SIZE else 0))] # Generate paging URLs
+        tasks = [asyncio.ensure_future(get_ers_resources(session, url)) for url in urls]
+        responses = await asyncio.gather(*tasks)
+        [resources.extend(response) for response in responses]
 
-    ARGS.add_argument('resource', type=str, help='resource name')
-    ARGS.add_argument('--connections', type=int, default=TCP_CONNECTIONS, help='Connection pool size')
-    ARGS.add_argument('--pagesize', type=int, default=REST_PAGE_SIZE, help='REST page size')
-    ARGS.add_argument('--noid', action='store_true', default=False, dest='noid', help='hide object UUIDs')
-    ARGS.add_argument('--filename', default='-', required=False, help='Save output to filename. Default: stdout')
-    ARGS.add_argument('-d', '--details', action='store_true', default=False, help='Get resource details')
-    ARGS.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
-    ARGS.add_argument('-f', '--format', choices=['csv', 'id', 'grid', 'table', 'json', 'line', 'pretty', 'yaml'], default='pretty')
-    ARGS.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
-    ARGS.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
+        if total > 0 and detailed:
+            print(f"Getting {len(resources)} {name} details", file=sys.stderr, flush=True)
+            uuids = [r['id'] for r in resources] # Extract UUIDs from summary resources
+            urls = [f"{path}/{uuid}" for uuid in uuids] # Generate resource URLs
+            tasks = [asyncio.ensure_future(get_ers_resource_detail(session, url)) for url in urls]
+            responses = await asyncio.gather(*tasks)
+            resources = [response[name] for response in responses]
+            print(file=sys.stderr, flush=True)
 
-    return ARGS.parse_args()
+    elif path.startswith('/api'): # OpenAPI is a list [] *or* dict with a list: {'response': [{'id': ...
+        if isinstance(data, list):  # list of resources Example: endpoints
+            resources = data
+        elif isinstance(data, dict):
+            if data.get('response'): # 'response' key to resources list?
+                resources = data['response']   # response contains a list of resources
+            else: # the data is the object. Example: hotpatch, patch, etc.
+                resources = data
+    else:
+        print(f"Other path: {path})")
+        resources = data
+
+    total = len(resources)
+    if args.verbosity: print(f"ⓘ ise_get({path}): Total: {total}", file=sys.stderr)
+
+    # remove ugly 'link' attribute to flatten data
+    for r in resources:
+        if type(r) == dict and r.get('link'): 
+            del r['link']
+    return resources
 
 
-async def main ():
+async def get(resource:str=None, details:bool=False, noid:bool=True, verbosity:int=0):
     """
     Entrypoint for packaged script.
     """
 
-    global args     # promote to global scope for use in other functions
-    args = await parse_cli_arguments()
-    if args.verbosity >= 3 : print(f"ⓘ Args: {args}")
-    if args.verbosity >= 2 : print(f"ⓘ connections: {args.connections}", file=sys.stderr)
-    if args.verbosity >= 2 : print(f"ⓘ details: {args.details}", file=sys.stderr)
-    if args.verbosity >= 2 : print(f"ⓘ filename: {args.filename}", file=sys.stderr)
-    if args.verbosity >= 2 : print(f"ⓘ insecure: {args.insecure}", file=sys.stderr)
-    if args.verbosity >= 2 : print(f"ⓘ format: {args.format}", file=sys.stderr)
-    if args.verbosity >= 2 : print(f"ⓘ pagesize: {args.pagesize}", file=sys.stderr)
-    if args.verbosity >= 2 : print(f"ⓘ noid: {args.noid}", file=sys.stderr)
-    if args.verbosity >= 2 : print(f"ⓘ timer: {args.timer}", file=sys.stderr)
-    if args.verbosity >= 2 : print(f"ⓘ verbosity: {args.verbosity}", file=sys.stderr)
-
-    if args.timer :
-        global start_time
-        start_time = time.time()
-        print(f"▶ {time.strftime(DT_ISO8601, time.localtime(start_time))}", file=sys.stderr) # ⏰
-
-    # Load Environment Variables
-    global env
-    env = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
+    env = {k:v for (k, v) in os.environ.items() if k.startswith('ISE_')}  # Load environment variables
 
     resources = []
-    try :
+    try:
         # Create HTTP session
-        verify_ssl = (False if (args.insecure or env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n']) else True)
-        tcp_conn = aiohttp.TCPConnector(limit=TCP_CONNECTIONS, limit_per_host=TCP_CONNECTIONS)
+        verify_ssl = (False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)
+        tcp_conn = aiohttp.TCPConnector(limit=TCP_CONNECTIONS, limit_per_host=TCP_CONNECTIONS, ssl=verify_ssl)
         auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
         base_url = f"https://{env['ISE_HOSTNAME']}"
-        session = aiohttp.ClientSession(base_url, auth=auth, connector=tcp_conn, headers=JSON_HEADERS)
+        headers = {'Accept':'application/json', 'Content-Type':'application/json'}
+        session = aiohttp.ClientSession(base_url, auth=auth, connector=tcp_conn, headers=headers)
 
         # map the REST endpoint to the ERS object name and URL
-        (name, base_url) = ISE_REST_ENDPOINTS.get(args.resource, (None, None))
-        if args.verbosity >= 3 : print(f"\nⓘ object: '{name}' base_url: {base_url}", file=sys.stderr)
+        (name, base_url) = ISE_REST_ENDPOINTS.get(resource, (None, None))
+        if verbosity >= 3: print(f"\nⓘ object: '{name}' base_url: {base_url}", file=sys.stderr)
+        if base_url:
+            resources = await ise_get(session, name, base_url, details)
 
-        if base_url :
-            resources = await ise_get(session, name, base_url, args.details, verify_ssl=verify_ssl)
-        else :
-            print(f"\nUnknown resource: {args.resource}\n", file=sys.stderr)
-    except aiohttp.ContentTypeError as e :
+            if noid and isinstance(resources[0], dict): # remove id from resource dict?
+                for r in resources: del r['id']
+
+            if args.verbosity >= 3: print(f"ⓘ type(resources): {type(resources)}", file=sys.stderr)
+            if isinstance(resources, dict): resources = [ resources ]
+            show(resources, args.resource, args.format, args.filename)
+
+        else:
+            print(f"\nUnknown resource: {resource}\n", file=sys.stderr)
+    except aiohttp.ContentTypeError as e:
         print(f"\n❌ Error: {e.message}\n\n💡Enable the ISE REST APIs\n")
-    except aiohttp.ClientConnectorError as e :  # cannot connect to host
+    except aiohttp.ClientConnectorError as e:  # cannot connect to host
         print(f"\n❌ Host unreachable: {e}\n", file=sys.stderr)
-    except aiohttp.ClientError as e :           # base aiohttp Exception
+    except aiohttp.ClientError as e:           # base aiohttp Exception
         print(f"\n❌ Exception: {e}\n", file=sys.stderr)
     except:                                     # catch *all* exceptions
         print(f"\n❌ Exception: {e}\n", file=sys.stderr)
     finally:
         await session.close()
 
-    # remove id?
-    if args.noid :
-        for r in resources:
-            if type(r) == dict and r.get('id'): 
-                del r['id']
- 
-    if args.verbosity >= 3 : print(f"ⓘ type(resources): {type(resources)}", file=sys.stderr)
-    if isinstance(resources, dict) : resources = [ resources ]
-    show(resources, args.resource, args.format, args.filename)
-
-    if args.timer :
-        stop_time = time.time()
-        print(f"■ {time.strftime(DT_ISO8601, time.localtime(stop_time))}", file=sys.stderr)
-        print(f"⏲ {len(resources)} {args.resource} in {'{0:.3f}'.format(stop_time - start_time)} seconds", file=sys.stderr)
-
 
 if __name__ == '__main__':
     """
     Entrypoint for local script.
     """
-    asyncio.run(main())
+    global args     # promote to global scope for use in other functions
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)  # Keep __doc__ format
+    argp.add_argument('resource', type=str, help='resource name')
+    argp.add_argument('--connections', type=int, default=TCP_CONNECTIONS, help='Connection pool size')
+    argp.add_argument('--pagesize', type=int, default=REST_PAGE_SIZE, help='REST page size')
+    argp.add_argument('--noid', action='store_true', default=False, dest='noid', help='hide object UUIDs')
+    argp.add_argument('--filename', default='-', required=False, help='Save output to filename. Default: stdout')
+    argp.add_argument('-d', '--details', action='store_true', default=False, help='Get resource details')
+    argp.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
+    argp.add_argument('-f', '--format', choices=['csv', 'id', 'grid', 'table', 'json', 'line', 'pretty', 'yaml'], default='pretty')
+    argp.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
+    argp.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
+    args = argp.parse_args()
+
+    if args.verbosity >= 3: print(f"ⓘ Args: {args}")
+    if args.verbosity >= 2: print(f"ⓘ connections: {args.connections}", file=sys.stderr)
+    if args.verbosity >= 2: print(f"ⓘ details: {args.details}", file=sys.stderr)
+    if args.verbosity >= 2: print(f"ⓘ filename: {args.filename}", file=sys.stderr)
+    if args.verbosity >= 2: print(f"ⓘ insecure: {args.insecure}", file=sys.stderr)
+    if args.verbosity >= 2: print(f"ⓘ format: {args.format}", file=sys.stderr)
+    if args.verbosity >= 2: print(f"ⓘ pagesize: {args.pagesize}", file=sys.stderr)
+    if args.verbosity >= 2: print(f"ⓘ noid: {args.noid}", file=sys.stderr)
+    if args.verbosity >= 2: print(f"ⓘ timer: {args.timer}", file=sys.stderr)
+    if args.verbosity >= 2: print(f"ⓘ verbosity: {args.verbosity}", file=sys.stderr)
+
+    if args.timer: start_time = time.time()
+
+    asyncio.run(get(resource=args.resource, details=args.details, noid=args.noid, verbosity=args.verbosity))
+
+    if args.timer: print(f"⏲ {len(resources)} {args.resource} in {'{0:.3f}'.format(time.time() - start_time)} seconds", file=sys.stderr)
     sys.exit(0) # 0 is ok
