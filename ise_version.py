@@ -59,6 +59,7 @@ del version_info['patch information']
  version_info['maintenance'], 
  version_info['build']
  ) = version_info['version'].split('.')
+version_info['semver'] = f"{version_info['major']}.{version_info['minor']}.{version_info['patch']}"
 
 print(json.dumps(version_info, indent=2))
 
