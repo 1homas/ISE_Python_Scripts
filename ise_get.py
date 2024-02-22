@@ -11,7 +11,7 @@ Examples:
     ise_get.py endpointgroup -f grid --details --noid
     ise_get.py endpointgroup -f yaml
     ise_get.py allowedprotocols -f yaml -p saved --details 
-    ise_get.py all --details -f yaml --saved demo_config 
+    ise_get.py all --details -f yaml --save demo_config 
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -452,7 +452,6 @@ if __name__ == '__main__':
     argp.add_argument('resource', type=str, help='resource name')
     argp.add_argument('--noid', action='store_true', default=False, dest='noid', help='hide object UUIDs')
     argp.add_argument('-s', '--save', default='-', required=False, help='Save output to directory. Default: stdout')
-    argp.add_argument('-c', '--config', default='./saved', help='Configuration directory')
     argp.add_argument('-d', '--details', action='store_true', default=False, help='Get resource details')
     argp.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
     argp.add_argument('-f', '--format', choices=['csv', 'id', 'grid', 'table', 'json', 'line', 'pretty', 'yaml'], default='pretty')
