@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     with requests.Session() as session:
       session = requests.Session()
-      session.auth = auth=( env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'] )
+      session.auth = ( env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'] )
       session.headers.update({'Content-Type': 'application/json', 'Accept': 'application/json'})
 
       ise_open_api_enable(session, ssl_verify)
