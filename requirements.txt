@@ -1,10 +1,17 @@
+asyncio         # async I/O whenever possible
+aiocsv          # async CSV files
+aiofiles        # async file I/O
 aiohttp         # asynchronous HTTP/S
-asyncio         # AIO all the time
+aiohttp_client_cache # caching!
+
 argparse        # CLI commands and options
+bs4             # HTML parsing
 ciscoisesdk     # ISE Python REST API wrapper
 faker           # generate fake users, MACs, IPs
-pandas          # import and manipulate data in dataframes
+oracledb        # Oracle DB thin client for ISE Data Connect queries
+pandas          # import and manipulate data in Pandas DataFrames
 PyYAML          # YAML
 requests        # synchronous HTTP/S
+semantic-verion # semantic version comparisons
 tabulate        # dump data in tables
 urllib3
