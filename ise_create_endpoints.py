@@ -103,7 +103,7 @@ def generate_random_endpoint_data () :
         'ERSEndPoint' : {
             'name' : mac,
             'mac'  : mac,
-            'description' : faker.sentence(nb_words=8), # optional
+            'description' : '', # faker.sentence(nb_words=8), # optional
             'groupId' : 'aa0e8b20-8bff-11e6-996c-525400b48521', # Unknown Endpoint Identity Group
             'staticGroupAssignment'          : False,
             'staticGroupAssignmentDefined'   : False,  # optional
