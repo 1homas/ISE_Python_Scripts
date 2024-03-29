@@ -51,8 +51,10 @@ TCP_LIMIT_DEFAULT=100 # aiohttp.TCPConnector.limit
 TCP_LIMIT=10  # 🔺ISE ERS APIs for GuestType and InternalUser can have problems with 10+ concurrent connections!
 
 # Dictionary of ISE REST Endpoints mapping to a tuple of the object name and base URL
-# 'Resource': ('ERS_Name', 'REST API Base URL')
 ISE_REST_ENDPOINTS = {
+    #
+    # '{resource}': '( {object_name}, {api_resource_path} )',
+    #
     # Deployment @ https://cs.co/ise-api#!deployment-openapi
     'deployment-node': ('-', '/api/v1/deployment/node'),
     'node-group': ('-', '/api/v1/deployment/node-group'),
@@ -428,11 +430,11 @@ async def get(session:aiohttp.ClientSession=None, resource:str=None, details:boo
                 if not os.path.exists(filepath): os.makedirs(filepath)
                 filename = '.'.join([resource, format])
                 filepath = os.path.join(filepath,filename)
-
             show(resources, resource, filepath, format)
-
         else:
             print(f"\nUnknown resource: {resource}\n", file=sys.stderr)
+            # print(f"Supported API objects:\n{', '.join(ISE_REST_ENDPOINTS.keys())}\n", file=sys.stderr)
+            print(f"Did you mean: {', '.join(filter(lambda x: x.startswith(resource[0:3]), ISE_REST_ENDPOINTS.keys()))}\n", file=sys.stderr)
     except aiohttp.ContentTypeError as e:
         print(f"\n❌ Error: {e.message}\n\n💡Enable the ISE REST APIs\n")
     except aiohttp.ClientConnectorError as e:  # cannot connect to host
