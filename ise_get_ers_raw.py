@@ -45,16 +45,16 @@ resource_name = sys.argv[1]
 #
 # Load Environment Variables
 #
-ENV = { k : v for (k, v) in os.environ.items() }
+env = { k : v for (k, v) in os.environ.items() }
 
 #
 # Show the resource
 #
-url = f"https://{ENV['ISE_HOSTNAME']}/ers/config/{resource_name}"
+url = f"https://{env['ISE_HOSTNAME']}/ers/config/{resource_name}"
 r = requests.get(url, 
-                 auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
+                 auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
                  headers=HEADERS_JSON,
-                 verify=(False if ENV['ISE_CERT_VERIFY'][0].lower() in ['f','n'] else True)
+                 verify=(False if env['ISE_CERT_VERIFY'][0].lower() in ['f','n'] else True)
                  )
 
 if r.status_code == 401 :
