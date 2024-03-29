@@ -115,14 +115,9 @@ HTTP_STATUS_ICONS = {
 def bs4ff_a_has_href_and_target_not_self (tag) -> bool:
     """
     BS4 tag filter function to ignore self-referential links. 
+    Returns True if the tag matches, False otherwise.
 
-    Parameters
-    ----------
-    tag : bs4.element.Tag a BeautifulSoup4 tag.
-
-    Returns
-    -------
-    bool Returns True if the tag matches, False otherwise.
+    :param tag (bs4.element.Tag) : a BeautifulSoup4 tag.
     """
     return tag.has_attr('href') and tag.has_attr('target') and tag['target'] != "_self"
 
@@ -131,14 +126,8 @@ async def get_all_bs4_tags (url:str=None, filter=None) -> list:
     """
     Returns a list of BeautifulSoup Tags (`bs4.element.Tag`).
 
-    Parameters
-    ----------
-    url : str a string representing a URL.
-    filter : function a BeautifulSoup4 tag filter function(tag)->bool.
-
-    Returns
-    -------
-    list Returns a list of BeautifulSoup Tags (`bs4.element.Tag`) matching the specified filter.
+    :param url (str) : a string representing a URL.
+    :param filter (callable) : a BeautifulSoup4 tag filter function(tag)->bool.
     """
     with requests.Session() as session:
         response = session.get(url, allow_redirects=True)
@@ -146,12 +135,15 @@ async def get_all_bs4_tags (url:str=None, filter=None) -> list:
         return soup.find_all(filter)  # tag filter function
 
 
-async def get_unique_urls_from_anchor_tags (url, tags:list=[]) -> dict:
+async def get_unique_urls_from_anchor_tags (url:str, tags:list=[]) -> dict:
     """
     Returns a dict mapping href string to anchor attributes and status:
         'Name' : the anchor tag inner text (linl name)
         'URL' : the anchor tag `href` attribute
         'Target': the anchor tag `target` attribute    
+
+    :param url (str) : a string representing a URL.
+    :param tags (list[bs4.Tag]) : a BeautifulSoup4 tag filter function(tag)->bool.
     """
     urls = {}
     for tag in tags:
@@ -181,6 +173,8 @@ async def get_unique_tag_attrs (tags:list=[]) -> None:
     """
     Prints a set of unique tag attributes from the list of tags specified. 
     This may help understand interesting available attributes.
+
+    :param tags ([bs4.Tag]) : a list of bs4.Tag objects.
     """
     unique_tag_attrs = set()
     [unique_tag_attrs.update(tag.attrs.keys()) for tag in tags]
@@ -192,9 +186,8 @@ async def get_url_data (session=None, urlq:asyncio.Queue=None):
     """
     Asyncio task handler that updates the `url_data` in the urlq with information from the HTTP HEAD method.
 
-    Parameters
-    ----------
-    urlq : asyncio.Queue the queue of `url_data` to monitor.
+    :param session (aiohttp.ClientSession) : an aiohttp.ClientSession to use
+    :param urlq (asyncio.Queue) : the queue of `url_data` to monitor.
     """
     while True:
         url_data = await urlq.get() # Get an item from the queue
@@ -222,7 +215,7 @@ async def main ():
     """
     Run script with async functions.
     """
-    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter) # keep my format
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument('url', action='store', type=str, help='the URL to validate')
     argp.add_argument('-f','--force', action='store_true', default=False, help='Force a fetch', required=False)
     argp.add_argument('-t','--timer', action='store_true', default=False, help='Time the process', required=False)
