@@ -60,7 +60,7 @@ def generate_random_internaluser_data () :
     resource = {
       'InternalUser' : {
         'name' : username,
-        'description' : faker.sentence(nb_words=8),
+        'description' : '', # faker.sentence(nb_words=8),
         'enabled' : True,
         'password' : 'ISEisC00L',
         'email' : f"{username}@domain.com",
@@ -177,7 +177,7 @@ async def main ():
     Entrypoint for packaged script.
     """
     global args
-    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter) # keep my format
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument('number', action='store', type=int, default=1, help='Number of users to create')
     argp.add_argument('-t','--timer', action='store_true', default=False, help='time', required=False)
     argp.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity')
