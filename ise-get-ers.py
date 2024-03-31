@@ -117,117 +117,89 @@ RESOURCE_NAMES = [      # List of supported ISE resources
 ]
 
 
-def to_bool (o) :
+def to_bool (o):
     """
     Returns a boolean value based on the object type and value.
     """
-    # number
-    if type(o) == 'int' :
-        if o > 0 : return True
-
-    # string
-    elif type(o) == 'str' :
+    if type(o) == 'int':
+        if o > 0: return True
+    elif type(o) == 'str':
         s = o.lower()
         # true | yes | on
-        if s[0:1].lower() in ['t','y','o'] : # true/yes/on
+        if s[0:1].lower() in ['t','y','o']: # true/yes/on
             return True
-
-    else :
+    else:
         return False
 
 
-def debug (s) :
+def debug (s):
     """
     Prints debug output to stderr.
     """
     print(s, file=sys.stderr)
 
 
-def parse_cli_arguments () :
-    """
-    Parse the command line arguments
-    """
-    
-    ARGS = argparse.ArgumentParser(
-            description=USAGE,
-            formatter_class=argparse.RawDescriptionHelpFormatter,   # keep my format
-            )
-    ARGS.add_argument('resource', action='store', default=None, help='ISE API endpoint name')
-    ARGS.add_argument('--verbose', '-v', action='count', default=0, help='Verbosity')
-
-    return ARGS.parse_args()
-
-
-def main () :
+def main ():
 
     global args     # promote to global scope for use in other functions
-    args = parse_cli_arguments()
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    argp.add_argument('resource', action='store', default=None, help='ISE API endpoint name')
+    argp.add_argument('--verbose', '-v', action='count', default=0, help='Verbosity')
+    args = argp.parse_args()
     
-    if args.verbose >= 3 : print(f"ⓘ Args: {args}")
-    # if args.verbose : print(f"ⓘ TCP_CONNECTIONS: {TCP_CONNECTIONS}")
-    # if args.verbose : print(f"ⓘ REST_PAGE_SIZE: {REST_PAGE_SIZE}")
-
-    requests.packages.urllib3.disable_warnings()    # Silence any warnings about certificates
-
     resource_name = args.resource
-    if resource_name not in RESOURCE_NAMES :
-        if args.verbose : print("ⓘ ❌ Invalid ISE ERS resource ({resource_name}).\nTry one of these:", file=sys.stderr)
-        for resource in RESOURCE_NAMES :
-            if args.verbose : print("ⓘ - {resource}", file=sys.stderr)
+    if resource_name not in RESOURCE_NAMES:
+        if args.verbose: print("ⓘ ❌ Invalid ISE ERS resource ({resource_name}).\nTry one of these:", file=sys.stderr)
+        for resource in RESOURCE_NAMES:
+            if args.verbose: print("ⓘ - {resource}", file=sys.stderr)
         sys.exit(1)
 
-    # Load Environment Variables
-    ENV = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
-    # if args.verbose : print(f"ⓘ ENV: {ENV}")
+    env = { k : v for (k,v) in os.environ.items() } # Load environment variables
 
-    # Get resource IDs
-    resources = []
-    url = f"https://{ENV['ISE_PPAN']}/ers/config/{resource_name}?size={ISE_PAGING_MAX}"
-    if args.verbose : print(f"ⓘ URL: {url}")
+    with requests.Session() as session:
 
-    while (url) :
-        r = requests.get(url,
-                         auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
-                         headers=HEADERS_JSON,
-                         verify=(True if ENV['ISE_CERT_VERIFY'][0:1].lower() in ['t','y','o'] else False)
-                         )
-        if DEBUG : debug(r.text)
-        if args.verbose : print(f'ⓘ Total {resource_name}: {r.json()["SearchResult"]["total"]}')
-        resources += r.json()["SearchResult"]["resources"]
-        try :
-            url = r.json()["SearchResult"]["nextPage"]["href"]
-        except Exception as e :
-            url = None
+        session.auth = ( env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'] )
+        session.headers.update({'Content-Type': 'application/json', 'Accept': 'application/json'})
+        session.verify=False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
 
-    if args.verbose : print(f"ⓘ Got {len(resources)} resources, getting their details...")
+        # Get resource IDs
+        resources = []
+        url = f"https://{env['ISE_PPAN']}/ers/config/{resource_name}?size={ISE_PAGING_MAX}"
+        if args.verbose: print(f"ⓘ URL: {url}")
 
-    # Show resource details
-    object_name = ''
-    details = []
-    for resource in resources :
-        # if DEBUG : debug(resource)
+        while (url):
+            r = session.get(url)
+            if args.verbose: print(r.text, file=sys.stderr)
+            if args.verbose: print(f'ⓘ Total {resource_name}: {r.json()["SearchResult"]["total"]}')
+            resources += r.json()["SearchResult"]["resources"]
+            try:
+                url = r.json()["SearchResult"]["nextPage"]["href"]
+            except Exception as e:
+                url = None
 
-        url = f"https://{ENV['ISE_PPAN']}/ers/config/{resource_name}/{resource['id']}"
-        if args.verbose : print(f"ⓘ URL: {url}")
-        r = requests.get(url,
-                         auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
-                         headers=HEADERS_JSON,
-                         verify=(True if ENV['ISE_CERT_VERIFY'][0:1].lower() in ['t','y','o'] else False)
-                         )
+        if args.verbose: print(f"ⓘ Got {len(resources)} resources, getting their details...")
 
-        detail = r.json()
-        object_name = list(detail)[0]   # save the resource name for the output
-        detail = detail[object_name]
-        del detail['link']    # Delete unnecessary link attribute
-        if DEBUG : debug(detail)
-        details.append( detail )
+        # Show resource details
+        object_name = ''
+        details = []
 
-    output = {}
-    output[object_name] = details
-    print(json.dumps(output, indent=2))
-    if args.verbose : print(f"ⓘ Total: {len(resources)}")
+        for resource in resources:
+            url = f"https://{env['ISE_PPAN']}/ers/config/{resource_name}/{resource['id']}"
+            if args.verbose : print(f"ⓘ URL: {url}")
+            r = session.get(url)
+            detail = r.json()
+            object_name = list(detail)[0]   # save the resource name for the output
+            detail = detail[object_name]
+            del detail['link']    # Delete unnecessary link attribute
+            if args.verbose: print(detail, file=sys.stderr)
+            details.append(detail)
+
+        output = {}
+        output[object_name] = details
+        print(json.dumps(output, indent=2))
+        if args.verbose : print(f"ⓘ Total: {len(resources)}")
 
 
 
-if __name__ == '__main__':     # Runs main() if file wasn't imported.  
+if __name__ == '__main__': # Runs main() if file wasn't imported.  
     main()
