@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
-Creates the specified number of ISE internaluser resources using REST APIs.
+Generates the specified number of ISE internaluser resources using a REST API.
+
+Examples:
+  ise-post-internalusers.py -h
+  ise-post-internalusers.py
+  ise-post-internalusers.py -n 10
+  ise-post-internalusers.py -n 100 -vt
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -8,10 +14,14 @@ Requires setting the these environment variables using the `export` command:
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
-You may add these `export` lines to a text file, customize them, and load with `source`:
-  source ise_environment.sh
+You may add these export lines to a text file and load with `source`:
+  source ise-env.sh
 
 """
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
+
 
 import aiohttp
 import asyncio
@@ -29,7 +39,6 @@ REST_PAGE_SIZE_DEFAULT=20
 REST_PAGE_SIZE_MAX=100
 REST_PAGE_SIZE=REST_PAGE_SIZE_MAX
 WORKERS_MAX=20
-
 
 faker = Faker('en-US')    # fake data generator
 username_cache = {}       # NAS identifier name cache to ensure uniqueness

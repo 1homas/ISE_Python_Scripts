@@ -4,14 +4,14 @@
 Show ISE REST APIs data.
 
 Examples:
-    ise_get.py endpoint 
-    ise_get.py endpoint -itv
-    ise_get.py endpointgroup -f csv -f endpointgroup.csv
-    ise_get.py endpointgroup -f pretty --details
-    ise_get.py endpointgroup -f grid --details --noid
-    ise_get.py endpointgroup -f yaml
-    ise_get.py allowedprotocols -f yaml -p saved --details 
-    ise_get.py all --details -f yaml --save demo_config 
+    ise-get.py endpoint 
+    ise-get.py endpoint -itv
+    ise-get.py endpointgroup -f csv -f endpointgroup.csv
+    ise-get.py endpointgroup -f pretty --details
+    ise-get.py endpointgroup -f grid --details --noid
+    ise-get.py endpointgroup -f yaml
+    ise-get.py allowedprotocols -f yaml -p saved --details 
+    ise-get.py all --details -f yaml --save demo_config 
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -23,6 +23,10 @@ You may add these export lines to a text file and load with `source`:
   source ise.sh
 
 """
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
+
 
 import aiohttp
 import asyncio

@@ -3,9 +3,9 @@
 Delete ISE resources via REST APIs.
 
 Examples:
-    ise_delete.py endpoint 
-    ise_delete.py endpoint -tv
-    ise_delete.py -v endpoint,endpointgroup,identitygroup,internaluser,networkdevicegroup,networkdevice
+    ise-delete.py endpoint 
+    ise-delete.py endpoint -tv
+    ise-delete.py -v endpoint,endpointgroup,identitygroup,internaluser,networkdevicegroup,networkdevice
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -13,10 +13,13 @@ Requires setting the these environment variables using the `export` command:
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
-You may add these `export` lines to a text file, customize them, and load with `source`:
+You may add these export lines to a text file and load with `source`:
   source ise.sh
 
 """
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
 
 
 import aiohttp

@@ -1,18 +1,5 @@
 #!/usr/bin/env python3
-#------------------------------------------------------------------------------
-# @author: Thomas Howard
-# @email: thomas@cisco.com
-#------------------------------------------------------------------------------
-
-import argparse
-import requests
-import json
-import os
-import sys
-
-
-# Globals
-USAGE = """
+"""
 Get details about a specific ISE ERS resource. See https://cs.co/ise-api for REST API resource names.
 
 Requires setting the these environment variables using the `export` command:
@@ -25,6 +12,17 @@ You may add these export lines to a text file and load with `source`:
   source ise.sh
 
 """
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
+
+
+import argparse
+import requests
+import json
+import os
+import sys
+
 
 DEBUG = 0
 ISE_PAGING_MAX=100

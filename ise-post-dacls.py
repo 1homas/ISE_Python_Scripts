@@ -1,8 +1,27 @@
 #!/usr/bin/env python3
-#------------------------------------------------------------------------------
-# @author: Thomas Howard
-# @email: thomas@cisco.com
-#------------------------------------------------------------------------------
+"""
+
+Creates the specified number of ISE downloadable ACLs using a REST API.
+
+Usage:
+
+  ise-post-dacls.py -h
+
+Requires setting the these environment variables using the `export` command:
+  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
+  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
+  export ISE_CERT_VERIFY=false          # validate the ISE certificate
+
+You may add these export lines to a text file and load with `source`:
+  source ise-env.sh
+
+"""
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
+
+
 import aiohttp
 import asyncio
 import argparse
@@ -12,21 +31,7 @@ import json
 import os
 import random
 
-# Globals
-USAGE = """
 
-Creates the specified number of ISE internaluser resources using REST APIs.
-
-Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
-  export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
-  export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
-  export ISE_CERT_VERIFY=false          # validate the ISE certificate
-
-You may add these export lines to a text file and load with `source`:
-  source ise_environment.sh
-
-"""
 JSON_HEADERS = {'Accept':'application/json', 'Content-Type':'application/json'}
 REST_PAGE_SIZE_DEFAULT=20
 REST_PAGE_SIZE_MAX=100

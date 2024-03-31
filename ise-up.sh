@@ -9,8 +9,7 @@
 #   export ISE_CERT_VERIFY=false          # validate the ISE certificate
 #
 # You may add these export lines to a text file and load with `source`:
-#   source ise_environment.sh
-#
+#   source ise-env.sh
 
 SERVER=$ISE_HOSTNAME
 USERNAME=$ISE_REST_HOSTNAME

@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
-Creates the specified number of ISE endpoint resources using REST APIs.
+Generate the specified number of random ISE endpoint resources using REST APIs.
+
+Examples:
+  ise-post-endpoints.py -h
+  ise-post-endpoints.py
+  ise-post-endpoints.py -n 10
+  ise-post-endpoints.py -n 100 -v
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -8,8 +14,8 @@ Requires setting the these environment variables using the `export` command:
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
-You may add these `export` lines to a text file, customize them, and load with `source`:
-  source ise_environment.sh
+You may add these export lines to a text file and load with `source`:
+  source ise-env.sh
 
 """
 __author__ = "Thomas Howard"

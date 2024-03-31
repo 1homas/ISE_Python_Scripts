@@ -2,7 +2,7 @@
 """
 Get the ISE node version information.
 
-Usage: ise_version.py
+Usage: ise-version.py
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -10,10 +10,14 @@ Requires setting the these environment variables using the `export` command:
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
-You may save the export lines in a text file and source it for use:
-  source ise_environment.sh
+You may add these export lines to a text file and load with `source`:
+  source ise-env.sh
 
 """
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
+
 
 import requests
 import json

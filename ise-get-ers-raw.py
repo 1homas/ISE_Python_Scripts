@@ -1,7 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 A simple, single GET request for an ISE ERS resource. 
 See https://cs.co/ise-api for REST API resource names.
+
+Usage: 
+  ise-get-ers-raw.py {resource}
+
+Examples:
+  ise-get-ers-raw.py networkdevice
+  ise-get-ers-raw.py networkdevice/0b6e9500-8b4a-11ec-ac96-46ca1867e58d
+  ise-get-ers-raw.py networkdevicegroup
+  ise-get-ers-raw.py identitygroup
+  ise-get-ers-raw.py op/systemconfig/iseversion
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -10,9 +20,12 @@ Requires setting the these environment variables using the `export` command:
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
 You may add these export lines to a text file and load with `source`:
-  source ise_environment.sh
+  source ise.sh
 
 """
+__author__ = "Thomas Howard"
+__email__ = "thomas@cisco.com"
+__license__ = "MIT - https://mit-license.org/"
 
 import requests
 import json
@@ -23,17 +36,6 @@ import sys
 requests.packages.urllib3.disable_warnings()
 
 HEADERS_JSON = { 'Accept': 'application/json' }
-USAGE = """
-Usage: 
-  ise_get_ers_raw.py {resource}
-
-Examples:
-  ise_get_ers_raw.py networkdevice
-  ise_get_ers_raw.py networkdevice/0b6e9500-8b4a-11ec-ac96-46ca1867e58d
-  ise_get_ers_raw.py networkdevicegroup
-  ise_get_ers_raw.py identitygroup
-  ise_get_ers_raw.py op/systemconfig/iseversion
-"""
 
 # Validate command line arguments
 if len(sys.argv) < 2 : 

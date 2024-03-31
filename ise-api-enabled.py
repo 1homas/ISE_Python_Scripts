@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Enable the ISE APIs using (synchronous) APIs!
+Enable the ISE APIs using (synchronous) APIs.
 
 Usage:
 
-  ise_api_enabled.py
+  ise-api-enabled.py
 
 Requires setting the these environment variables using the `export` command:
   export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
@@ -12,8 +12,8 @@ Requires setting the these environment variables using the `export` command:
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
 
-You may add these `export` lines to a text file, customize them, and load with `source`:
-  source ise_environment.sh
+You may add these export lines to a text file and load with `source`:
+  source env.sh
 
 """
 __author__ = "Thomas Howard"
