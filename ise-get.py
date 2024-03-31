@@ -10,8 +10,8 @@ Examples:
     ise-get.py endpointgroup -f pretty --details
     ise-get.py endpointgroup -f grid --details --noid
     ise-get.py endpointgroup -f yaml
-    ise-get.py allowedprotocols -f yaml -p saved --details 
-    ise-get.py all --details -f yaml --save demo_config 
+    ise-get.py allowedprotocols -f yaml --details
+    ise-get.py all -v --details -f yaml --save saved_config
 
 Requires setting the these environment variables using the `export` command:
   export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
@@ -454,7 +454,7 @@ if __name__ == '__main__':
     Command line script invocation.
     """
     global args     # promote to global scope for use in other functions
-    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)  # Keep __doc__ format
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument('resource', type=str, help='resource name')
     argp.add_argument('--noid', action='store_true', default=False, dest='noid', help='hide object UUIDs')
     argp.add_argument('-s', '--save', default='-', required=False, help='Save output to directory. Default: stdout')
