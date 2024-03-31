@@ -6,7 +6,7 @@ See https://cs.co/ise-api for REST API resource names.
 Usage: ise-ers-count.py {resource_name}
 
 Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
@@ -34,7 +34,7 @@ Return the number of resources of type resource.
 """
 def ise_ers_resource_count (resource) :
     count = 0
-    r = requests.get(f"https://{ENV['ISE_HOSTNAME']}/ers/config/{resource_name}",
+    r = requests.get(f"https://{ENV['ISE_PPAN']}/ers/config/{resource_name}",
                      auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
                      headers={'Accept': 'application/json'},
                      verify=ENV['ISE_CERT_VERIFY'].lower().startswith('t')

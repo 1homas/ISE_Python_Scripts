@@ -14,7 +14,7 @@ Examples:
   ise-get-ers-raw.py op/systemconfig/iseversion
 
 Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
@@ -52,7 +52,7 @@ env = { k : v for (k, v) in os.environ.items() }
 #
 # Show the resource
 #
-url = f"https://{env['ISE_HOSTNAME']}/ers/config/{resource_name}"
+url = f"https://{env['ISE_PPAN']}/ers/config/{resource_name}"
 r = requests.get(url, 
                  auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
                  headers=HEADERS_JSON,

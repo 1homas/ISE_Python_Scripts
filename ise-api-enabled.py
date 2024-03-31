@@ -7,7 +7,7 @@ Usage:
   ise-api-enabled.py
 
 Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
@@ -28,7 +28,7 @@ requests.packages.urllib3.disable_warnings() # Silence any requests package warn
 
 
 def ise_open_api_enable (session:requests.Session=None, ssl_verify:bool=True) :
-    url = 'https://'+env['ISE_HOSTNAME']+'/admin/API/apiService/update'
+    url = 'https://'+env['ISE_PPAN']+'/admin/API/apiService/update'
     data = '{ "papIsEnabled":true, "psnsIsEnabled":true }'
     r = session.post(url, data=data, verify=ssl_verify)
     if (r.status_code == 200 or r.status_code == 500 ) : # 500 if already enabled
@@ -38,7 +38,7 @@ def ise_open_api_enable (session:requests.Session=None, ssl_verify:bool=True) :
 
 
 def ise_ers_api_enable (session:requests.Session=None, ssl_verify:bool=True) :
-    url = 'https://'+env['ISE_HOSTNAME']+'/admin/API/NetworkAccessConfig/ERS'
+    url = 'https://'+env['ISE_PPAN']+'/admin/API/NetworkAccessConfig/ERS'
     data = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ersConfig>
 <id>1</id>

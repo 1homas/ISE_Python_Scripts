@@ -3,7 +3,7 @@
 Get details about a specific ISE ERS resource. See https://cs.co/ise-api for REST API resource names.
 
 Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
@@ -182,7 +182,7 @@ def main () :
 
     # Get resource IDs
     resources = []
-    url = f"https://{ENV['ISE_HOSTNAME']}/ers/config/{resource_name}?size={ISE_PAGING_MAX}"
+    url = f"https://{ENV['ISE_PPAN']}/ers/config/{resource_name}?size={ISE_PAGING_MAX}"
     if args.verbose : print(f"ⓘ URL: {url}")
 
     while (url) :
@@ -207,7 +207,7 @@ def main () :
     for resource in resources :
         # if DEBUG : debug(resource)
 
-        url = f"https://{ENV['ISE_HOSTNAME']}/ers/config/{resource_name}/{resource['id']}"
+        url = f"https://{ENV['ISE_PPAN']}/ers/config/{resource_name}/{resource['id']}"
         if args.verbose : print(f"ⓘ URL: {url}")
         r = requests.get(url,
                          auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),

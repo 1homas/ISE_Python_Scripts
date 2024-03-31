@@ -7,7 +7,7 @@ Usage:
   ise-api-enabled-aio.py
 
 Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
@@ -64,7 +64,7 @@ async def main():
     ssl_verify = False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
 
     auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
-    session = aiohttp.ClientSession(f"https://{env['ISE_HOSTNAME']}", auth=auth, headers={'Accept':'application/json', 'Content-Type':'application/json'})
+    session = aiohttp.ClientSession(f"https://{env['ISE_PPAN']}", auth=auth, headers={'Accept':'application/json', 'Content-Type':'application/json'})
     await asyncio.gather(
       ise_ers_api_enable(session, ssl_verify),
       ise_open_api_enable(session, ssl_verify),

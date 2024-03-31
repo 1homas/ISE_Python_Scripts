@@ -8,7 +8,7 @@ Usage:
   ise-post-ers-from_file.py networkdevice my_network_device.json
 
 Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
@@ -45,7 +45,7 @@ print(json_data)
 env = {k:v for (k,v) in os.environ.items() } # Load Environment Variables
 
 # POST the resource
-url = f"https://{env['ISE_HOSTNAME']}/ers/config/{resource_name}"
+url = f"https://{env['ISE_PPAN']}/ers/config/{resource_name}"
 basic_auth = (env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'])
 json_headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
 ssl_verify = False if env['ISE_CERT_VERIFY'][0].lower() in ['f','n'] else True

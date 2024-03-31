@@ -6,7 +6,7 @@ Get the total number of a specific ISE ERS resource.
 Usage: ise-walk.py
 
 Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
@@ -118,7 +118,7 @@ def resource_count (resource) :
     LEAF = ' ┣╸'
     count = 0
     try :
-        url = 'https://'+env['ISE_HOSTNAME']+'/ers/config/'+resource
+        url = 'https://'+env['ISE_PPAN']+'/ers/config/'+resource
         r = requests.get(url,
                         auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
                         headers={'Accept': 'application/json'},
@@ -149,6 +149,6 @@ if __name__ == "__main__":
     # Load Environment Variables
     env = { k : v for (k, v) in os.environ.items() }
 
-    print('C▶'+env['ISE_HOSTNAME'])
+    print('C▶'+env['ISE_PPAN'])
     for resource in RESOURCE_NAMES :
         resource_count(resource)

@@ -66,7 +66,7 @@ def main():
     env = {k:v for (k,v) in os.environ.items() if k.startswith('ISE_') }  # Load Environment Variables
 
     ise = IdentityServicesEngineAPI(
-            base_url=f"https://{env['ISE_HOSTNAME']}",  # IDENTITY_SERVICES_ENGINE_BASE_URL
+            base_url=f"https://{env['ISE_PPAN']}",      # IDENTITY_SERVICES_ENGINE_BASE_URL
             username=env['ISE_USERNAME'],               # IDENTITY_SERVICES_ENGINE_USERNAME
             password=env['ISE_PASSWORD'],               # IDENTITY_SERVICES_ENGINE_PASSWORD
             verify=(False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)

@@ -9,7 +9,7 @@ Examples:
   ise-post-internalusers.py -n 100 -vt
 
 Requires setting the these environment variables using the `export` command:
-  export ISE_HOSTNAME='1.2.3.4'         # hostname or IP address of ISE PAN
+  export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
   export ISE_CERT_VERIFY=false          # validate the ISE certificate
@@ -197,7 +197,7 @@ async def main ():
     env = {k:v for (k, v) in os.environ.items()} # Load environment variables
 
     # Create HTTP session
-    base_url = f"https://{env['ISE_HOSTNAME']}"
+    base_url = f"https://{env['ISE_PPAN']}"
     conn = aiohttp.TCPConnector(ssl=(False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True))
     basic_auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
     json_headers = {'Accept':'application/json', 'Content-Type':'application/json'}
