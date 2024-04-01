@@ -19,36 +19,41 @@ __email__ = "thomas@cisco.com"
 __license__ = "MIT - https://mit-license.org/"
 
 
-import requests
 import json
 import os
+import requests
 import sys
 
 requests.packages.urllib3.disable_warnings() # Silence any warnings about certificates
 
 env = { k:v for (k, v) in os.environ.items() } # Load Environment Variables
-url = 'https://'+env['ISE_PPAN']+'/ers/config/op/systemconfig/iseversion'
-basic_auth = (env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'])
-json_headers = {'Accept': 'application/json'}
-ssl_verify = False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
-r = requests.get(url, auth=basic_auth, headers=json_headers, verify=ssl_verify)
 
-# Sample output:
-#
-# {
-#   "OperationResult" : {
-#     "resultValue" : [ {
-#       "value" : "3.1.0.518",
-#       "name" : "version"
-#     }, {
-#       "value" : "1",
-#       "name" : "patch information"
-#     } ]
-#   }
-# }
-# 
+with requests.Session() as session:
+    # Initialize ISE REST API Session
+    session.auth = ( env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'] )
+    session.headers.update({'Accept': 'application/json'})
+    session.verify = False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
 
-values = r.json()['OperationResult']['resultValue']
+    url = f"https://{env['ISE_PPAN']}/ers/config/op/systemconfig/iseversion"
+    r = session.get(url)
+
+    # Sample output:
+    #
+    # {
+    #   "OperationResult" : {
+    #     "resultValue" : [ {
+    #       "value" : "3.1.0.518",
+    #       "name" : "version"
+    #     }, {
+    #       "value" : "1",
+    #       "name" : "patch information"
+    #     } ]
+    #   }
+    # }
+    # 
+
+    values = r.json()['OperationResult']['resultValue']
+
 version_info = {}
 for item in values:
     version_info[item['name']] = item['value']
