@@ -1,0 +1,199 @@
+---
+#
+# Network Device Groups by Medical Department.
+#
+# 🐞 The ISE ERS API does not like `-` in NDG names. `_` is OK.
+#
+
+# 💡 Use [] for an empty list
+# networkdevicegroup: []
+
+networkdevicegroup:
+
+- name: Department#Department
+  description: All Department
+  othername: Department
+
+- name: Department#Department#Accounts
+  description: Accounts
+  othername: Department
+
+- name: Department#Department#Administration
+  description: Administration
+  othername: Department
+
+- name: Department#Department#Admitting
+  description: Admitting
+  othername: Department
+
+- name: Department#Department#Bacteriology
+  description: Bacteriology
+  othername: Department
+
+- name: Department#Department#Biochemistry
+  description: Biochemistry
+  othername: Department
+
+- name: Department#Department#BloodBank
+  description: BloodBank
+  othername: Department
+
+- name: Department#Department#BusinessManagement
+  description: BusinessManagement
+  othername: Department
+
+- name: Department#Department#Cardiology
+  description: Cardiology
+  othername: Department
+
+- name: Department#Department#Dental
+  description: Dental
+  othername: Department
+
+- name: Department#Department#Dietary
+  description: Dietary
+  othername: Department
+
+- name: Department#Department#EarNoseThroat
+  description: EarNoseThroat
+  othername: Department
+
+- name: Department#Department#Gynecology
+  description: Gynecology
+  othername: Department
+
+- name: Department#Department#Hematology
+  description: Hematology
+  othername: Department
+
+- name: Department#Department#Housekeeping
+  description: Housekeeping
+  othername: Department
+
+- name: Department#Department#InfectiousDisease
+  description: InfectiousDisease
+  othername: Department
+
+- name: Department#Department#Inpatient
+  description: Inpatient
+  othername: Department
+
+- name: Department#Department#Laundry
+  description: Laundry
+  othername: Department
+
+- name: Department#Department#Maintenance
+  description: Maintenance
+  othername: Department
+
+- name: Department#Department#Mechanical
+  description: Mechanical
+  othername: Department
+
+- name: Department#Department#Neurology
+  description: Neurology
+  othername: Department
+
+- name: Department#Department#Nuclear
+  description: Nuclear
+  othername: Department
+
+- name: Department#Department#Nursing
+  description: Nursing
+  othername: Department
+
+- name: Department#Department#Obstetrics
+  description: Obstetrics
+  othername: Department
+
+- name: Department#Department#Opthamology
+  description: Opthamology
+  othername: Department
+
+- name: Department#Department#Orthopedics
+  description: Orthopedics
+  othername: Department
+
+- name: Department#Department#Outpatient
+  description: Outpatient
+  othername: Department
+
+- name: Department#Department#Pediatrics
+  description: Pediatrics
+  othername: Department
+
+- name: Department#Department#Paramedical
+  description: Paramedical
+  othername: Department
+
+- name: Department#Department#Parasitology
+  description: Parasitology
+  othername: Department
+
+- name: Department#Department#Pastoral
+  description: Pastoral
+  othername: Department
+
+- name: Department#Department#Pathology
+  description: Pathology
+  othername: Department
+
+- name: Department#Department#Personnel
+  description: Personnel
+  othername: Department
+
+- name: Department#Department#Pharmacy
+  description: Pharmacy
+  othername: Department
+
+- name: Department#Department#Reconstruction
+  description: Reconstruction
+  othername: Department
+
+- name: Department#Department#Psychiatry
+  description: Psychiatry
+  othername: Department
+
+- name: Department#Department#Purchasing
+  description: Purchasing
+  othername: Department
+
+- name: Department#Department#Radiology
+  description: Radiology
+  othername: Department
+
+- name: Department#Department#Records
+  description: Records
+  othername: Department
+
+- name: Department#Department#Rehabilitation
+  description: Rehabilitation
+  othername: Department
+
+- name: Department#Department#Serology
+  description: Serology
+  othername: Department
+
+- name: Department#Department#Skin
+  description: Skin
+  othername: Department
+
+- name: Department#Department#SocialServices
+  description: SocialServices
+  othername: Department
+
+- name: Department#Department#Sterilization
+  description: Sterilization
+  othername: Department
+
+- name: Department#Department#Supplies
+  description: Supplies
+  othername: Department
+
+- name: Department#Department#Surgery
+  description: Surgery
+  othername: Department
+
+- name: Department#Department#Waste
+  description: Waste
+  othername: Department

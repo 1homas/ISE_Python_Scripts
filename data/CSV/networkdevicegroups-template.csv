@@ -1,0 +1,1 @@
+Name:String(100):Required,Description:String(1024),Type:String(64):Required,Is Root:Boolean(true|false):Required

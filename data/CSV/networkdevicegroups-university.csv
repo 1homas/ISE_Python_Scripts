@@ -1,0 +1,70 @@
+Name:String(100):Required,Description:String(1024),Type:String(64):Required,Is Root:Boolean(true|false):Required
+School#School,All University Schools,School,TRUE
+School#School#Agriculture,Agriculture,School,FALSE
+School#School#Architecture,Architecture,School,FALSE
+School#School#Business,Business,School,FALSE
+School#School#Engineering,Engineering,School,FALSE
+School#School#LiberalArts,LiberalArts,School,FALSE
+School#School#Science,Science,School,FALSE
+Department#Department,All Departments,Department,TRUE
+Department#Department#AAG,Anthropology and Geography,Department,FALSE
+Department#Department#AER,Aerospace,Department,FALSE
+Department#Department#AGB,Agricultural Business,Department,FALSE
+Department#Department#AGR,Agriculture,Department,FALSE
+Department#Department#AGS,Agricultural Science,Department,FALSE
+Department#Department#ARC,Architecture,Department,FALSE
+Department#Department#ARE,Architectural Engineering,Department,FALSE
+Department#Department#ART,Art and Design,Department,FALSE
+Department#Department#ASC,Animal Science,Department,FALSE
+Department#Department#BIO,Biochemistry,Department,FALSE
+Department#Department#BM,Biomedical,Department,FALSE
+Department#Department#BSC,Biological Sciences,Department,FALSE
+Department#Department#BUS,Business,Department,FALSE
+Department#Department#CE,Civil Engineering,Department,FALSE
+Department#Department#CES,Comparative Ethnic Studies,Department,FALSE
+Department#Department#Chemistry,Chemistry,Department,FALSE
+Department#Department#CM,Construction Management,Department,FALSE
+Department#Department#CON,Construction,Department,FALSE
+Department#Department#CPE,Computer Engineering,Department,FALSE
+Department#Department#CRP,City and Regional Planning,Department,FALSE
+Department#Department#CS,Computer Science,Department,FALSE
+Department#Department#ECN,Economics,Department,FALSE
+Department#Department#EE,Electrical Engineering,Department,FALSE
+Department#Department#EGR,Engineering,Department,FALSE
+Department#Department#ENG,English,Department,FALSE
+Department#Department#ES,Ethnic Studies,Department,FALSE
+Department#Department#FS,Food Science,Department,FALSE
+Department#Department#GE,General Engineering,Department,FALSE
+Department#Department#HIS,History,Department,FALSE
+Department#Department#IE,Industrial Engineering,Department,FALSE
+Department#Department#IT,Industrial Technology,Department,FALSE
+Department#Department#JRN,Journalism,Department,FALSE
+Department#Department#KIN,Kinesiology,Department,FALSE
+Department#Department#LA,Landscape Architecture,Department,FALSE
+Department#Department#LAN,Languages,Department,FALSE
+Department#Department#LAW,Law,Department,FALSE
+Department#Department#LS,Liberal Studies,Department,FALSE
+Department#Department#MAN,Manufacturing Engineering,Department,FALSE
+Department#Department#MAT,Materials Engineering,Department,FALSE
+Department#Department#MB,Microbiology,Department,FALSE
+Department#Department#ME,Mechanical Engineering,Department,FALSE
+Department#Department#MS,Marine Sciences,Department,FALSE
+Department#Department#MSC,Music,Department,FALSE
+Department#Department#MTH,Mathematics,Department,FALSE
+Department#Department#NRM,Natural Resources Management,Department,FALSE
+Department#Department#NUT,Nutrition,Department,FALSE
+Department#Department#NVE,Environmental Engineering,Department,FALSE
+Department#Department#NVS,Environmental Sciences,Department,FALSE
+Department#Department#PH,Public Health,Department,FALSE
+Department#Department#PHL,Philosophy,Department,FALSE
+Department#Department#PHY,Physics,Department,FALSE
+Department#Department#PLS,Plant Sciences,Department,FALSE
+Department#Department#POL,Political Science,Department,FALSE
+Department#Department#PSY,Psychology,Department,FALSE
+Department#Department#REC,Recreation Administration,Department,FALSE
+Department#Department#SCI,Science,Department,FALSE
+Department#Department#SOC,Sociology,Department,FALSE
+Department#Department#STS,Statistics,Department,FALSE
+Department#Department#SWE,Software Engineering,Department,FALSE
+Department#Department#TA,Theatre Arts,Department,FALSE
+Department#Department#VIT,Viticulture,Department,FALSE

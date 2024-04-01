@@ -1,0 +1,22 @@
+User Name,First Name,Last Name,Email,User Details,Password,Is Password Encrypted(True/False),Enable User(Yes/No),Change Password on Next Login(Yes/No),User Identity Groups,Enable Password,Is Enable Password Encrypted(True/False),Password ID Store,Expiry Date(MM/dd/yyyy),Password Never Expires(Yes/No),Account Name Alias,Date Created (MM/dd/yyyy),Date Modified (MM/dd/yyyy)
+vendor,,,,Vendor,C1sco12345,FALSE,Yes,No,Vendor,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+partner,,,,Partner,C1sco12345,FALSE,Yes,No,Partner,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+integrator,,,,Integrator,C1sco12345,FALSE,Yes,No,Integrator,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+provider,,,,Provider,C1sco12345,FALSE,Yes,No,Provider,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+developer,,,,Developer,C1sco12345,FALSE,Yes,No,Developer,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+consultant,,,,Consultant,C1sco12345,FALSE,Yes,No,Consultant,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+manufacturer,,,,Manufacturer,C1sco12345,FALSE,Yes,No,Manufacturer,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+distributor,,,,Distributor,C1sco12345,FALSE,Yes,No,Distributor,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+captain,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Federal,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+dean,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Education,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+doctor,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Healthcare,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+employee,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Corporate,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+helpdesk,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Employee,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+manager,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Corporate,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+network_admin,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Network_Admins,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+nurse,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Healthcare,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+officer,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Federal,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+professor,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Education,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+security_admin,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Security_Admins,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+sponsor,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Employee,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24
+tcnac,,,,E&S demo user,C1sco12345,FALSE,Yes,No,Security_Admins,C1sco12345,FALSE,Internal Users,,Yes,,1/1/24,1/1/24

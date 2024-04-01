@@ -1,0 +1,40 @@
+Icon,Name:String(32):Required,Value,Description:String(256)
+0,Unknown,0,System Default - applies when a policy is specified for unsuccessful group classification
+0,Infrastructure,2,Infrastructure group is used by Meraki devices for internal and dashboard communication
+0,Badging,10,Badge Readers
+0,Building,11,Building Lighting
+0,Cameras,12,Cameras
+0,Cardio,13,Cardio
+0,Careware,14,Careware
+0,Clinical,15,Clinical
+0,Conferencing,16,Conferencing
+0,Doctors,17,Doctors
+0,Facilities,18,Facilities
+0,Fetalink,19,Fetalink
+0,Guest,20,Guest
+0,HVAC,21,HVAC
+0,Imaging,22,Imaging
+0,Infants,23,Infants
+0,Kiosks,24,Kiosks
+0,Lab,25,Lab
+0,Lighting,26,Lighting
+0,Linux,27,Linux
+0,MedicalDevices,28,MedicalDevices
+0,Nurses,29,Nurses
+0,PatientCare,30,PatientCare
+0,Pharmacy,31,Pharmacy
+0,Phones,32,Phones
+0,Printers,33,Printers
+0,Retail,34,Retail
+0,Servers,35,Servers
+0,Signage,36,Signage
+0,Staff,37,Staff
+0,Storage,38,Storage
+0,Support,39,Support
+0,Surgical,40,Surgical
+0,UPS,41,Uninteruptable Power Supplies
+0,VM,42,VM
+0,Volunteers,43,Volunteers
+0,Wireless,44,Wireless
+0,Workstation,45,Workstation
+0,WOW,46,WOW

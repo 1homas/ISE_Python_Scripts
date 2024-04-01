@@ -1,0 +1,255 @@
+---
+#
+# Network Device Groups by University Department.
+#
+# 🐞 The ISE ERS API does not like `-` in NDG names. `_` is OK.
+#
+
+# 💡 Use [] for an empty list
+# networkdevicegroup: []
+
+networkdevicegroup:
+
+- name: Department#Department
+  description: All Department
+  othername: Department
+
+- name: Department#Department#AAG
+  description: Anthropology and Geography
+  othername: Department
+
+- name: Department#Department#AER
+  description: Aerospace
+  othername: Department
+
+- name: Department#Department#AGB
+  description: Agricultural Business
+  othername: Department
+
+- name: Department#Department#AGR
+  description: Agriculture
+  othername: Department
+
+- name: Department#Department#AGS
+  description: Agricultural Science
+  othername: Department
+
+- name: Department#Department#ARC
+  description: Architecture
+  othername: Department
+
+- name: Department#Department#ARE
+  description: Architectural Engineering
+  othername: Department
+
+- name: Department#Department#ART
+  description: Art and Design
+  othername: Department
+
+- name: Department#Department#ASC
+  description: Animal Science
+  othername: Department
+
+- name: Department#Department#BIO
+  description: Biochemistry
+  othername: Department
+
+- name: Department#Department#BM
+  description: Biomedical
+  othername: Department
+
+- name: Department#Department#BSC
+  description: Biological Sciences
+  othername: Department
+
+- name: Department#Department#BUS
+  description: Business
+  othername: Department
+
+- name: Department#Department#CE
+  description: Civil Engineering
+  othername: Department
+
+- name: Department#Department#CES
+  description: Comparative Ethnic Studies
+  othername: Department
+
+- name: Department#Department#CHM
+  description: Chemistry
+  othername: Department
+
+- name: Department#Department#CM
+  description: Construction Management
+  othername: Department
+
+- name: Department#Department#CON
+  description: Construction
+  othername: Department
+
+- name: Department#Department#CPE
+  description: Computer Engineering
+  othername: Department
+
+- name: Department#Department#CRP
+  description: City and Regional Planning
+  othername: Department
+
+- name: Department#Department#CS
+  description: Computer Science
+  othername: Department
+
+- name: Department#Department#ECN
+  description: Economics
+  othername: Department
+
+- name: Department#Department#EE
+  description: Electrical Engineering
+  othername: Department
+
+- name: Department#Department#EGR
+  description: Engineering
+  othername: Department
+
+- name: Department#Department#ENG
+  description: English
+  othername: Department
+
+- name: Department#Department#ES
+  description: Ethnic Studies
+  othername: Department
+
+- name: Department#Department#FS
+  description: Food Science
+  othername: Department
+
+- name: Department#Department#GE
+  description: General Engineering
+  othername: Department
+
+- name: Department#Department#HIS
+  description: History
+  othername: Department
+
+- name: Department#Department#IE
+  description: Industrial Engineering
+  othername: Department
+
+- name: Department#Department#IT
+  description: Industrial Technology
+  othername: Department
+
+- name: Department#Department#JRN
+  description: Journalism
+  othername: Department
+
+- name: Department#Department#KIN
+  description: Kinesiology
+  othername: Department
+
+- name: Department#Department#LA
+  description: Landscape Architecture
+  othername: Department
+
+- name: Department#Department#LAN
+  description: Languages
+  othername: Department
+
+- name: Department#Department#LS
+  description: Liberal Studies
+  othername: Department
+
+- name: Department#Department#MAN
+  description: Manufacturing Engineering
+  othername: Department
+
+- name: Department#Department#MAT
+  description: Materials Engineering
+  othername: Department
+
+- name: Department#Department#MB
+  description: Microbiology
+  othername: Department
+
+- name: Department#Department#ME
+  description: Mechanical Engineering
+  othername: Department
+
+- name: Department#Department#MS
+  description: Marine Sciences
+  othername: Department
+
+- name: Department#Department#MSC
+  description: Music
+  othername: Department
+
+- name: Department#Department#MTH
+  description: Mathematics
+  othername: Department
+
+- name: Department#Department#NRM
+  description: Natural Resources Management
+  othername: Department
+
+- name: Department#Department#NUT
+  description: Nutrition
+  othername: Department
+
+- name: Department#Department#NVE
+  description: Environmental Engineering
+  othername: Department
+
+- name: Department#Department#NVS
+  description: Environmental Sciences
+  othername: Department
+
+- name: Department#Department#PH
+  description: Public Health
+  othername: Department
+
+- name: Department#Department#PHL
+  description: Philosophy
+  othername: Department
+
+- name: Department#Department#PHY
+  description: Physics
+  othername: Department
+
+- name: Department#Department#PLS
+  description: Plant Sciences
+  othername: Department
+
+- name: Department#Department#POL
+  description: Political Science
+  othername: Department
+
+- name: Department#Department#PSY
+  description: Psychology
+  othername: Department
+
+- name: Department#Department#REC
+  description: Recreation Administration
+  othername: Department
+
+- name: Department#Department#SCI
+  description: Science
+  othername: Department
+
+- name: Department#Department#SOC
+  description: Sociology
+  othername: Department
+
+- name: Department#Department#STS
+  description: Statistics
+  othername: Department
+
+- name: Department#Department#SWE
+  description: Software Engineering
+  othername: Department
+
+- name: Department#Department#TA
+  description: Theatre Arts
+  othername: Department
+
+- name: Department#Department#VIT
+  description: Viticulture
+  othername: Department

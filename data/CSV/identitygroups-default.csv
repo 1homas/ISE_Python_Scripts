@@ -1,0 +1,9 @@
+Identity Group Name,Identity Group Description,Identity Group Max Sessions,Identity Group Max Sessions for User in Group
+ALL_ACCOUNTS (default),Default ALL_ACCOUNTS (default) User Group,0,0
+Employee,Default Employee User Group,0,0
+GROUP_ACCOUNTS (default),Default GROUP_ACCOUNTS (default) User Group,0,0
+GuestType_Contractor (default),Identity group mirroring the guest type ,0,0
+GuestType_Daily (default),Identity group mirroring the guest type ,0,0
+GuestType_SocialLogin (default),Identity group mirroring the guest type ,0,0
+GuestType_Weekly (default),Identity group mirroring the guest type ,0,0
+OWN_ACCOUNTS (default),Default OWN_ACCOUNTS (default) User Group,0,0

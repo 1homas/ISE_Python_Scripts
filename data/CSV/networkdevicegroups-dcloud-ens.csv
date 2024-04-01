@@ -1,0 +1,19 @@
+Name:String(100):Required,Description:String(1024),Type:String(64):Required,Is Root:Boolean(true|false):Required
+Device Type#All Device Types,All Device Types,Device Type,true
+Device Type#All Device Types#Network Devices,,Device Type,false
+Device Type#All Device Types#Network Devices#IOS Devices,IOS based routers & switches,Device Type,false
+Device Type#All Device Types#Network Devices#Nexus_OS,Devices running NX-OS,Device Type,false
+Device Type#All Device Types#Network Devices#Wireless Devices,Wireless LAN Controllers,Device Type,false
+Device Type#All Device Types#Security Devices,,Device Type,false
+Device Type#All Device Types#Security Devices#Firewalls,Firewalls,Device Type,false
+Device Type#All Device Types#Security Devices#IPS,IPS,Device Type,false
+Device Type#All Device Types#Security Devices#VPN,VPN,Device Type,false
+Device Type#All Device Types#Simulators,ISE use-case traffic generators,Device Type,false
+IPSEC#Is IPSEC Device,Is this a RADIUS over IPSEC Device,IPSEC,true
+IPSEC#Is IPSEC Device#No,Device is not IPSEC Type,IPSEC,false
+IPSEC#Is IPSEC Device#Yes,Device is IPSEC Type,IPSEC,false
+Location#All Locations,All Locations,Location,true
+Location#All Locations#dCloud,,Location,false
+Location#All Locations#dCloud#DC,,Location,false
+Location#All Locations#dCloud#DMZ,,Location,false
+Location#All Locations#dCloud#Lab,,Location,false

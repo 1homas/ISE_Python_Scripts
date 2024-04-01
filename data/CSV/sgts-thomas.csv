@@ -1,0 +1,29 @@
+Icon,Name:String(32):Required,Value,Description:String(256)
+0,Unknown,0,System Default - applies when a policy is specified for unsuccessful group classification
+0,Infrastructure,2,Infrastructure / TrustSec_Devices group is used by Meraki devices for internal and dashboard communication
+0,Badging,10,Badging
+0,Building,11,Building
+0,BYOD,12,BYOD
+0,Cameras,13,Cameras
+0,Contractors,14,Contractors
+0,Employees,15,Employees
+0,Engineering,16,Engineering
+0,Facilities,17,Facilities
+0,Guests,18,Guests
+0,HVAC,19,HVAC
+0,Industrial,20,Industrial
+0,IOT,21,IOT
+0,Kiosks,22,Kiosks
+0,Lab,23,Lab
+0,Lighting,24,Lighting
+0,Linux,25,Linux
+0,Manufacturing,26,Manufacturing
+0,Phones,27,Phones
+0,Printers,28,Printers
+0,Quarantined,29,Quarantined
+0,Retail,30,Retail
+0,Servers,31,Servers
+0,Signage,32,Signage
+0,Storage,33,Storage
+0,UPS,34,UPS
+0,Workstations,35,Workstations

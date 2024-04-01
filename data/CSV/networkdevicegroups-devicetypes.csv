@@ -1,0 +1,109 @@
+Name:String(100):Required,Description:String(1024),Type:String(64):Required,Is Root:Boolean(true|false):Required
+Device Type#All Device Types,All Device Types,Device Type,TRUE
+Device Type#All Device Types#Routers,Routers,Device Type,FALSE
+Device Type#All Device Types#SDWAN,Cisco Meraki SDWAN Devices,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki,Cisco Meraki MX Devices,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX105,Cisco Meraki MX105,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX250,Cisco Meraki MX250,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX450,Cisco Meraki MX450,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX67,Cisco Meraki MX67,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX67C,Cisco Meraki MX67C,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX67W,Cisco Meraki MX67W,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX68,Cisco Meraki MX68,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX68,Cisco Meraki MX68,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX68CW,Cisco Meraki MX68CW,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX68W,Cisco Meraki MX68W,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX75,Cisco Meraki MX75,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX85,Cisco Meraki MX85,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#MX95,Cisco Meraki MX95,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#vMX,Cisco Meraki vMX,Device Type,FALSE
+Device Type#All Device Types#SDWAN#Meraki#Z3,Cisco Meraki Z3,Device Type,FALSE
+Device Type#All Device Types#Simulator,Simulator,Device Type,FALSE
+Device Type#All Device Types#Switches,Switches,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst,Cisco Catalyst Switches,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C3560X,Cisco 3560X,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C3650,Cisco 3650,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C3750,Cisco 3750,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C3750X,Cisco 3750X,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C3850,Cisco 3850,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C1000,Cisco Catalyst 1000,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C9200,Cisco Catalyst 9200,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C9200CX,Cisco Catalyst 9200CX,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C9200L,Cisco Catalyst 9200L,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C9300,Cisco Catalyst 9300,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C9300L,Cisco Catalyst 9300LLM,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C9300M,Cisco Catalyst 9300M,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#C9300X,Cisco Catalyst 9300X,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IE1000,Cisco Catalyst IE1000,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IE2000,Cisco Catalyst IE2000,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IE2000U,Cisco Catalyst IE2000U,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IE3100,Cisco Catalyst IE3100,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IE3200,Cisco Catalyst IE3200,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IE3300,Cisco Catalyst IE3300,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IE3400H,Cisco Catalyst Catalyst IE3400 Heavy Duty,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IE4000,Cisco Catalyst IE4000,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#IEM3300,Cisco Catalyst IEM3300,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki,Cisco Meraki MS,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS120,Cisco Meraki MS120 Switch,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS125,Cisco Meraki MS125 Switch,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS130,Cisco Meraki MS130 Switch,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS210,Cisco Meraki MS210 Switch,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS225,Cisco Meraki MS225 Switch,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS250,Cisco Meraki MS250 Switch,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS350,Cisco Meraki MS350 Switch,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS355,Cisco Meraki MS355 Switch,Device Type,FALSE
+Device Type#All Device Types#Switches#Meraki#MS390,Cisco Meraki MS390 Switch,Device Type,FALSE
+Device Type#All Device Types#VPN,VPN,Device Type,FALSE
+Device Type#All Device Types#VPN#5505,Cisco ASA VPN Concentrator,Device Type,FALSE
+Device Type#All Device Types#VPN#5508,Cisco 5508,Device Type,FALSE
+Device Type#All Device Types#VPN#5508X,Cisco 5508X,Device Type,FALSE
+Device Type#All Device Types#VPN#5512,Cisco ASA VPN Concentrator,Device Type,FALSE
+Device Type#All Device Types#VPN#5525,Cisco 5525,Device Type,FALSE
+Device Type#All Device Types#VPN#5525X,Cisco 5525X,Device Type,FALSE
+Device Type#All Device Types#VPN#ASAv,Cisco ASA VPN Concentrator,Device Type,FALSE
+Device Type#All Device Types#Wireless,Wireless,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst,Cisco Catalyst Wireless,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#2504,Cisco Catalyst 2504 WLC,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#3504,Cisco Catalyst 3504 WLC,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#3504,Cisco Catalyst Wireless Controller,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#5508,Cisco Catalyst 5508 WLC,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#5508,Cisco Catalyst Wireless Controller,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#5520,Cisco Catalyst 5520 WLC,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#8540,Cisco Catalyst 8540 WLC,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9105,Cisco Catalyst 9105 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9115,Cisco Catalyst 9115 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9117,Cisco Catalyst 9117 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9120,Cisco Catalyst 9120 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9124,Cisco Catalyst 9124 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9130,Cisco Catalyst 9130 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9136,Cisco Catalyst 9136 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9162,Cisco Catalyst 9162 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9164,Cisco Catalyst 9164 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9166,Cisco Catalyst 9166 Series AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#9800,Cisco Catalyst 9800 WLC,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#CW9162,Cisco Wireless AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#CW9164,Cisco Wireless AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#CW9166,Cisco Wireless AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Catalyst#vWLC,Cisco Catalyst Virtual Wireless Controller,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki,Cisco Meraki MR,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR20,Cisco Meraki MR20,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR28,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR30H,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR33,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR36,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR36H,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR42,Cisco Meraki MR42,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR42E,Cisco Meraki MR42E,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR44,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR45,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR46,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR46E,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR52,Cisco Meraki MR52,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR53E,Cisco Meraki MR53E,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR55,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR56,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR57,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR74,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR76,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR78,Cisco Meraki AP,Device Type,FALSE
+Device Type#All Device Types#Wireless#Meraki#MR86,Cisco Meraki AP,Device Type,FALSE

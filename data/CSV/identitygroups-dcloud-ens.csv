@@ -1,0 +1,11 @@
+Identity Group Name,Identity Group Description,Identity Group Max Sessions,Identity Group Max Sessions for User in Group
+Corporate,Corporate E&S group,0,0
+Education,Education E&S group,0,0
+Enterprise,Enterprise E&S group,0,0
+Federal,Federal E&S group,0,0
+Healthcare,Healthcare E&S group,0,0
+Helpdesk,Helpdesk E&S group,0,0
+Network_Admins,Network_Admins E&S group,0,0
+Security_Admins,Security_Admins E&S group,0,0
+Tier2_Users,Tier2_Users E&S group,0,0
+Tier1_Users,Tier1_Users E&S group,0,0

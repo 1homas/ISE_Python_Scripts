@@ -1,0 +1,465 @@
+---
+#
+# ISE Network Device Groups by Device Type including Cisco Wired, Wireless, SDWAN, VPN.
+#
+# 🐞 The ISE ERS API does not like `-` in NDG names. `_` is OK.
+#
+
+# 💡 Use [] for an empty list
+# networkdevicegroup: []
+
+networkdevicegroup:
+
+- description: All Device Types
+  name: Device Type#All Device Types
+  othername: Device Type
+- description: ''
+  name: Device Type#All Device Types#Network Devices
+  othername: Device Type
+- description: IOS based routers & switches
+  name: Device Type#All Device Types#Network Devices#IOS Devices
+  othername: Device Type
+- description: Devices running NX-OS
+  name: Device Type#All Device Types#Network Devices#Nexus_OS
+  othername: Device Type
+- description: Wireless LAN Controllers
+  name: Device Type#All Device Types#Network Devices#Wireless Devices
+  othername: Device Type
+- description: Routers
+  name: Device Type#All Device Types#Routers
+  othername: Device Type
+- description: Cisco Meraki SDWAN Devices
+  name: Device Type#All Device Types#SDWAN
+  othername: Device Type
+- description: Cisco Meraki MX Devices
+  name: Device Type#All Device Types#SDWAN#Meraki
+  othername: Device Type
+- description: Cisco Meraki MX105
+  name: Device Type#All Device Types#SDWAN#Meraki#MX105
+  othername: Device Type
+- description: Cisco Meraki MX250
+  name: Device Type#All Device Types#SDWAN#Meraki#MX250
+  othername: Device Type
+- description: Cisco Meraki MX450
+  name: Device Type#All Device Types#SDWAN#Meraki#MX450
+  othername: Device Type
+- description: Cisco Meraki MX67
+  name: Device Type#All Device Types#SDWAN#Meraki#MX67
+  othername: Device Type
+- description: Cisco Meraki MX67C
+  name: Device Type#All Device Types#SDWAN#Meraki#MX67C
+  othername: Device Type
+- description: Cisco Meraki MX67W
+  name: Device Type#All Device Types#SDWAN#Meraki#MX67W
+  othername: Device Type
+- description: Cisco Meraki MX68
+  name: Device Type#All Device Types#SDWAN#Meraki#MX68
+  othername: Device Type
+- description: Cisco Meraki MX68CW
+  name: Device Type#All Device Types#SDWAN#Meraki#MX68CW
+  othername: Device Type
+- description: Cisco Meraki MX68W
+  name: Device Type#All Device Types#SDWAN#Meraki#MX68W
+  othername: Device Type
+- description: Cisco Meraki MX75
+  name: Device Type#All Device Types#SDWAN#Meraki#MX75
+  othername: Device Type
+- description: Cisco Meraki MX85
+  name: Device Type#All Device Types#SDWAN#Meraki#MX85
+  othername: Device Type
+- description: Cisco Meraki MX95
+  name: Device Type#All Device Types#SDWAN#Meraki#MX95
+  othername: Device Type
+- description: Cisco Meraki Z3
+  name: Device Type#All Device Types#SDWAN#Meraki#Z3
+  othername: Device Type
+- description: Cisco Meraki vMX
+  name: Device Type#All Device Types#SDWAN#Meraki#vMX
+  othername: Device Type
+- description: ''
+  name: Device Type#All Device Types#Security Devices
+  othername: Device Type
+- description: Firewalls
+  name: Device Type#All Device Types#Security Devices#Firewalls
+  othername: Device Type
+- description: IPS
+  name: Device Type#All Device Types#Security Devices#IPS
+  othername: Device Type
+- description: VPN
+  name: Device Type#All Device Types#Security Devices#VPN
+  othername: Device Type
+- description: Simulator
+  name: Device Type#All Device Types#Simulator
+  othername: Device Type
+- description: ISE use-case traffic generators
+  name: Device Type#All Device Types#Simulators
+  othername: Device Type
+- description: Switches
+  name: Device Type#All Device Types#Switches
+  othername: Device Type
+- description: Cisco 3560X
+  name: Device Type#All Device Types#Switches#3560X
+  othername: Device Type
+- description: Cisco 3750
+  name: Device Type#All Device Types#Switches#3750
+  othername: Device Type
+- description: Cisco 3750X
+  name: Device Type#All Device Types#Switches#3750X
+  othername: Device Type
+- description: Cisco Catalyst Switches
+  name: Device Type#All Device Types#Switches#Catalyst
+  othername: Device Type
+- description: Cisco Catalyst 1000
+  name: Device Type#All Device Types#Switches#Catalyst#C1000
+  othername: Device Type
+- description: Cisco 3560X
+  name: Device Type#All Device Types#Switches#Catalyst#C3560X
+  othername: Device Type
+- description: Cisco 3650
+  name: Device Type#All Device Types#Switches#Catalyst#C3650
+  othername: Device Type
+- description: Cisco 3750
+  name: Device Type#All Device Types#Switches#Catalyst#C3750
+  othername: Device Type
+- description: Cisco 3750X
+  name: Device Type#All Device Types#Switches#Catalyst#C3750X
+  othername: Device Type
+- description: Cisco 3850
+  name: Device Type#All Device Types#Switches#Catalyst#C3850
+  othername: Device Type
+- description: Cisco Catalyst 9200
+  name: Device Type#All Device Types#Switches#Catalyst#C9200
+  othername: Device Type
+- description: Cisco Catalyst 9200CX
+  name: Device Type#All Device Types#Switches#Catalyst#C9200CX
+  othername: Device Type
+- description: Cisco Catalyst 9200L
+  name: Device Type#All Device Types#Switches#Catalyst#C9200L
+  othername: Device Type
+- description: Cisco Catalyst 9300
+  name: Device Type#All Device Types#Switches#Catalyst#C9300
+  othername: Device Type
+- description: Cisco Catalyst 9300LLM
+  name: Device Type#All Device Types#Switches#Catalyst#C9300L
+  othername: Device Type
+- description: Cisco Catalyst 9300M
+  name: Device Type#All Device Types#Switches#Catalyst#C9300M
+  othername: Device Type
+- description: Cisco Catalyst 9300X
+  name: Device Type#All Device Types#Switches#Catalyst#C9300X
+  othername: Device Type
+- description: Cisco Catalyst IE1000
+  name: Device Type#All Device Types#Switches#Catalyst#IE1000
+  othername: Device Type
+- description: Cisco Catalyst IE2000
+  name: Device Type#All Device Types#Switches#Catalyst#IE2000
+  othername: Device Type
+- description: Cisco Catalyst IE2000U
+  name: Device Type#All Device Types#Switches#Catalyst#IE2000U
+  othername: Device Type
+- description: Cisco Catalyst IE3100
+  name: Device Type#All Device Types#Switches#Catalyst#IE3100
+  othername: Device Type
+- description: Cisco Catalyst IE3200
+  name: Device Type#All Device Types#Switches#Catalyst#IE3200
+  othername: Device Type
+- description: Cisco Catalyst IE3300
+  name: Device Type#All Device Types#Switches#Catalyst#IE3300
+  othername: Device Type
+- description: Cisco Catalyst Catalyst IE3400 Heavy Duty
+  name: Device Type#All Device Types#Switches#Catalyst#IE3400H
+  othername: Device Type
+- description: Cisco Catalyst IE4000
+  name: Device Type#All Device Types#Switches#Catalyst#IE4000
+  othername: Device Type
+- description: Cisco Catalyst IEM3300
+  name: Device Type#All Device Types#Switches#Catalyst#IEM3300
+  othername: Device Type
+- description: SDA Fabric-enabled
+  name: Device Type#All Device Types#Switches#Fabric
+  othername: Device Type
+- description: Cisco 3650
+  name: Device Type#All Device Types#Switches#Fabric#3650
+  othername: Device Type
+- description: Cisco 3850
+  name: Device Type#All Device Types#Switches#Fabric#3850
+  othername: Device Type
+- description: Cisco 9300
+  name: Device Type#All Device Types#Switches#Fabric#9300
+  othername: Device Type
+- description: Cisco 9400
+  name: Device Type#All Device Types#Switches#Fabric#9400
+  othername: Device Type
+- description: Meraki MS
+  name: Device Type#All Device Types#Switches#MS
+  othername: Device Type
+- description: Meraki MS390
+  name: Device Type#All Device Types#Switches#MS#MS390
+  othername: Device Type
+- description: Cisco Meraki MS
+  name: Device Type#All Device Types#Switches#Meraki
+  othername: Device Type
+- description: Cisco Meraki MS120 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS120
+  othername: Device Type
+- description: Cisco Meraki MS125 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS125
+  othername: Device Type
+- description: Cisco Meraki MS130 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS130
+  othername: Device Type
+- description: Cisco Meraki MS210 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS210
+  othername: Device Type
+- description: Cisco Meraki MS225 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS225
+  othername: Device Type
+- description: Cisco Meraki MS250 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS250
+  othername: Device Type
+- description: Cisco Meraki MS350 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS350
+  othername: Device Type
+- description: Cisco Meraki MS355 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS355
+  othername: Device Type
+- description: Cisco Meraki MS390 Switch
+  name: Device Type#All Device Types#Switches#Meraki#MS390
+  othername: Device Type
+- description: VPN
+  name: Device Type#All Device Types#VPN
+  othername: Device Type
+- description: Cisco ASA VPN Concentrator
+  name: Device Type#All Device Types#VPN#5505
+  othername: Device Type
+- description: Cisco 5508
+  name: Device Type#All Device Types#VPN#5508
+  othername: Device Type
+- description: Cisco 5508X
+  name: Device Type#All Device Types#VPN#5508X
+  othername: Device Type
+- description: Cisco ASA VPN Concentrator
+  name: Device Type#All Device Types#VPN#5512
+  othername: Device Type
+- description: Cisco 5525
+  name: Device Type#All Device Types#VPN#5525
+  othername: Device Type
+- description: Cisco 5525X
+  name: Device Type#All Device Types#VPN#5525X
+  othername: Device Type
+- description: Cisco ASA VPN Concentrator
+  name: Device Type#All Device Types#VPN#ASAv
+  othername: Device Type
+- description: Meraki MX
+  name: Device Type#All Device Types#VPN#MX
+  othername: Device Type
+- description: Meraki MX68
+  name: Device Type#All Device Types#VPN#MX#MX68
+  othername: Device Type
+- description: Wireless
+  name: Device Type#All Device Types#Wireless
+  othername: Device Type
+- description: Cisco 2504 WLC
+  name: Device Type#All Device Types#Wireless#2504
+  othername: Device Type
+- description: Cisco 5508 WLC
+  name: Device Type#All Device Types#Wireless#5508
+  othername: Device Type
+- description: Cisco Catalyst Wireless
+  name: Device Type#All Device Types#Wireless#Catalyst
+  othername: Device Type
+- description: Cisco Catalyst 2504 WLC
+  name: Device Type#All Device Types#Wireless#Catalyst#2504
+  othername: Device Type
+- description: Cisco Catalyst Wireless Controller
+  name: Device Type#All Device Types#Wireless#Catalyst#3504
+  othername: Device Type
+- description: Cisco Catalyst Wireless Controller
+  name: Device Type#All Device Types#Wireless#Catalyst#5508
+  othername: Device Type
+- description: Cisco Catalyst 5520 WLC
+  name: Device Type#All Device Types#Wireless#Catalyst#5520
+  othername: Device Type
+- description: Cisco Catalyst 8540 WLC
+  name: Device Type#All Device Types#Wireless#Catalyst#8540
+  othername: Device Type
+- description: Cisco Catalyst 9105 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9105
+  othername: Device Type
+- description: Cisco Catalyst 9115 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9115
+  othername: Device Type
+- description: Cisco Catalyst 9117 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9117
+  othername: Device Type
+- description: Cisco Catalyst 9120 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9120
+  othername: Device Type
+- description: Cisco Catalyst 9124 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9124
+  othername: Device Type
+- description: Cisco Catalyst 9130 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9130
+  othername: Device Type
+- description: Cisco Catalyst 9136 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9136
+  othername: Device Type
+- description: Cisco Catalyst 9162 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9162
+  othername: Device Type
+- description: Cisco Catalyst 9164 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9164
+  othername: Device Type
+- description: Cisco Catalyst 9166 Series AP
+  name: Device Type#All Device Types#Wireless#Catalyst#9166
+  othername: Device Type
+- description: Cisco Catalyst 9800 WLC
+  name: Device Type#All Device Types#Wireless#Catalyst#9800
+  othername: Device Type
+- description: Cisco Wireless AP
+  name: Device Type#All Device Types#Wireless#Catalyst#CW9162
+  othername: Device Type
+- description: Cisco Wireless AP
+  name: Device Type#All Device Types#Wireless#Catalyst#CW9164
+  othername: Device Type
+- description: Cisco Wireless AP
+  name: Device Type#All Device Types#Wireless#Catalyst#CW9166
+  othername: Device Type
+- description: Cisco Catalyst Virtual Wireless Controller
+  name: Device Type#All Device Types#Wireless#Catalyst#vWLC
+  othername: Device Type
+- description: SDA Fabric-enabled
+  name: Device Type#All Device Types#Wireless#Fabric
+  othername: Device Type
+- description: Cisco 3504 WLC
+  name: Device Type#All Device Types#Wireless#Fabric#3504
+  othername: Device Type
+- description: Cisco 5520 WLC
+  name: Device Type#All Device Types#Wireless#Fabric#5520
+  othername: Device Type
+- description: Cisco 8540 WLC
+  name: Device Type#All Device Types#Wireless#Fabric#8540
+  othername: Device Type
+- description: Meraki MR
+  name: Device Type#All Device Types#Wireless#MR
+  othername: Device Type
+- description: Meraki MR20
+  name: Device Type#All Device Types#Wireless#MR#MR20
+  othername: Device Type
+- description: Meraki MR30H
+  name: Device Type#All Device Types#Wireless#MR#MR30H
+  othername: Device Type
+- description: Meraki MR33
+  name: Device Type#All Device Types#Wireless#MR#MR33
+  othername: Device Type
+- description: Meraki MR36
+  name: Device Type#All Device Types#Wireless#MR#MR36
+  othername: Device Type
+- description: Meraki MR42
+  name: Device Type#All Device Types#Wireless#MR#MR42
+  othername: Device Type
+- description: Meraki MR42E
+  name: Device Type#All Device Types#Wireless#MR#MR42E
+  othername: Device Type
+- description: Meraki MR45
+  name: Device Type#All Device Types#Wireless#MR#MR45
+  othername: Device Type
+- description: Meraki MR46
+  name: Device Type#All Device Types#Wireless#MR#MR46
+  othername: Device Type
+- description: Meraki MR46E
+  name: Device Type#All Device Types#Wireless#MR#MR46E
+  othername: Device Type
+- description: Meraki MR52
+  name: Device Type#All Device Types#Wireless#MR#MR52
+  othername: Device Type
+- description: Meraki MR53E
+  name: Device Type#All Device Types#Wireless#MR#MR53E
+  othername: Device Type
+- description: Meraki MR55
+  name: Device Type#All Device Types#Wireless#MR#MR55
+  othername: Device Type
+- description: Meraki MR56
+  name: Device Type#All Device Types#Wireless#MR#MR56
+  othername: Device Type
+- description: Meraki MR70
+  name: Device Type#All Device Types#Wireless#MR#MR70
+  othername: Device Type
+- description: Meraki MR74
+  name: Device Type#All Device Types#Wireless#MR#MR74
+  othername: Device Type
+- description: Meraki MR76
+  name: Device Type#All Device Types#Wireless#MR#MR76
+  othername: Device Type
+- description: Meraki MR84
+  name: Device Type#All Device Types#Wireless#MR#MR84
+  othername: Device Type
+- description: Meraki MR86
+  name: Device Type#All Device Types#Wireless#MR#MR86
+  othername: Device Type
+- description: Cisco Meraki MR
+  name: Device Type#All Device Types#Wireless#Meraki
+  othername: Device Type
+- description: Cisco Meraki MR20
+  name: Device Type#All Device Types#Wireless#Meraki#MR20
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR28
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR30H
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR33
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR36
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR36H
+  othername: Device Type
+- description: Cisco Meraki MR42
+  name: Device Type#All Device Types#Wireless#Meraki#MR42
+  othername: Device Type
+- description: Cisco Meraki MR42E
+  name: Device Type#All Device Types#Wireless#Meraki#MR42E
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR44
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR45
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR46
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR46E
+  othername: Device Type
+- description: Cisco Meraki MR52
+  name: Device Type#All Device Types#Wireless#Meraki#MR52
+  othername: Device Type
+- description: Cisco Meraki MR53E
+  name: Device Type#All Device Types#Wireless#Meraki#MR53E
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR55
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR56
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR57
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR74
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR76
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR78
+  othername: Device Type
+- description: Cisco Meraki AP
+  name: Device Type#All Device Types#Wireless#Meraki#MR86
+  othername: Device Type

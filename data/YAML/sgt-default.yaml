@@ -1,0 +1,112 @@
+---
+#
+# Cisco ISE SGTs (Security Group Tags) definitions.
+#
+# SGTs 0-2,65554 are RESERVED by ISE and Meraki and should never be changed.
+# - Unknown (0) Reserved by ISE and Meraki. Cannot be renamed. The Unknown group is used for an unsuccessful group classification.
+# - Infrastructure (2) Reserved by Meraki devices for internal and dashboard communication.
+# - TrustSec_Devices (2) Reserved by ISE for TrustSec Devices
+#
+
+sgt:
+
+# - name: Unknown
+#   value: 0
+#   description: Unknown. Reserved by ISE and Meraki. The Unknown group applies when a policy is specified for unsuccessful group classification.
+#   generationId: '0'
+#   propogateToApic: false
+
+# - name: Infrastructure
+#   value: 2
+#   description: Reserved by Meraki devices for internal and dashboard communication.
+#   generationId: '0'
+#   propogateToApic: no
+
+# - name: TrustSec_Devices
+#   value: 2
+#   description: TrustSec Devices
+#   generationId: '0'
+#   propogateToApic: no
+
+#------------------------------------------------------------------------------
+# These SGTs are the ISE default SGTs
+#------------------------------------------------------------------------------
+
+- name: Network_Services
+  value: 3
+  description: Network Services
+  generationId: '0'
+  propogateToApic: no
+
+- name: Employees
+  value: 4
+  description: Employee
+  generationId: '0'
+  propogateToApic: no
+
+- name: Contractors
+  value: 5
+  description: Contractor
+  generationId: '0'
+  propogateToApic: no
+
+- name: Guests
+  value: 6
+  description: Guest
+  generationId: '0'
+  propogateToApic: no
+
+- name: Production_Users
+  value: 7
+  description: Production User
+  generationId: '0'
+  propogateToApic: no
+
+- name: Developers
+  value: 8
+  description: Developer
+  generationId: '0'
+  propogateToApic: no
+
+- name: Auditors
+  value: 9
+  description: Auditor
+  generationId: '0'
+  propogateToApic: no
+
+- name: Point_of_Sale_Systems
+  value: 10
+  description: Point of Sale
+  generationId: '0'
+  propogateToApic: no
+
+- name: Production_Servers
+  value: 11
+  description: Production Servers
+  generationId: '0'
+  propogateToApic: no
+
+- name: Development_Servers
+  value: 12
+  description: Development Servers
+  generationId: '0'
+  propogateToApic: no
+
+- name: Test_Servers
+  value: 13
+  description: Test Servers
+  generationId: '0'
+  propogateToApic: no
+
+- name: PCI_Servers
+  value: 14
+  description: PCI Servers
+  generationId: '0'
+  propogateToApic: no
+
+- name: BYOD
+  value: 15
+  description: BYOD
+  generationId: '0'
+  propogateToApic: no
+

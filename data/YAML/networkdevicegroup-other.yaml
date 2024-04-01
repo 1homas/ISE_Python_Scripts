@@ -1,0 +1,123 @@
+---
+#
+# ISE Network Device Groups for various groupings.
+#
+# 🐞 The ISE ERS API does not like `-` in NDG names. `_` is OK.
+#
+
+# 💡 Use [] for an empty list
+# networkdevicegroup: []
+
+networkdevicegroup:
+
+#------------------------------------------------------------------------------
+# Network Device Groups by Enforcement
+#------------------------------------------------------------------------------
+
+- name: Enforcement#Enforcement
+  description: All Enforcement Options
+  othername: Enforcement
+
+- name: Enforcement#Enforcement#Monitor
+  description: Monitor
+  othername: Enforcement
+
+- name: Enforcement#Enforcement#LowImpact
+  description: LowImpact
+  othername: Enforcement
+
+- name: Enforcement#Enforcement#Closed
+  description: Closed
+  othername: Enforcement
+
+#------------------------------------------------------------------------------
+# Network Device Groups by Place In The Network (PIN)
+#------------------------------------------------------------------------------
+
+- name: PIN#PIN
+  description: Place in the Network (PIN)
+  othername: PIN
+
+- name: PIN#PIN#Branch
+  description: Branch
+  othername: PIN
+
+- name: PIN#PIN#Campus
+  description: Campus
+  othername: PIN
+
+- name: PIN#PIN#WAN
+  description: WAN
+  othername: PIN
+
+- name: PIN#PIN#InternetEdge
+  description: InternetEdge
+  othername: PIN
+
+- name: PIN#PIN#Cloud
+  description: Cloud
+  othername: PIN
+
+
+
+#------------------------------------------------------------------------------
+# Network Device Groups by Operations
+#------------------------------------------------------------------------------
+
+- name: Operation#Operation
+  description: All Operations
+  othername: Operation
+
+- name: Operation#Operation#Zone1
+  description: Zone 1
+  othername: Operation
+
+- name: Operation#Operation#Zone2
+  description: Zone 2
+  othername: Operation
+
+- name: Operation#Operation#Zone3
+  description: Zone 3
+  othername: Operation
+
+- name: Operation#Operation#Zone4
+  description: Zone 4
+  othername: Operation
+
+- name: Operation#Operation#Zone5
+  description: Zone 5
+  othername: Operation
+
+
+
+
+#------------------------------------------------------------------------------
+# Network Device Groups by Regions
+#------------------------------------------------------------------------------
+
+- name: Region#Region
+  description: All Regions
+  othername: Region
+
+- name: Region#Region#Region1
+  description: Region 1
+  othername: Region
+
+- name: Region#Region#Region2
+  description: Region 2
+  othername: Region
+
+- name: Region#Region#Region3
+  description: Region 3
+  othername: Region
+
+- name: Region#Region#Region4
+  description: Region 4
+  othername: Region
+
+- name: Region#Region#Region5
+  description: Region 5
+  othername: Region
+
+
+

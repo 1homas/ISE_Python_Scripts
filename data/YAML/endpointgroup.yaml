@@ -1,0 +1,189 @@
+---
+#
+# ISE Endpoint Groups examples.
+#
+
+# 💡 Use [] for an empty list
+# endpointgroup: []
+
+endpointgroup:
+
+#------------------------------------------------------------------------------
+# General Groups or Scenarios
+#------------------------------------------------------------------------------
+
+- name: Allowed
+  description: Allowed
+
+- name: Blocked
+  description: Blocked
+
+- name: Assets
+  description: Assets
+
+- name: IOT
+  description: IOT
+
+- name: PXE
+  description: PXE Boot access
+
+- name: Exception
+  description: Temporary endpoint exception
+
+- name: Quarantine
+  description: Limit access to remediation
+
+#------------------------------------------------------------------------------
+# Endpoint Types
+#------------------------------------------------------------------------------
+
+- name: AccessPoints
+  description: Access Points
+
+- name: Computer
+  description: Computer
+
+- name: Mobile
+  description: Mobile
+
+- name: Desktops
+  description: Desktops
+
+- name: Laptops
+  description: Laptops
+
+- name: Raspberry_Pis
+  description: Raspberry Pi
+
+- name: Smartphones
+  description: Smartphones
+
+- name: Tablets
+  description: Tablets
+
+- name: Servers
+  description: Servers
+
+- name: Workstations
+  description: Workstations
+
+- name: Printers
+  description: Printers
+
+- name: Signage
+  description: Signage
+
+- name: Power
+  description: Power Supplies, Outlets, UPS, etc.
+
+- name: RFID
+  description: RFID Sensors
+
+- name: GameConsole
+  description: A video game console like the Xbox or PlayStation.
+
+
+#------------------------------------------------------------------------------
+# Communications
+#------------------------------------------------------------------------------
+
+- name: Phones
+  description: Phones
+
+- name: Telepresence
+  description: Telepresence
+
+- name: Webex
+  description: Webex
+
+
+#------------------------------------------------------------------------------
+# Physical Security
+#------------------------------------------------------------------------------
+
+- name: Badging
+  description: Badge Readers
+
+- name: Cameras
+  description: Cameras
+
+
+#------------------------------------------------------------------------------
+# Building / Facilities
+#------------------------------------------------------------------------------
+
+- name: Facilities
+  description: Facilities IOT endpoints
+
+- name: Lighting
+  description: Lighting
+
+- name: HVAC
+  description: HVAC
+
+- name: Thermostats
+  description: Thermostats
+
+- name: Elevators
+  description: Elevators
+
+- name: Pumps
+  description: Pumps
+
+- name: Vending
+  description: Vending
+
+
+#------------------------------------------------------------------------------
+# Entertainment Devices
+#------------------------------------------------------------------------------
+
+- name: Entertainment
+  description: Entertainment
+
+- name: Amazon_Echo
+  description: AmazonTV
+
+- name: Amazon_TV
+  description: AmazonTV
+
+- name: Apple_TV
+  description: Apple TV
+
+- name: Apple_iPad
+  description: Apple iPad
+
+- name: Roku
+  description: Roku
+
+- name: TV
+  description: Television (any manufacturer)
+
+
+#------------------------------------------------------------------------------
+# Vertical: Manufacturing
+#------------------------------------------------------------------------------
+
+- name: Manufacturing
+  description: Manufacturing
+
+
+#------------------------------------------------------------------------------
+# Vertical: Medical
+#------------------------------------------------------------------------------
+
+- name: Medical
+  description: Medical
+
+
+#------------------------------------------------------------------------------
+# Vertical: Retail
+#------------------------------------------------------------------------------
+
+- name: Register
+  description: Scanner
+
+- name: Scanner
+  description: Scanner
+
+

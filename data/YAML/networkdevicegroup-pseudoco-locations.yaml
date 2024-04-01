@@ -1,0 +1,504 @@
+---
+#
+# dCloud Demo Locations for fictitious compony Pseudoco.
+#
+# 🐞 The ISE ERS API does not like `-` in NDG names. `_` is OK.
+#
+
+# 💡 Use [] for an empty list
+# networkdevicegroup: []
+
+networkdevicegroup:
+
+- description: All Locations
+  name: Location#All Locations
+  othername: Location
+- description: AMER
+  name: Location#All Locations#AMER
+  othername: Location
+- description: AR
+  name: Location#All Locations#AMER#AR
+  othername: Location
+- description: BUA
+  name: Location#All Locations#AMER#AR#BUA
+  othername: Location
+- description: BUA-1-1
+  name: Location#All Locations#AMER#AR#BUA#BUA-1-1
+  othername: Location
+- description: BR
+  name: Location#All Locations#AMER#BR
+  othername: Location
+- description: RDJ
+  name: Location#All Locations#AMER#BR#RDJ
+  othername: Location
+- description: RDJ-1-1
+  name: Location#All Locations#AMER#BR#RDJ#RDJ-1-1
+  othername: Location
+- description: CA
+  name: Location#All Locations#AMER#CA
+  othername: Location
+- description: VNC
+  name: Location#All Locations#AMER#CA#VNC
+  othername: Location
+- description: VNC-1-1
+  name: Location#All Locations#AMER#CA#VNC#VNC-1-1
+  othername: Location
+- description: MX
+  name: Location#All Locations#AMER#MX
+  othername: Location
+- description: MXC
+  name: Location#All Locations#AMER#MX#MXC
+  othername: Location
+- description: MXC-1-1
+  name: Location#All Locations#AMER#MX#MXC#MXC-1-1
+  othername: Location
+- description: US
+  name: Location#All Locations#AMER#US
+  othername: Location
+- description: DAL
+  name: Location#All Locations#AMER#US#DAL
+  othername: Location
+- description: DAL-1-1
+  name: Location#All Locations#AMER#US#DAL#DAL-1-1
+  othername: Location
+- description: HBC-1-2
+  name: Location#All Locations#AMER#US#HBC
+  othername: Location
+- description: HBC-1-2
+  name: Location#All Locations#AMER#US#HBC#HBC-1-2
+  othername: Location
+- description: HRN
+  name: Location#All Locations#AMER#US#HRN
+  othername: Location
+- description: HRN-1-1
+  name: Location#All Locations#AMER#US#HRN#HRN-1-1
+  othername: Location
+- description: MIA
+  name: Location#All Locations#AMER#US#MIA
+  othername: Location
+- description: MIA-1-1
+  name: Location#All Locations#AMER#US#MIA#MIA-1-1
+  othername: Location
+- description: NYC
+  name: Location#All Locations#AMER#US#NYC
+  othername: Location
+- description: NYC-1-1
+  name: Location#All Locations#AMER#US#NYC#NYC-1-1
+  othername: Location
+- description: RTP
+  name: Location#All Locations#AMER#US#RTP
+  othername: Location
+- description: RTP-1-1
+  name: Location#All Locations#AMER#US#RTP#RTP-1-1
+  othername: Location
+- description: RTP-2-1
+  name: Location#All Locations#AMER#US#RTP#RTP-2-1
+  othername: Location
+- description: RTP-3-1
+  name: Location#All Locations#AMER#US#RTP#RTP-3-1
+  othername: Location
+- description: SFO
+  name: Location#All Locations#AMER#US#SFO
+  othername: Location
+- description: SFO-1-1
+  name: Location#All Locations#AMER#US#SFO#SFO-1-1
+  othername: Location
+- description: SJC
+  name: Location#All Locations#AMER#US#SJC
+  othername: Location
+- description: SJC-1-1
+  name: Location#All Locations#AMER#US#SJC#SJC-1-1
+  othername: Location
+- description: SJC-1-2
+  name: Location#All Locations#AMER#US#SJC#SJC-1-2
+  othername: Location
+- description: SJC-1-3
+  name: Location#All Locations#AMER#US#SJC#SJC-1-3
+  othername: Location
+- description: SJC-1-4
+  name: Location#All Locations#AMER#US#SJC#SJC-1-4
+  othername: Location
+- description: SJC-1-5
+  name: Location#All Locations#AMER#US#SJC#SJC-1-5
+  othername: Location
+- description: SJC-2-1
+  name: Location#All Locations#AMER#US#SJC#SJC-2-1
+  othername: Location
+- description: SJC-3-1
+  name: Location#All Locations#AMER#US#SJC#SJC-3-1
+  othername: Location
+- description: HBC-1-2
+  name: Location#All Locations#AMER#USHBC
+  othername: Location
+- description: APJC
+  name: Location#All Locations#APJC
+  othername: Location
+- description: AU
+  name: Location#All Locations#APJC#AU
+  othername: Location
+- description: MQP
+  name: Location#All Locations#APJC#AU#MQP
+  othername: Location
+- description: MQP-1-1
+  name: Location#All Locations#APJC#AU#MQP#MQP-1-1
+  othername: Location
+- description: SYD
+  name: Location#All Locations#APJC#AU#SYD
+  othername: Location
+- description: SYD-1-1
+  name: Location#All Locations#APJC#AU#SYD#SYD-1-1
+  othername: Location
+- description: CN
+  name: Location#All Locations#APJC#CN
+  othername: Location
+- description: PEK
+  name: Location#All Locations#APJC#CN#PEK
+  othername: Location
+- description: PEK-1-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-1-1
+  othername: Location
+- description: PEK-10-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-10-1
+  othername: Location
+- description: PEK-11-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-11-1
+  othername: Location
+- description: PEK-12-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-12-1
+  othername: Location
+- description: PEK-13-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-13-1
+  othername: Location
+- description: PEK-14-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-14-1
+  othername: Location
+- description: PEK-15-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-15-1
+  othername: Location
+- description: PEK-16-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-16-1
+  othername: Location
+- description: PEK-17-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-17-1
+  othername: Location
+- description: PEK-18-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-18-1
+  othername: Location
+- description: PEK-19-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-19-1
+  othername: Location
+- description: PEK-2-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-2-1
+  othername: Location
+- description: PEK-20-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-20-1
+  othername: Location
+- description: PEK-21-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-21-1
+  othername: Location
+- description: PEK-22-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-22-1
+  othername: Location
+- description: PEK-23-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-23-1
+  othername: Location
+- description: PEK-24-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-24-1
+  othername: Location
+- description: PEK-25-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-25-1
+  othername: Location
+- description: PEK-26-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-26-1
+  othername: Location
+- description: PEK-27-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-27-1
+  othername: Location
+- description: PEK-28-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-28-1
+  othername: Location
+- description: PEK-29-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-29-1
+  othername: Location
+- description: PEK-3-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-3-1
+  othername: Location
+- description: PEK-30-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-30-1
+  othername: Location
+- description: PEK-31-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-31-1
+  othername: Location
+- description: PEK-4-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-4-1
+  othername: Location
+- description: PEK-5-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-5-1
+  othername: Location
+- description: PEK-6-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-6-1
+  othername: Location
+- description: PEK-7-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-7-1
+  othername: Location
+- description: PEK-8-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-8-1
+  othername: Location
+- description: PEK-9-1
+  name: Location#All Locations#APJC#CN#PEK#PEK-9-1
+  othername: Location
+- description: SHN
+  name: Location#All Locations#APJC#CN#SHN
+  othername: Location
+- description: SHN-1-1
+  name: Location#All Locations#APJC#CN#SHN#SHN-1-1
+  othername: Location
+- description: IN
+  name: Location#All Locations#APJC#IN
+  othername: Location
+- description: BGL
+  name: Location#All Locations#APJC#IN#BGL
+  othername: Location
+- description: BGL-1-1
+  name: Location#All Locations#APJC#IN#BGL#BGL-1-1
+  othername: Location
+- description: BGL-2-1
+  name: Location#All Locations#APJC#IN#BGL#BGL-2-1
+  othername: Location
+- description: HYD
+  name: Location#All Locations#APJC#IN#HYD
+  othername: Location
+- description: HYD-1-1
+  name: Location#All Locations#APJC#IN#HYD#HYD-1-1
+  othername: Location
+- description: JP
+  name: Location#All Locations#APJC#JP
+  othername: Location
+- description: TYO
+  name: Location#All Locations#APJC#JP#TYO
+  othername: Location
+- description: TYO-1-21
+  name: Location#All Locations#APJC#JP#TYO#TYO-1-21
+  othername: Location
+- description: TYO-1-24
+  name: Location#All Locations#APJC#JP#TYO#TYO-1-24
+  othername: Location
+- description: TYO-1-25
+  name: Location#All Locations#APJC#JP#TYO#TYO-1-25
+  othername: Location
+- description: TYO-1-26
+  name: Location#All Locations#APJC#JP#TYO#TYO-1-26
+  othername: Location
+- description: TYO-1-27
+  name: Location#All Locations#APJC#JP#TYO#TYO-1-27
+  othername: Location
+- description: TYO-1-7
+  name: Location#All Locations#APJC#JP#TYO#TYO-1-7
+  othername: Location
+- description: TYO-2-1
+  name: Location#All Locations#APJC#JP#TYO#TYO-2-1
+  othername: Location
+- description: KR
+  name: Location#All Locations#APJC#KR
+  othername: Location
+- description: SEO
+  name: Location#All Locations#APJC#KR#SEO
+  othername: Location
+- description: SEO-1-1
+  name: Location#All Locations#APJC#KR#SEO#SEO-1-1
+  othername: Location
+- description: SG
+  name: Location#All Locations#APJC#SG
+  othername: Location
+- description: SIN
+  name: Location#All Locations#APJC#SG#SIN
+  othername: Location
+- description: SIN-1-1
+  name: Location#All Locations#APJC#SG#SIN#SIN-1-1
+  othername: Location
+- description: SIN-2-1
+  name: Location#All Locations#APJC#SG#SIN#SIN-2-1
+  othername: Location
+- description: SIN-3-1
+  name: Location#All Locations#APJC#SG#SIN#SIN-3-1
+  othername: Location
+- description: SIN-4-1
+  name: Location#All Locations#APJC#SG#SIN#SIN-4-1
+  othername: Location
+- description: EMEA
+  name: Location#All Locations#EMEA
+  othername: Location
+- description: BE
+  name: Location#All Locations#EMEA#BE
+  othername: Location
+- description: DGM
+  name: Location#All Locations#EMEA#BE#DGM
+  othername: Location
+- description: DGM-1-1
+  name: Location#All Locations#EMEA#BE#DGM#DGM-1-1
+  othername: Location
+- description: DGM-2-1
+  name: Location#All Locations#EMEA#BE#DGM#DGM-2-1
+  othername: Location
+- description: DGM-3-1
+  name: Location#All Locations#EMEA#BE#DGM#DGM-3-1
+  othername: Location
+- description: DGM-4-1
+  name: Location#All Locations#EMEA#BE#DGM#DGM-4-1
+  othername: Location
+- description: DGM-5-1
+  name: Location#All Locations#EMEA#BE#DGM#DGM-5-1
+  othername: Location
+- description: CH
+  name: Location#All Locations#EMEA#CH
+  othername: Location
+- description: WLS
+  name: Location#All Locations#EMEA#CH#WLS
+  othername: Location
+- description: WLS-1-1
+  name: Location#All Locations#EMEA#CH#WLS#WLS-1-1
+  othername: Location
+- description: DE
+  name: Location#All Locations#EMEA#DE
+  othername: Location
+- description: FRA
+  name: Location#All Locations#EMEA#DE#FRA
+  othername: Location
+- description: FRA-1-1
+  name: Location#All Locations#EMEA#DE#FRA#FRA-1-1
+  othername: Location
+- description: MNC
+  name: Location#All Locations#EMEA#DE#MNC
+  othername: Location
+- description: MNC-1-1
+  name: Location#All Locations#EMEA#DE#MNC#MNC-1-1
+  othername: Location
+- description: ES
+  name: Location#All Locations#EMEA#ES
+  othername: Location
+- description: BRC
+  name: Location#All Locations#EMEA#ES#BRC
+  othername: Location
+- description: BRC-1-1
+  name: Location#All Locations#EMEA#ES#BRC#BRC-1-1
+  othername: Location
+- description: BRC-2-1
+  name: Location#All Locations#EMEA#ES#BRC#BRC-2-1
+  othername: Location
+- description: BRC-3-1
+  name: Location#All Locations#EMEA#ES#BRC#BRC-3-1
+  othername: Location
+- description: BRC-4-1
+  name: Location#All Locations#EMEA#ES#BRC#BRC-4-1
+  othername: Location
+- description: FR
+  name: Location#All Locations#EMEA#FR
+  othername: Location
+- description: PRS
+  name: Location#All Locations#EMEA#FR#PRS
+  othername: Location
+- description: PRS-1-1
+  name: Location#All Locations#EMEA#FR#PRS#PRS-1-1
+  othername: Location
+- description: IL
+  name: Location#All Locations#EMEA#IL
+  othername: Location
+- description: JRS
+  name: Location#All Locations#EMEA#IL#JRS
+  othername: Location
+- description: JRS-1-1
+  name: Location#All Locations#EMEA#IL#JRS#JRS-1-1
+  othername: Location
+- description: IR
+  name: Location#All Locations#EMEA#IR
+  othername: Location
+- description: GWY
+  name: Location#All Locations#EMEA#IR#GWY
+  othername: Location
+- description: GWY-1-1
+  name: Location#All Locations#EMEA#IR#GWY#GWY-1-1
+  othername: Location
+- description: IT
+  name: Location#All Locations#EMEA#IT
+  othername: Location
+- description: ROM
+  name: Location#All Locations#EMEA#IT#ROM
+  othername: Location
+- description: ROM-1-1
+  name: Location#All Locations#EMEA#IT#ROM#ROM-1-1
+  othername: Location
+- description: KE
+  name: Location#All Locations#EMEA#KE
+  othername: Location
+- description: NRB
+  name: Location#All Locations#EMEA#KE#NRB
+  othername: Location
+- description: NRB-1-1
+  name: Location#All Locations#EMEA#KE#NRB#NRB-1-1
+  othername: Location
+- description: 'NO'
+  name: Location#All Locations#EMEA#NO
+  othername: Location
+- description: FRD
+  name: Location#All Locations#EMEA#NO#FRD
+  othername: Location
+- description: FRD-1-1
+  name: Location#All Locations#EMEA#NO#FRD#FRD-1-1
+  othername: Location
+- description: FRD-2-1
+  name: Location#All Locations#EMEA#NO#FRD#FRD-2-1
+  othername: Location
+- description: FRD-3-1
+  name: Location#All Locations#EMEA#NO#FRD#FRD-3-1
+  othername: Location
+- description: FRD-4-1
+  name: Location#All Locations#EMEA#NO#FRD#FRD-4-1
+  othername: Location
+- description: PL
+  name: Location#All Locations#EMEA#PL
+  othername: Location
+- description: KRK
+  name: Location#All Locations#EMEA#PL#KRK
+  othername: Location
+- description: KRK-1-1
+  name: Location#All Locations#EMEA#PL#KRK#KRK-1-1
+  othername: Location
+- description: UK
+  name: Location#All Locations#EMEA#UK
+  othername: Location
+- description: LON
+  name: Location#All Locations#EMEA#UK#LON
+  othername: Location
+- description: LON-1-1
+  name: Location#All Locations#EMEA#UK#LON#LON-1-1
+  othername: Location
+- description: LON-1-2
+  name: Location#All Locations#EMEA#UK#LON#LON-1-2
+  othername: Location
+- description: LON-1-3
+  name: Location#All Locations#EMEA#UK#LON#LON-1-3
+  othername: Location
+- description: LON-1-G
+  name: Location#All Locations#EMEA#UK#LON#LON-1-G
+  othername: Location
+- description: LON-2-1
+  name: Location#All Locations#EMEA#UK#LON#LON-2-1
+  othername: Location
+- description: LON-3-1
+  name: Location#All Locations#EMEA#UK#LON#LON-3-1
+  othername: Location
+- description: ZA
+  name: Location#All Locations#EMEA#ZA
+  othername: Location
+- description: BRY
+  name: Location#All Locations#EMEA#ZA#BRY
+  othername: Location
+- description: BRY-1-1
+  name: Location#All Locations#EMEA#ZA#BRY#BRY-1-1
+  othername: Location
+- description: BRY-2-1
+  name: Location#All Locations#EMEA#ZA#BRY#BRY-2-1
+  othername: Location
+- description: BRY-3-1
+  name: Location#All Locations#EMEA#ZA#BRY#BRY-3-1
+  othername: Location

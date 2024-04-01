@@ -1,0 +1,278 @@
+---
+#------------------------------------------------------------------------------
+# IOS SGACL Content format options
+#
+# > ip access-list role-based ?
+# Role-based Access List configuration commands:
+#   <1-2147483647>  Sequence Number
+#   default         Set a command to its defaults
+#   deny            Specify packets to reject
+#   exit            Exit from access-list configuration mode
+#   no              Negate a command or set its defaults
+#   permit          Specify packets to forward
+#   remark          Access list entry comment
+#------------------------------------------------------------------------------
+
+sgacl:
+
+- name: BlockMalware
+  description: Prevent malware spreading on common client services
+  ipVersion: IP_AGNOSTIC      # [ 'IPv4','IPv6','Agnostic' ]
+  aclcontent: |
+    deny icmp
+    deny tcp dst eq 22
+    deny tcp dst eq 53
+    deny udp dst eq 53
+    deny udp dst eq 67
+    deny udp dst eq 68
+    deny udp dst eq 69
+    deny tcp dst eq 135
+    deny tcp dst eq 137
+    deny tcp dst eq 138
+    deny tcp dst eq 139
+    deny tcp dst eq 445
+    deny tcp dst eq 689
+    deny udp dst eq 1025
+    deny udp dst eq 1026
+    deny tcp dst eq 3389
+  state: present
+
+#     # remark FTP Data
+#     deny tcp dst eq 20
+#     # remark FTP Control
+#     deny tcp dst eq 21
+#     # remark SSH/SCP/SFTP
+#     deny tcp dst eq 22
+#     # remark Telnet
+#     deny tcp dst eq 23
+#     # remark SMTP
+#     deny tcp dst eq 25
+#     # remark DNS/TCP
+#     deny tcp dst eq 53
+#     # remark DNS/UDP
+#     deny udp dst eq 53
+#     # remark DHCP/BOOTPS
+#     deny udp dst eq 67
+#     # remark DHCP/BOOTPC
+#     deny udp dst eq 68
+#     # remark TFTP / PXE
+#     deny tcp dst eq 69
+#     # remark HTTP
+#     deny tcp dst eq 80
+#     # remark Kerberos TCP
+#     deny tcp dst eq 88
+#     # remark Kerberos UDP
+#     deny udp dst eq 88
+#     # remark POP3
+#     deny tcp dst eq 110
+#     # remark SFTP
+#     deny tcp dst eq 115
+#     # remark NTP
+#     deny tcp dst eq 123
+#     # remark DCE/RPC Locator service
+#     deny tcp dst eq 135
+#     # remark NetBIOS Name Service
+#     deny tcp dst eq 137
+#     # remark NetBIOS Datagram Service
+#     deny tcp dst eq 138
+#     # remark NetBIOS Session Service
+#     deny tcp dst eq 139
+#     # remark SNMP
+#     deny udp dst eq 161
+#     # remark IMAP3
+#     deny tcp dst eq 220
+#     # remark LDAP TCP
+#     deny tcp dst eq 389
+#     # remark LDAP UDP
+#     deny udp dst eq 389
+#     # remark HTTPS
+#     deny tcp dst eq 443
+#     # remark MS-DS AD shares/SMB file sharing
+#     deny tcp dst eq 445
+#     # remark LDAP/S
+#     deny tcp dst eq 636
+#     # remark NMAP
+#     deny tcp dst eq 689
+#     # remark POP3S
+#     deny tcp dst eq 995
+#     # remark NFS
+#     deny udp dst eq 1025
+#     # remark MS DCOM
+#     deny udp dst eq 1026
+#     # remark MS MSSQL
+#     deny tcp dst eq 1433
+#     # remark Oracle database default listener
+#     deny tcp dst eq 1521
+#     # remark RDP
+#     deny tcp dst eq 3389
+#     # remark MS WinRM 2.0 HTTP
+#     deny tcp dst eq 5985
+#     # remark MS WinRM 2.0 HTTPS
+#     deny tcp dst eq 5986
+#     # remark SNMP Secure
+#     deny udp dst eq 10161
+#     permit ip
+#   state: present
+
+
+- name: NetServices
+  description: Network Services
+  ipVersion: IP_AGNOSTIC
+  aclcontent: |
+    deny icmp
+    deny tcp dst eq 21
+    permit tcp dst eq 53
+    permit udp dst eq 53
+    permit udp dst eq 67
+    permit udp dst eq 68
+    permit udp dst eq 123
+    permit udp dst eq 514
+    permit udp dst eq 6514
+    deny ip
+  state: present
+
+
+- name: Onboarding
+  description: Onboard new endpoints
+  ipVersion: IP_AGNOSTIC
+  aclcontent: |
+    permit icmp
+    # remark DNS UDP
+    permit udp dst eq 53
+    # remark DNS TCP
+    permit udp dst eq 53
+    # remark DHCP/BOOTPS
+    permit udp dst eq 67
+    # remark DHCP/BOOTPC
+    permit udp dst eq 68
+    # remark TFTP / PXE boot
+    permit udp dst eq 69
+    # remark Kerberos TCP
+    permit tcp dst eq 88
+    # remark Kerberos UDP
+    permit udp dst eq 88
+    # remark POP3
+    permit tcp dst eq 110
+    # remark NTP
+    permit tcp dst eq 123
+    # remark DCE/RPC Locator service
+    permit tcp dst eq 135
+    # remark NetBIOS Name Service
+    permit tcp dst eq 137
+    # remark NetBIOS Datagram Service
+    permit tcp dst eq 138
+    # remark NetBIOS Session Service
+    permit tcp dst eq 139
+    # remark LDAP TCP
+    permit tcp dst eq 389
+    # remark LDAP UDP
+    permit udp dst eq 389
+    # remark HTTPS
+    permit tcp dst eq 443
+    # remark MS-DS AD shares/SMB file sharing
+    permit tcp dst eq 445
+    # remark LDAP/S
+    permit tcp dst eq 636
+    # remark NFS
+    permit udp dst eq 1025
+    # remark MS DCOM
+    permit udp dst eq 1026
+    # remark MS WinRM 2.0 HTTP
+    permit tcp dst eq 5985
+    # remark MS WinRM 2.0 HTTPS
+    permit tcp dst eq 5986
+  state: present
+
+
+- name: Profiling
+  description: Allow protocols for profiling
+  ipVersion: IP_AGNOSTIC
+  aclcontent: |
+    # remark SSH/SCP/SFTP
+    permit tcp dst eq 22
+    # remark DNS/TCP
+    permit tcp dst eq 53
+    # remark DNS/UDP
+    permit udp dst eq 53
+    # remark DHCP/BOOTPS
+    permit udp dst eq 67
+    # remark DHCP/BOOTPC
+    permit udp dst eq 68
+    # remark HTTP
+    permit tcp dst eq 80
+    # remark SNMP
+    permit udp dst eq 161
+    # remark HTTPS
+    permit tcp dst eq 443
+    # remark ISE Web Portals
+    permit tcp dst eq 8443
+    # remark SNMP
+    permit udp dst eq 161
+    # remark SNMP Secure
+    permit udp dst eq 1016
+    # remark MS WinRM 2.0 HTTP
+    permit tcp dst eq 5985
+    # remark MS WinRM 2.0 HTTPS
+    permit tcp dst eq 5986
+    deny ip
+  state: present
+
+- name: VOIP
+  description: Voice Over IP Protocols
+  ipVersion: IP_AGNOSTIC
+  aclcontent: |
+    # remark Cisco SCCP (Skinny Client Control Protocol)
+    permit tcp dst eq 2000
+    permit udp dst eq 2000
+    # remark SIP (Session Initiation Protocol)
+    permit tcp dst eq 5060
+    permit udp dst eq 5060
+    # remark SIP-TLS
+    permit tcp dst eq 5061
+    permit udp dst eq 5061
+  state: present
+
+- name: Surveillance
+  description: Surveillance Cameras
+  ipVersion: IP_AGNOSTIC
+  aclcontent: |
+    # remark HTTP/S
+    permit tcp dst eq 443
+    # remark RTSP (Real Time Streaming Protocol)
+    permit tcp dst eq 554
+    permit udp dst eq 554
+  state: present
+
+- name: Printing
+  description: Printing
+  ipVersion: IP_AGNOSTIC
+  aclcontent: |
+    # remark SMB
+    permit tcp dst eq 137
+    permit tcp dst eq 138
+    permit tcp dst eq 139
+    # remark SNMP
+    permit udp dst eq 161
+    permit udp dst eq 162
+    # remark Line Printing Daemon Protocol (LPDSVC) / LPR
+    permit tcp dst eq 515
+    permit udp dst eq 515
+    # remark RPC
+    permit tcp dst eq 530
+    permit tcp dst eq 631
+    permit udp dst eq 631
+    # remark HP PDL Data Streaming Port & Printer PDL Data Stream
+    permit tcp dst eq 9100
+    permit udp dst eq 9100
+  state: present
+
+- name: Internet
+  description: Internet access only - deny destination RFC1918 private addresses
+  ipVersion: IP_AGNOSTIC
+  aclcontent: |
+    # remark Deny RFC1918 private addresses
+    deny ip any dst 10.0.0.0 255.0.0.0
+    deny ip any dst 172.16.0.0 255.240.0.0
+    deny ip any dst 192.168.0.0 255.255.0.0
+    permit ip
+  state: present

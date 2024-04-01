@@ -1,0 +1,21 @@
+---
+#
+# ISE Identity Groups
+#
+identitygroup:
+
+- name: Contractors
+  description: Vendors
+  parent: NAC Group:NAC:IdentityGroups:User Identity Groups
+
+- name: Probes
+  description: Probe and Test accounts
+  parent: NAC Group:NAC:IdentityGroups:User Identity Groups
+
+- name: Vendors
+  description: Vendors
+  parent: NAC Group:NAC:IdentityGroups:User Identity Groups
+
+- name: HelpDeskException
+  description: Temporary exception by HelpDesk for support
+  parent: NAC Group:NAC:IdentityGroups:User Identity Groups

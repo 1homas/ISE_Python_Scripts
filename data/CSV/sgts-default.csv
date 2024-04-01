@@ -1,0 +1,17 @@
+Icon,Name:String(32):Required,Value,Description:String(256)
+0,Auditors,9,Auditor Security Group
+0,BYOD,15,BYOD Security Group
+0,Contractors,5,Contractor Security Group
+0,Developers,8,Developer Security Group
+0,Development_Servers,12,Development Servers Security Group
+0,Employees,4,Employee Security Group
+0,Guests,6,Guest Security Group
+0,Network_Services,3,Network Services Security Group
+0,PCI_Servers,14,PCI Servers Security Group
+0,Point_of_Sale_Systems,10,Point of Sale Security Group
+0,Production_Servers,11,Production Servers Security Group
+0,Production_Users,7,Production User Security Group
+0,Quarantined_Systems,255,Quarantine Security Group
+0,Test_Servers,13,Test Servers Security Group
+0,TrustSec_Devices,2,TrustSec Devices Security Group
+0,Unknown,0,Unknown Security Group

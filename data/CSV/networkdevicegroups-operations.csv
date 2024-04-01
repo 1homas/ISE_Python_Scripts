@@ -1,0 +1,12 @@
+Name:String(100):Required,Description:String(1024),Type:String(64):Required,Is Root:Boolean(true|false):Required
+Operation#Operation,All Operations,Operation,TRUE
+Operation#Operation#Zone1,Zone 1,Operation,FALSE
+Operation#Operation#Zone2,Zone 2,Operation,FALSE
+Operation#Operation#Zone3,Zone 3,Operation,FALSE
+Operation#Operation#Zone4,Zone 4,Operation,FALSE
+Operation#Operation#Zone5,Zone 5,Operation,FALSE
+Operation#Operation#Zone6,Zone 6,Operation,FALSE
+Operation#Operation#Zone7,Zone 7,Operation,FALSE
+Operation#Operation#Zone8,Zone 8,Operation,FALSE
+Operation#Operation#Zone9,Zone 9,Operation,FALSE
+Operation#Operation#Zone10,Zone 10,Operation,FALSE

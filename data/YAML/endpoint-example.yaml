@@ -1,0 +1,102 @@
+---
+#
+# Endpoints
+#
+# MAC format XXXX:XXXX:XXXX is an invalid mac format for ISE
+#
+
+# endpoint: []
+
+endpoint:
+
+- mac: "11:22:33:44:55:66" # "'s required around MACs with :'s
+  description: Minimal endpoint definition with IEEE 802 MAC format (XX-XX-XX-XX-XX-XX)
+
+- mac: "11:22:33:44:55:77"
+  description: Minimal endpoint definition with IEEE 802 MAC format (XX-XX-XX-XX-XX-XX)
+
+- mac: "11:22:33:44:55:88"
+  description: Minimal endpoint definition with IEEE 802 MAC format (XX-XX-XX-XX-XX-XX)
+
+- mac: "11:22:33:44:55:99"
+  description: Minimal endpoint definition with IEEE 802 MAC format (XX-XX-XX-XX-XX-XX)
+
+- mac: "DEAD.BEEF.CAFE"
+  description: Minimal required definition with alternative dot-format (XXXX.XXXX.XXXX)
+
+- mac: "C0:FF:EE:EE:CA:FE"
+  description: Minimal endpoint definition with Colon format (XX:XX:XX:XX:XX:XX)
+
+- mac: "CC:00:FF:FF:EE:EE"
+  description: Coffee Machine
+
+
+#------------------------------------------------------------------------------
+# Cameras
+#------------------------------------------------------------------------------
+
+- mac: D8-EB-97-85-F8-C9
+  description: Surveillance Camera
+  staticGroupAssignment: true
+  groupId: Trendnet-Device  # Trendnet-Device
+
+- mac:  AC:17:C8:0C:17:A0
+  description: Meraki Surveillance Camera
+  staticGroupAssignment: true
+  groupId: Cameras # Cameras 
+  
+
+#------------------------------------------------------------------------------
+# IP Phones
+#------------------------------------------------------------------------------
+
+- mac: 00-11-BB-EF-EE-66
+  description: IP Phone
+  staticGroupAssignment: true
+  groupId: Cisco-IP-Phone  # Cisco-IP-Phone
+
+#------------------------------------------------------------------------------
+# Printers
+#------------------------------------------------------------------------------
+
+- mac: 00-00-AA-41-8C-A8
+  description: Printers
+  staticGroupAssignment: true
+  groupId: Epson-Device  # Epson-Device
+
+
+#------------------------------------------------------------------------------
+# Raspberry Pis
+#------------------------------------------------------------------------------
+
+- mac: DC:A6:32:6D:A3:BA
+  description: RPI-1-Wired
+
+- mac: DC:A6:32:6D:A3:BB
+  description: RPI-1-Wireless
+
+- mac: DC:A6:32:1A:C5:F7
+  description: RPI-2-Wired
+
+- mac: DC:A6:32:1A:C5:F8
+  description: RPI-2-Wireless
+
+
+#------------------------------------------------------------------------------
+# Static Endpoint Group Testing
+#------------------------------------------------------------------------------
+
+- mac: EE:EE:EE:EE:EE:EE
+  description: Test 'Exception' Static Endpoint Group
+  staticGroupAssignment: true
+  groupId: Exception # Exception
+
+- mac: B1:0C:B1:0C:B1:0C
+  description: Test 'Blocked' Static Endpoint Group
+  staticGroupAssignment: true
+  groupId: Blocked # Blocked 
+
+- mac: 2c3f.0b56.e36c
+  description: lab-mr46-1 AP
+  staticGroupAssignment: true
+  groupId: AccessPoints # AccessPoints 

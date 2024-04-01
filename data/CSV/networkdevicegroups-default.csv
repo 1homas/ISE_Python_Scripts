@@ -1,0 +1,6 @@
+Name:String(100):Required,Description:String(1024),Type:String(64):Required,Is Root:Boolean(true|false):Required
+Device Type#All Device Types,All Device Types,Device Type,true
+IPSEC#Is IPSEC Device,Is this a RADIUS over IPSEC Device,IPSEC,true
+IPSEC#Is IPSEC Device#No,Device is not IPSEC Type,IPSEC,false
+IPSEC#Is IPSEC Device#Yes,Device is IPSEC Type,IPSEC,false
+Location#All Locations,All Locations,Location,true
