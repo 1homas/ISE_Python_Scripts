@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 
-Creates the specified number of ISE downloadable ACLs using a REST API.
+Generates the specified number of randomly named ISE downloadable ACLs using a REST API.
 
 Usage:
 
   ise-post-dacls.py -h
+  ise-post-dacls.py 5
 
 Requires setting the these environment variables using the `export` command:
   export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
@@ -30,7 +31,7 @@ import io
 import json
 import os
 import random
-
+import string
 
 JSON_HEADERS = {'Accept':'application/json', 'Content-Type':'application/json'}
 REST_PAGE_SIZE_DEFAULT=20
@@ -43,16 +44,6 @@ REST_PAGE_SIZE=REST_PAGE_SIZE_MAX
 TCP_CONNECTIONS_DEFAULT=10
 TCP_CONNECTIONS_MAX=30
 TCP_CONNECTIONS=5
-
-def int_generator (start:int=1, step:int=1) :
-    """
-    Returns an infinite sequence generator that generates integers >= n
-    """
-    while True:
-        yield start
-        start += step
-
-N = int_generator()
 
 
 def generate_downloadableacl_data () :
@@ -68,13 +59,13 @@ def generate_downloadableacl_data () :
     """
     resource = {
       'DownloadableAcl' : {
-        'name' : f"dACL{next(N)}",
+        'name' : f"dACL_{''.join(random.choices(string.ascii_letters, k=5))}",
         'description' : 'Deny all ipv4 traffic',
         'dacl' : 'deny ip any any',
         'daclType' : 'IPV4',
       }
     }
-    print(f"resource:{resource}")
+    # print(f"resource:{resource}")
     return resource
 
 
@@ -121,23 +112,13 @@ async def cache_existing_internalusers (session) :
         username_cache[resource['name']] = 1
 
 
-async def parse_cli_arguments () :
-    """
-    Parse the command line arguments
-    """
-    ARGS = argparse.ArgumentParser(description=USAGE, formatter_class=argparse.RawDescriptionHelpFormatter) # keep my format
-    ARGS.add_argument('number', action='store', type=int, default=1, help='Number of users to create',)
-    ARGS.add_argument('--verbose', '-v', action='count', default=0, help='Verbosity',)
-    return ARGS.parse_args()
-
-
 async def create_ise_downloadableacls () :
 
     global args     # promote to global scope for use in other functions
-    args = await parse_cli_arguments()
-    if args.verbose >= 3 : print(f"ⓘ Args: {args}")
-    if args.verbose : print(f"ⓘ TCP_CONNECTIONS: {TCP_CONNECTIONS}")
-    if args.verbose : print(f"ⓘ REST_PAGE_SIZE: {REST_PAGE_SIZE}")
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    argp.add_argument('number', action='store', type=int, default=1, help='Number of users to create',)
+    argp.add_argument('--verbose', '-v', action='count', default=0, help='Verbosity',)
+    args = argp.parse_args()
 
     # Load Environment Variables
     env = { k : v for (k, v) in os.environ.items() if k.startswith('ISE_') }
@@ -151,13 +132,13 @@ async def create_ise_downloadableacls () :
     base_url = f"https://{env['ISE_PPAN']}"
     session = aiohttp.ClientSession(base_url, auth=auth, connector=tcp_conn, headers=JSON_HEADERS)
 
-    # Generate requested number of users
+    # Generate requested number of dACLs
     dacls = []
     for n in range(1, args.number + 1) :
         dacls.append( generate_downloadableacl_data() )
     if args.verbose : print(f"ⓘ Generated {len(dacls)} dacls")
 
-    # Create the users with asyncio!
+    # Create the dACLs with asyncio!
     tasks = []
     [ tasks.append(asyncio.ensure_future(session.post('/ers/config/downloadableacl', data=json.dumps(dacl)))) for dacl in dacls ]
     responses = await asyncio.gather(*tasks)
@@ -173,13 +154,6 @@ async def create_ise_downloadableacls () :
             print(f"✖ {n} {response.status} :\n{json.dumps(await response.json(), indent=2)}")
 
     await session.close()
-
-
-def main ():
-    """
-    Entrypoint for packaged script.
-    """
-    asyncio.run(create_ise_downloadableacls())
 
 
 if __name__ == '__main__':
