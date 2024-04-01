@@ -79,7 +79,7 @@ def generate_random_internaluser_data (groupid:str=None):
         'name' : username,
         'description' : '', # faker.sentence(nb_words=8),
         'enabled' : True,
-        'password' : 'ISEisC00L',
+        'password' : 'C1sco12345',
         'email' : f"{username}@domain.com",
         'firstName' : firstname,
         'lastName' : lastname,
