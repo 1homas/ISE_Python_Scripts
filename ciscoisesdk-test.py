@@ -52,7 +52,7 @@ def main():
     Entrypoint for packaged script.
     """
     global args     # promote to global scope for use in other functions
-    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter) # keep my format
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
     argp.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
     argp.add_argument('-v', '--verbose', action='store_true', default=False, help='Verbosity; multiple allowed')

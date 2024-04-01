@@ -577,7 +577,7 @@ def main():
     Entrypoint for script.
     """
     global args     # promote to global scope for use in other functions
-    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter) # Keep __doc__ format
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument('--filename', default='-', required=False, help='Save output to filename. Default: stdout')
     argp.add_argument('-n', '--number', type=int, default=ITEM_COUNT, help='Number of config items to generate')
     argp.add_argument('-f', '--format', choices=['csv', 'grid', 'json', 'line', 'pretty', 'yaml'], default='pretty')
