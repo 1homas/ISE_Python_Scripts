@@ -4,22 +4,22 @@
 internal_users:
 
 - name: meraki_8021x_test
-  password: ISEisC00L
+  password: C1sco12345
   description: Cisco Meraki RADIUS Test Probe
   identityGroups: Probes
 
 - name: radius-test
-  password: ISEisC00L
+  password: C1sco12345
   description: RADIUS Test Probe
   identityGroups: Probes
 
 - name: thomas
-  password: ISEisC00L
+  password: C1sco12345
   description: ISE TME
   identityGroups: Employee
 
 - name: guest_api_sponsor
-  password: ISEisC00L
+  password: C1sco12345
   description: Sponsor Account for Using Guest APIs
   identityGroups: "ALL_ACCOUNTS (default)"
   # changePassword: false
