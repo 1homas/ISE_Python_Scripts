@@ -176,7 +176,7 @@ async def cache_existing_endpoints (session:aiohttp.ClientSession=None):
 
 async def create_ise_endpoints ():
 
-    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument('number', action='store', type=int, default=1, help='Number of endpoints to create',)
     argp.add_argument('--verbose', '-v', action='count', default=0, help='Verbosity',)
 
