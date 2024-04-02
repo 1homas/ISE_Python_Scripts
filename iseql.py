@@ -7,6 +7,7 @@ Usage:
   iseql.py "{query}"
 
 Example queries (wrap them in quotes!):
+  SELECT view_name FROM user_views ORDER BY view_name ASC
   SELECT * FROM node_list
   SELECT * FROM network_devices
   SELECT * FROM security_groups
@@ -39,7 +40,7 @@ ISE_DC_USERNAME='dataconnect'  # Data Connect username
 ISE_DC_SID='cpm10'             # Data Connect service name identifier
 
 argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-argp.add_argument('query', help='An SQL Query - wrapped in double-quotes', default=None)
+argp.add_argument('query', help='An Oracle PL/SQL Query - wrapped in double-quotes', default=None)
 args = argp.parse_args()
 
 env = {k:v for (k, v) in os.environ.items() if k.startswith('ISE_')}  # Load environment variables
