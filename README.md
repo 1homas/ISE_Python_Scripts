@@ -21,10 +21,10 @@ export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
 export ISE_CERT_VERIFY=false          # validate the ISE certificate
 ```
 
-You may conveniently edit these export lines in an `ise-environment.sh` text file and load them into your terminal environment with `source`:
+You may conveniently edit these export lines in an `ise-env.sh` text file and load them into your terminal environment with `source`:
 
 ```sh
-source ise-environment.sh
+source ise-env.sh
 ```
 
 Then verify your environment variables using `env` or `echo`:
@@ -221,7 +221,7 @@ ise-get-ers-raw.py networkdevice
 ise-get-ers-raw.py profilerprofile | jq .SearchResult.total
 ```
 
-### Resource with the UUID
+### Get Resource by UUID
 
 ```sh
 ise-get-ers-raw.py networkdevice/0b6e9500-8b4a-11ec-ac96-46ca1867e58d
