@@ -66,20 +66,21 @@ async def get_ise_identitygroup_id(session:aiohttp.ClientSession=None, name:str=
     return (await response.json()).popitem()[1]['id'] # popitem returns (k,v)
 
 
-def generate_random_internaluser_data (groupid:str=None):
+def generate_random_internaluser_data (username:str=None, password:str=None, groupid:str=None):
     """
     Return an internaluser object ready for conversion to JSON.
     """
     firstname = faker.first_name()
     lastname = faker.last_name()
-    username = get_username(firstname, lastname)
+    username = get_username(firstname, lastname) if username is None else username
+    password = 'C1sco12345' if password is None else password
 
     resource = {
       'InternalUser' : {
         'name' : username,
         'description' : '', # faker.sentence(nb_words=8),
         'enabled' : True,
-        'password' : 'C1sco12345',
+        'password' : password,
         'email' : f"{username}@domain.com",
         'firstName' : firstname,
         'lastName' : lastname,
