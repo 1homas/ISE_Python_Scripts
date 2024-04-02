@@ -325,8 +325,8 @@ def show(resources=None, name=None, filepath='-', format='json'):
         print(json.dumps({ name: resources }), file=fh)
     elif format == 'line':  # 1 JSON line per object
         print('{')
-        print(f'{name} = [')
-        [print(json.dumps(r), end=',\n', file=fh) for r in resources]
+        print(f'"{name}" : [')
+        print(",\n".join([json.dumps(r) for r in resources]), file=fh)
         print(']\n}')
     elif format == 'pretty':  # pretty-print
         print(json.dumps({ name: resources }, indent=2), file=fh)
