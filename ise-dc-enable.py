@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enable the ISE APIs using (synchronous) APIs!
+Enable the ISE Data Connect feature via REST APIs.
 
 Usage:
 
