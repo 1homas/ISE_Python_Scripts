@@ -21,19 +21,19 @@ Device Type#All Device Types#SDWAN#Meraki#Z3,Cisco Meraki Z3,Device Type,FALSE
 Device Type#All Device Types#Simulator,Simulator,Device Type,FALSE
 Device Type#All Device Types#Switches,Switches,Device Type,FALSE
 Device Type#All Device Types#Switches#Catalyst,Cisco Catalyst Switches,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C3560X,Cisco 3560X,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C3650,Cisco 3650,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C3750,Cisco 3750,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C3750X,Cisco 3750X,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C3850,Cisco 3850,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C1000,Cisco Catalyst 1000,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C9200,Cisco Catalyst 9200,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C9200CX,Cisco Catalyst 9200CX,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C9200L,Cisco Catalyst 9200L,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C9300,Cisco Catalyst 9300,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C9300L,Cisco Catalyst 9300LLM,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C9300M,Cisco Catalyst 9300M,Device Type,FALSE
-Device Type#All Device Types#Switches#Catalyst#C9300X,Cisco Catalyst 9300X,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#1000,Cisco Catalyst 1000,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#3560X,Cisco 3560X,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#3650,Cisco 3650,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#3750,Cisco 3750,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#3750X,Cisco 3750X,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#3850,Cisco 3850,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#9200,Cisco Catalyst 9200,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#9200CX,Cisco Catalyst 9200CX,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#9200L,Cisco Catalyst 9200L,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#9300,Cisco Catalyst 9300,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#9300L,Cisco Catalyst 9300LLM,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#9300M,Cisco Catalyst 9300M,Device Type,FALSE
+Device Type#All Device Types#Switches#Catalyst#9300X,Cisco Catalyst 9300X,Device Type,FALSE
 Device Type#All Device Types#Switches#Catalyst#IE1000,Cisco Catalyst IE1000,Device Type,FALSE
 Device Type#All Device Types#Switches#Catalyst#IE2000,Cisco Catalyst IE2000,Device Type,FALSE
 Device Type#All Device Types#Switches#Catalyst#IE2000U,Cisco Catalyst IE2000U,Device Type,FALSE
@@ -65,9 +65,7 @@ Device Type#All Device Types#Wireless,Wireless,Device Type,FALSE
 Device Type#All Device Types#Wireless#Catalyst,Cisco Catalyst Wireless,Device Type,FALSE
 Device Type#All Device Types#Wireless#Catalyst#2504,Cisco Catalyst 2504 WLC,Device Type,FALSE
 Device Type#All Device Types#Wireless#Catalyst#3504,Cisco Catalyst 3504 WLC,Device Type,FALSE
-Device Type#All Device Types#Wireless#Catalyst#3504,Cisco Catalyst Wireless Controller,Device Type,FALSE
 Device Type#All Device Types#Wireless#Catalyst#5508,Cisco Catalyst 5508 WLC,Device Type,FALSE
-Device Type#All Device Types#Wireless#Catalyst#5508,Cisco Catalyst Wireless Controller,Device Type,FALSE
 Device Type#All Device Types#Wireless#Catalyst#5520,Cisco Catalyst 5520 WLC,Device Type,FALSE
 Device Type#All Device Types#Wireless#Catalyst#8540,Cisco Catalyst 8540 WLC,Device Type,FALSE
 Device Type#All Device Types#Wireless#Catalyst#9105,Cisco Catalyst 9105 Series AP,Device Type,FALSE
