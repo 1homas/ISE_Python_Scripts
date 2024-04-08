@@ -73,6 +73,20 @@ Response:
 ✅ ISE ERS APIs Enabled
 ```
 
+## ise-dc-enable.py
+
+Enable the ISE Data Connect feature via REST APIs.
+
+```sh
+ise-dc-enable.py
+ⓘ Data Connect Enabled: False
+ⓘ Data Connect Password: {'success': {'message': 'Dataconnect password has been updated successfully'}, 'version': '1.0.0'}
+ⓘ Data Connect Password Expiration: {'success': {'message': 'Dataconnect password expiry has been updated successfully as 3650 days'}, 'version': '1.0.0'}
+ⓘ Data Connect Password: {'success': {'message': 'Dataconnect Setting has been enabled and dataconnect certificate added to trust store successfully'}, 'version': '1.0.0'}
+Data Connect Settings: {'isEnabled': True, 'isPasswordChanged': True, 'passwordExpiresOn': '02 April 2034 at 13:50 UTC', 'passwordExpiresInDays': 3650}
+Data Connect Details: {'hostname': 'ise.securitydemo.net', 'port': 2484, 'servicename': 'cpm10', 'username': 'dataconnect'}
+```
+
 ## ise-ers-count.py
 
 Get the total resource count of a specified ISE ERS resource.
@@ -482,11 +496,13 @@ The following environment variables are *required* to use `iseql.py`:
 
 ```sh
 export ISE_PMNT='1.2.3.4'             # hostname or IP of the ISE Primary MNT node
-export ISE_CERT_VERIFY=True           # Verify the ISE certificate
 export ISE_DC_PASSWORD='#DataC0nnect' # Data Connect password
 ```
+
+Example:
 
 ```sh
 iseql.py "SELECT * FROM network_devices"
 ```
 
+You may disable TLS certificate verification and allow self-signed certs using the `-i`/`--insecure` command line option or the environment variable `ISE_CERT_VERIFY=False`.
