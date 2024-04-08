@@ -1,7 +1,7 @@
 ---
 # vars file for roles/ise_internaluser
 
-internal_users:
+internaluser:
 
 - name: meraki_8021x_test
   password: C1sco12345
