@@ -134,9 +134,9 @@ try:
             headers = [i[0].lower() for i in cursor.description] # description: (name, type_code, display_size, internal_size, precision, scale, null_ok)
             rows = cursor.fetchall() # returns a list of tuples
             show(table=rows, headers=headers, format=args.format)
-except Exception as e:
-    print(f"SSL: CERTIFICATE_VERIFY_FAILED. Use -i option for self-signed certificates.", file=sys.stderr)
 except oracledb.Error as e:
-    print(e, file=sys.stderr)
+    print(f"Oracle Error: {e}", file=sys.stderr)
+except Exception as e:
+    print(f"Error: {e}", file=sys.stderr)
 
 if args.timer: print(f"⏱ {'{0:.3f}'.format(time.time() - start_time)} seconds", file=sys.stderr)
