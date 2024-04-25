@@ -4,8 +4,8 @@ Delete ISE resources via REST APIs.
 
 Examples:
     ise-delete.py endpoint 
-    ise-delete.py endpoint -tv
-    ise-delete.py -v endpoint,endpointgroup,identitygroup,internaluser,networkdevicegroup,networkdevice
+    ise-delete.py endpoint -tvi
+    ise-delete.py -tv endpoint
 
 Requires setting the these environment variables using the `export` command:
   export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
@@ -23,28 +23,45 @@ __license__ = "MIT - https://mit-license.org/"
 
 
 import aiohttp
-import asyncio
 import argparse
+import asyncio
 import csv
 import io
 import json
+import math
 import os
 import random
 import signal
+import ssl
 import sys
 import time
 import traceback
-import yaml
-import math
-from tabulate import tabulate
 
-WORKER_COUNT = 20
-DATA_DIR = './'
+ICONS = {
+    # name : icon
+    'CACHE'   : '↯',
+    'DOWN'    : '▽',
+    'ERROR'   : '⛒',
+    'NONE'    : '∅',
+    'FAIL'    : '✖',
+    'INFO'    : 'ℹ',
+    'ID'      : '⚿',
+    'LIST'    : '⁝',
+    'PASS'    : '✔',
+    'PLAY'    : '▷',
+    'TIMEOUT' : '◔',
+    'TIP'     : '💡',
+    'UNLOCK'  : '🔓',
+    'WARN'    : '⚠',
+    'WATCH'   : '⏱',
+}
 
-# REST Options
-JSON_HEADERS = {'Accept':'application/json', 'Content-Type':'application/json'}
-REST_PAGE_SIZE_MAX=100
-REST_PAGE_SIZE=REST_PAGE_SIZE_MAX
+# Limit TCP connection pool size to prevent connection refusals by ISE
+# See https://cs.co/ise-scale for concurrent REST connection limits.
+# Testing with ISE 3.x shows no performance gain for > ~5 connections.
+TCP_LIMIT_DEFAULT=100 # aiohttp.TCPConnector.limit
+TCP_LIMIT=10  # 🔺ISE ERS APIs for GuestType and InternalUser can have problems with 10+ concurrent connections!
+REST_PAGE_SIZE = 100
 
 # Dictionary of ISE REST Endpoints mapping to a tuple of the object name and base URL
 # 'Resource': ('ERS_Name', 'REST API Base URL')
@@ -272,141 +289,140 @@ ISE_REST_ENDPOINTS = {
 }
 
 
-async def get_ers_resources (session, path):
+async def get_url_response(session, url_q, response_q):
     """
-    Return the resources from the JSON response.
-    @session : the aiohttp session to reuse
-    @name    : the ERS object name in the JSON
-    @path    : the REST endpoint path
+    Take a URL from the queue, use the session to GET a response and put it in the response_q.
+
+    :param session (aiohttp.ClientSession): the aiohttp session to reuse
+    :param url_q (asyncio.Queue) : the queue of URLs to GET using the session
+    :param response_q (asyncio.Queue) : the queue for all responses
     """
-    async with session.get(path) as response:
-        # print(f"ⓘ get_ers_resources({path}): {json}", file=sys.stderr)
-        data = await response.json()
-        data = data['SearchResult']['resources'] if data.get('SearchResult', None) != None else data
-        return data
-
-
-async def delete_ise_resource (session, path):
-    async with session.delete(path) as resp:
-        print(f"ⓘ {resp.status} | {path} ", file=sys.stderr)
-        return resp
-
-
-async def q_all_resources (session:aiohttp.ClientSession=None, q:asyncio.Queue=None, name:str=None, path:str=None):
-    """
-    Return the specified resources from ISE.
-    @session : the aiohttp session to reuse
-    @name    : the ERS object name
-    @path    : the REST endpoint path
-    """
-    # Get the first page for the total resources
-    response = await session.get(f"{path}?size={REST_PAGE_SIZE}")
-    json = await response.json()
-    resources = []
-    total = 0
-    is_ers = False
-    #
-    # ISE ERS or OpenAPI?
-    # ERS is a dict: {'SearchResult': {'total': 7, 'resources': [{'id': ...
-    # OpenAPI is a list: {'response': [{'id': ...
-    #
-    if result:= json.get('SearchResult', None) != None:
-        is_ers = True
-        total = json['SearchResult']['total']
-        resources = json['SearchResult']['resources']
-        # Get all remaining resources if more than the REST page size
-        if total > REST_PAGE_SIZE:
-            urls = [] # Generate all paging URLs
-            for page in range(2, math.ceil(total / REST_PAGE_SIZE)+1): # already fetched first page above
-                urls.append(f"{path}?size={REST_PAGE_SIZE}&page={page}")
-            # Get all pages with asyncio!
-            tasks = []
-            [tasks.append(asyncio.ensure_future(get_ers_resources(session, url))) for url in urls]
-            responses = await asyncio.gather(*tasks)
-            [resources.extend(response) for response in responses]
-    else:
-        if json.get('response'): # OpenAPI
-            resources = json['response']
-            total = len(resources)
-        else: # hotpatch / patch
-            resources = json
-            total = 1
-
-    if len(resources) > 0:
-        print(f"ⓘ Deleting {len(resources)} {name} ...", file=sys.stderr)
-        # remove ugly 'link' attribute to flatten data
-        for r in resources:
-            if isinstance(r, dict) and r.get('link'): 
-                del r['link']
-            r['path'] = path
-        # resources.sort(key=lambda r: len(r['name']), reverse=True)
-        [await q.put(resource) for resource in resources]
-
-
-async def delete_resource (q, session):
     while True:
-        resource_data = await q.get() # Get an item from the queue
-        response = await session.delete(resource_data['path']+'/'+resource_data['id'])
-        print(f"✔ {response.status} | {resource_data['id']} | {resource_data['name']}", file=sys.stdout)
-        q.task_done()  # Notify queue the item is processed
+        url = await url_q.get() # Wait for item in the queue
+        response = await session.get(url)
+        data = await response.json()
+        if args.verbosity == 1: print(ICONS['DOWN'], end='', flush=True, file=sys.stderr)
+        await response_q.put(data)
+        url_q.task_done() # Notify queue item is done
 
 
-async def main ():
+async def extract_ise_resources(response_q:asyncio.Queue=None, resource_q:asyncio.Queue=None):
+    """
+    Extract the JSON resource(s) from the ISE REST API response and add them to the resource queue for further processing.
+
+    :param response_q (asyncio.Queue) : the queue for all responses
+    :param resource_q (asyncio.Queue) : the queue for extracted resources
+    """
+    while True:
+        data = await response_q.get() # Wait for data in the queue
+        if args.verbosity == 1: print(ICONS['LIST'], end='', flush=True, file=sys.stderr)
+        if isinstance(data, dict): # ISE ERS API is a dict: {'SearchResult': {'total': 7, 'resources': [{'id': ... }]}}
+            resources = data['SearchResult']['resources']
+        elif isinstance(data, list): # OpenAPI is a list: []
+            resources = data
+        else:
+            print(f"extract_ise_resources(): Unsupported data type: {data}")
+        for resource in resources:
+            if args.verbosity >= 3: print(f"{ICONS['PLAY']} {resource['id']} | {resource['name']}")
+            await resource_q.put(resource)
+        response_q.task_done() # Notify queue item is done
+
+
+async def delete_ise_resource_by_id(session:aiohttp.ClientSession=None, path:str=None, resource_q:asyncio.Queue=None):
+    """
+    Delete the specified resource using it's id.
+
+    :param session (aiohttp.ClientSession): the aiohttp session to reuse
+    :param path (str) : the REST API endpoint path
+    :param resource_q (asyncio.Queue) : the asyncio Queue for ERS resource pages to fetch
+    """
+    while True:
+        resource = await resource_q.get() # Wait for item in the queue
+        try:
+            response = await session.delete(f"{path}/{resource['id']}")
+            if response.ok:
+                if args.verbosity == 1: print(f"{ICONS['PASS']}", end='', flush=True, file=sys.stderr)
+                if args.verbosity >= 2: print(f"{ICONS['PASS']} {response.status} | {resource['id']} | {resource['name']}", file=sys.stdout)
+            else:
+                if args.verbosity == 1: print(f"{ICONS['FAIL']}", end='', flush=True, file=sys.stderr)
+                if args.verbosity >= 2: print(f"{ICONS['FAIL']} {response.status} | {resource['id']} | {resource['name']} : {(await response.json()).popitem()[1]['messages'][0]['title']}", file=sys.stdout)
+        except Exception as e: # catch *all* exceptions
+            tb_text = '\n'.join(traceback.format_exc().splitlines()[1:]) # remove 'Traceback (most recent call last):'
+            print(f"{ICONS['ERROR']} {e.__class__} {tb_text}", file=sys.stderr)
+        finally:
+            resource_q.task_done()  # Notify queue item is done
+
+
+async def ise_delete(resource_name:str=None):
     """
     Entrypoint for packaged script.
     """
-    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    argp.add_argument('resources', type=str, help='resource name')
-    argp.add_argument('-t','--timer', action='store_true', default=False, help='time', required=False)
-    argp.add_argument('-v','--verbosity', action='count', default=0, help='Verbosity')
-    args = argp.parse_args()
-    if args.timer: start_time = time.time()
+    if args.verbosity: print(f"{ICONS['INFO']} Deleting all '{resource_name}'", file=sys.stderr)
+    name, path = ISE_REST_ENDPOINTS[resource_name.strip(', ')] 
 
     env = {k:v for (k, v) in os.environ.items() if k.startswith('ISE_')}  # Load environment variables
+    verify_ssl =  False if args.insecure or env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
+    async with aiohttp.ClientSession(
+                    f"https://{env['ISE_PPAN']}",
+                    auth=aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD']),
+                    connector=aiohttp.TCPConnector(limit=TCP_LIMIT, ssl=verify_ssl),
+                    headers={'Accept':'application/json', 'Content-Type':'application/json'}
+                ) as session:
 
-    # Create HTTP session
-    base_url = f"https://{env['ISE_PPAN']}"
-    conn = aiohttp.TCPConnector(ssl=(False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True))
-    basic_auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
-    json_headers = {'Accept':'application/json', 'Content-Type':'application/json'}
-    async with aiohttp.ClientSession(base_url, auth=basic_auth, connector=conn, headers=json_headers) as session:
+        # Create queues for the processing pipeline
+        url_q = asyncio.Queue() # load up the URL pages
+        response_q = asyncio.Queue(maxsize=2) # many resources per page size
+        resource_q = asyncio.Queue(maxsize=TCP_LIMIT+1) # don't bother making more than the connector will use!
+
+        response = await session.get(f"{path}?size={REST_PAGE_SIZE}&page=1")
+        data = await response.json()
+        await response_q.put(data)
+
+        if isinstance(data, dict): # ISE ERS API is a dict: {'SearchResult': {'total': 7, 'resources': [{'id': ... }]}}
+            total = data['SearchResult']['total']
+            if args.verbosity: print(f"{ICONS['INFO']} Get {total} x '{resource_name}' ERS resource(s)", file=sys.stderr)
+            resources = data['SearchResult']['resources']
+            if total > REST_PAGE_SIZE:
+                # Enqueue all page URLs beyond the initial REST page size
+                urls = [f"{path}?size={REST_PAGE_SIZE}&page={page}" for page in range(1, 1+int(total/REST_PAGE_SIZE)+(1 if total%REST_PAGE_SIZE else 0))]
+                [await url_q.put(url) for url in urls] # enqueue URLs
+        elif isinstance(data, list): # OpenAPI is a list: []
+            print(f"{ICONS['WARN']} Only the first page of OpenAPI resources is supported", file=sys.stderr)
+        else:
+            print(f"Unsupported resource type: {resource_name} at {path}", file=sys.stderr)
+
         try:
-            resource_q = asyncio.Queue() # Create a queue for the user workload
-            tasks = [asyncio.create_task(delete_resource(resource_q, session)) for ii in range(WORKER_COUNT)]
-
-            for resource in args.resources.strip(', ').split(','):
-                if ISE_REST_ENDPOINTS.get(resource, None) == None: 
-                    print(f"Skipping unknown resource: {resource}")
-                    continue
-                name, path = ISE_REST_ENDPOINTS[resource] 
-                await q_all_resources(session, resource_q, name, path) 
-
-            await resource_q.join()  # process the queue until finished
-
-        except aiohttp.ContentTypeError as e:
-            print(f"\n❌ Error: {e.message}\n\n💡Enable the ISE REST APIs\n")
-        except aiohttp.ClientConnectorError as e:  # cannot connect to host
-            print(f"\n❌ Host unreachable: {e}\n", file=sys.stderr)
-        except aiohttp.ClientError as e:           # base aiohttp Exception
-            print(f"\n❌ ClientError Exception: {e}\n", file=sys.stderr)
-        except Exception as e: # catch *all* exceptions
+            # Schedule all fetch tasks
+            url_tasks = [asyncio.create_task(get_url_response(session, url_q, response_q))] # only 1 needed
+            extract_tasks = [asyncio.create_task(extract_ise_resources(response_q, resource_q))]
+            delete_tasks = [asyncio.create_task(delete_ise_resource_by_id(session, path, resource_q)) for idx in range(TCP_LIMIT*2)]
+            
+            await url_q.join() # Block until all items in queue are processed
+            await response_q.join()
+            await resource_q.join()
+        except Exception as e:
             tb_text = '\n'.join(traceback.format_exc().splitlines()[1:]) # remove 'Traceback (most recent call last):'
-            print(f"💣 {e.__class__} {tb_text}", file=sys.stderr) # {urlpath} | {url} | {data} |  {response.status} {request.method} {request.path}
+            print(f"{ICONS['ERROR']} {e.__class__} {tb_text}", file=sys.stderr)
         finally:
-            await session.close()
-            [task.cancel() for task in tasks] # cancel all workers when queue is done
-            await asyncio.gather(*tasks, return_exceptions=True) # wait until all worker tasks are cancelled
-
-    if args.timer: print(f"⏲ {'{0:.3f}'.format(time.time() - start_time)} seconds", file=sys.stderr)
-
+            if args.verbosity == 1: print(flush=True, file=sys.stderr) # newline for verbose updates
+            [task.cancel() for task in (extract_tasks + url_tasks + delete_tasks)] # Cancel all tasks
 
 
 if __name__ == '__main__':
     """
     Entrypoint for local script.
     """
+    global args
+    argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    argp.add_argument('resource', type=str, help='resource name')
+    argp.add_argument('-i','--insecure', action='store_true', default=False, help='do not verify certificates for TLS (allow self-signed certs)')
+    argp.add_argument('-t','--timer', action='store_true', default=False, help='time', required=False)
+    argp.add_argument('-v','--verbosity', action='count', default=0, help='verbosity')
+    args = argp.parse_args()
+    if args.timer: start_time = time.time()
+
     loop = asyncio.get_event_loop()
-    main_task = asyncio.ensure_future(main())
+    main_task = asyncio.ensure_future(ise_delete(args.resource))
 
     # Handle CTRL+C interrupts gracefully
     for signal in [signal.SIGINT, signal.SIGTERM]:
@@ -415,4 +431,6 @@ if __name__ == '__main__':
         loop.run_until_complete(main_task)
     finally:
         loop.close()
+
+    if args.timer: print(f"⏲ {'{0:.3f}'.format(time.time() - start_time)} seconds", file=sys.stderr)
 
