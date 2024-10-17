@@ -11,6 +11,7 @@ Examples:
     ise-get.py endpointgroup -f grid --details --noid
     ise-get.py endpointgroup -f yaml
     ise-get.py allowedprotocols -f yaml --details
+    ise-get.py internaluser -ivt -f table --details
     ise-get.py all -v --details -f yaml --save saved_config
 
 Requires setting the these environment variables using the `export` command:
@@ -29,30 +30,49 @@ __license__ = "MIT - https://mit-license.org/"
 
 
 import aiohttp
+import aiohttp_client_cache
 import asyncio
 import argparse
 import csv
+import datetime
 import io
 import json
 import math
 import os
 import random
+import ssl
 import sys
 import time
 import traceback
 import yaml
 from tabulate import tabulate
 
-
-DATA_DIR = './data'
-REST_PAGE_SIZE_MAX=100
-REST_PAGE_SIZE=REST_PAGE_SIZE_MAX
+ICONS = {
+    # name : icon
+    "BUG  ": "🐞",
+    "CACHE": "↯",
+    "DOWN": "▽",
+    "ERROR": "⛒",
+    "NONE": "∅",
+    "FAIL": "✖",
+    "INFO": "ℹ",
+    "ID": "⚿",
+    "LIST": "⁝",
+    "LOCK": "🔒",
+    "PASS": "✔",
+    "PLAY": "▷",
+    "TIMEOUT": "◔",
+    "TIP": "💡",
+    "UNLOCK": "🔓",
+    "WARN": "⚠",
+    "WATCH": "⏱",
+}
 
 # Limit TCP connection pool size to prevent connection refusals by ISE
-# See https://cs.co/ise-scale for Concurrent ERS Connections.
-# Testing with ISE 3.x shows no performance gain for >5-10 connections.
-TCP_LIMIT_DEFAULT=100 # aiohttp.TCPConnector.limit
-TCP_LIMIT=10  # 🔺ISE ERS APIs for GuestType and InternalUser can have problems with 10+ concurrent connections!
+# See https://cs.co/ise-scale for concurrent REST connection limits.
+# Testing with ISE 3.x shows no performance gain for > ~5 connections.
+TCP_LIMIT = 10  # 🔺ISE ERS APIs for GuestType and InternalUser can have problems with 10+ concurrent connections!
+REST_PAGE_SIZE = 100
 
 # Dictionary of ISE REST Endpoints mapping to a tuple of the object name and base URL
 ISE_REST_ENDPOINTS = {
@@ -60,209 +80,203 @@ ISE_REST_ENDPOINTS = {
     # '{resource}': '( {object_name}, {api_resource_path} )',
     #
     # Deployment @ https://cs.co/ise-api#!deployment-openapi
-    'deployment-node': ('-', '/api/v1/deployment/node'),
-    'node-group': ('-', '/api/v1/deployment/node-group'),
-    'pan-ha': ('-', '/api/v1/deployment/pan-ha'),
-    # 'node-interface': ('-', '/api/v1/node/{hostname}/interface'), # 💡 requires ISE node hostname
-    # 'sxp-interface': ('-', '/api/v1/node/{hostname}/sxp-interface'), # 💡 requires ISE node hostname
-    # 'profile': ('-', '/api/v1/profile/{hostname}'), # 💡 requires ISE node hostname
-    'repository': ('-', '/api/v1/repository'), # Repository @ https://cs.co/ise-api#!repository-openapi
-    # 'repository-name': ('-', '/api/v1/repository/{name}'), # 💡 requires repository {name}
-    # 'repository-name-files': ('-', '/api/v1/repository/{name}/files'),# 💡 requires repository {name}
+    "deployment-node": ("-", "/api/v1/deployment/node"),
+    "node-group": ("-", "/api/v1/deployment/node-group"),
+    "pan-ha": ("-", "/api/v1/deployment/pan-ha"),
+    # 'node-interface': ('-', '/api/v1/node/$hostname/interface'), # 💡 requires ISE node hostname
+    # 'sxp-interface': ('-', '/api/v1/node/$hostname/sxp-interface'), # 💡 requires ISE node hostname
+    # 'profile': ('-', '/api/v1/profile/$hostname'), # 💡 requires ISE node hostname
+    "repository": ("-", "/api/v1/repository"),  # Repository @ https://cs.co/ise-api#!repository-openapi
+    "repository-name": ("-", "/api/v1/repository/$name"),  # 💡 requires repository $name
+    "repository-name-files": ("-", "/api/v1/repository/$name/files"),  # 💡 requires repository $name
     # Patching @ https://cs.co/ise-api#!patch-and-hot-patch-openapi
-    'hotpatch': ('-', '/api/v1/hotpatch'),
-    'patch': ('-', '/api/v1/patch'),
-    # DeploymentInfo @ https://cs.co/ise-api#!deploymentinfo 
+    "hotpatch": ("-", "/api/v1/hotpatch"),
+    "patch": ("-", "/api/v1/patch"),
+    # DeploymentInfo @ https://cs.co/ise-api#!deploymentinfo
     # 'info': ('ERSDeploymentInfo', '/deploymentinfo/getAllInfo'),  # 'deploymentinfo'=> deploymentinfo/getAllInfo
-    'node': ('Node', '/ers/config/node'), # Node @ https://cs.co/ise-api#!node
+    "node": ("Node", "/ers/config/node"),  # Node @ https://cs.co/ise-api#!node
     # 'service': ('Service', '/ers/config/service'),  # 🛑 empty resource; link:service/null gives 404
-    'sessionservicenode': ('SessionServiceNode', '/ers/config/sessionservicenode'),
+    "sessionservicenode": ("SessionServiceNode", "/ers/config/sessionservicenode"),
     # Certificates @ https://cs.co/ise-api#!certificate-openapi
-    'trusted-certificate': ('-', '/api/v1/certs/trusted-certificate'), # Get list of all trusted certificates
-    # 'trusted-certificate-by-id': ('-', '/api/v1/certs/trusted-certificate/{id}'), # Get Trust Certificate By ID
-    # 'system-certificate': ('-', '/api/v1/certs/system-certificate/{hostName}'), # 💡 requires ISE node hostname
-    'certificate-signing-request': ('-', '/api/v1/certs/certificate-signing-request'),
-    # 'system-certificate-by-name': ('-', '/api/v1/certs/system-certificate/{hostName}'), # 💡 requires ISE node hostname. Get all system certificates of a particular node
+    "trusted-certificate": ("-", "/api/v1/certs/trusted-certificate"),  # Get list of all trusted certificates
+    "trusted-certificate-by-id": ("-", "/api/v1/certs/trusted-certificate/$id"),  # Get Trust Certificate By ID
+    "system-certificate": ("-", "/api/v1/certs/system-certificate/$hostname"),  # 💡 requires ISE node hostname
+    "certificate-signing-request": ("-", "/api/v1/certs/certificate-signing-request"),
+    "system-certificate-by-name": (
+        "-",
+        "/api/v1/certs/system-certificate/$hostname",
+    ),  # 💡 requires ISE node hostname. Get all system certificates of a particular node
     # Backup Restore
-    'last-backup-status': ('-', '/api/v1/backup-restore/config/last-backup-status'),
-
+    "last-backup-status": ("-", "/api/v1/backup-restore/config/last-backup-status"),
     # Upgrade
-    'upgrade-prepare-status': ('-', '/api/v1/upgrade/prepare/get-status'),
-    'upgrade-proceed-status': ('-', '/api/v1/upgrade/proceed/get-status'),
-    'upgrade-stage-status': ('-', '/api/v1/upgrade/stage/get-status'),
-    'upgrade-summary-status': ('-', '/api/v1/upgrade/summary/get-status'),
-
+    "upgrade-prepare-status": ("-", "/api/v1/upgrade/prepare/get-status"),
+    "upgrade-proceed-status": ("-", "/api/v1/upgrade/proceed/get-status"),
+    "upgrade-stage-status": ("-", "/api/v1/upgrade/stage/get-status"),
+    "upgrade-summary-status": ("-", "/api/v1/upgrade/summary/get-status"),
     # System Settings
-    'lsd': ('-', '/api/v1/lsd/updateLsdSettings'), # LSD
-    'settings-proxy': ('-', '/api/v1/system-settings/proxy'),
-    'settings-ttg': ('-', '/api/v1/system-settings/telemetry/transport-gateway'),
+    "lsd": ("-", "/api/v1/lsd/updateLsdSettings"),  # LSD
+    "settings-proxy": ("-", "/api/v1/system-settings/proxy"),
+    "settings-ttg": ("-", "/api/v1/system-settings/telemetry/transport-gateway"),
     # Data Connect @ https://cs.co/ise-dataconnect
-    'data-connect-details': ('-', '/api/v1/mnt/data-connect/details'),
-    'data-connect-settings': ('-', '/api/v1/mnt/data-connect/settings'),
-
+    "data-connect-details": ("-", "/api/v1/mnt/data-connect/details"),
+    "data-connect-settings": ("-", "/api/v1/mnt/data-connect/settings"),
     # Identity Stores
-    'activedirectory': ('ERSActiveDirectory', '/ers/config/activedirectory'),
-    'restidstore': ('ERSRestIDStore', '/ers/config/restidstore'),  # RESTIDStore must be enabled / 404 if none configured
+    "activedirectory": ("ERSActiveDirectory", "/ers/config/activedirectory"),
+    "restidstore": ("ERSRestIDStore", "/ers/config/restidstore"),  # RESTIDStore must be enabled / 404 if none configured
     # LDAP @ https://cs.co/ise-api#!ldap
     # 'ldap': ('???', '/ers/config/ldap'), # 404 if unconfigured?
     # 'ldap-rootcacertificates': ('???', '/ers/config/ldap/rootcacertificates'),
     # 'ldap-hosts': ('???', '/ers/config/ldap/hosts'),
-    # 'ldap-by-name': ('???', '/ers/config/ldap/name/{name}'),
-    # 'ldap-by-id': ('???', '/ers/config/ldap/{id}'),
+    "ldap-by-name": ("???", "/ers/config/ldap/name/$name"),
+    # 'ldap-by-id': ('???', '/ers/config/ldap/$id'),
     # Duo MFA
-    'duo-sync-ads': ('-', '/api/v1/duo-identitysync/activedirectories'), # Get the list of all configured Active Directories
-    # 'duo-sync-groups': ('-', '/api/v1/duo-identitysync/adgroups/{activeDirectory}'), # 💡 requires id for a list of all groups in the specified AD
-    'duo-identitysync': ('-', '/api/v1/duo-identitysync/identitysync'), # Get the list of all Identitysync configurations
-    'duo-mfa': ('-', '/api/v1/duo-mfa/mfa'), # Get the list of all Duo-MFA configurations
+    "duo-sync-ads": ("-", "/api/v1/duo-identitysync/activedirectories"),  # Get the list of all configured Active Directories
+    "duo-sync-groups": ("-", "/api/v1/duo-identitysync/adgroups/$id"),  # 💡 requires id for a list of all groups in the specified AD
+    "duo-identitysync": ("-", "/api/v1/duo-identitysync/identitysync"),  # Get the list of all Identitysync configurations
+    "duo-mfa": ("-", "/api/v1/duo-mfa/mfa"),  # Get the list of all Duo-MFA configurations
     # 'duo-mfa-enable': ('-', '/api/v1/duo-mfa/enable'), # PUT Enable MFA feature
-    # 'duo-mfa-by-name': ('-', '/api/v1/duo-mfa/mfa/{connectionName}'), # Get the specified Duo-MFA configuration
-    'duo-mfa-status': ('-', '/api/v1/duo-mfa/status'), # MFA feature enabled status
+    "duo-mfa-by-name": ("-", "/api/v1/duo-mfa/mfa/$name"),  # Get the specified Duo-MFA configuration
+    "duo-mfa-status": ("-", "/api/v1/duo-mfa/status"),  # MFA feature enabled status
     # pxGrid Direct @ https://cs.co/ise-api#!pxgrid-direct-open-api
-    'pxgd-config': ('-', '/api/v1/pxgrid-direct/connector-config'), 
-    # 'pxgd-config-by-name': ('-', '/api/v1/pxgrid-direct/connector-config/{name}'),
-    'pxgd-references': ('-', '/api/v1/pxgrid-direct/dictionary-references'),
-    'externalradiusserver': ('ExternalRadiusServer', '/ers/config/externalradiusserver'),
-    'radiusserversequence': ('RadiusServerSequence', '/ers/config/radiusserversequence'),
-    'idstoresequence': ('IdStoreSequence', '/ers/config/idstoresequence'),
-
+    "pxgd-config": ("-", "/api/v1/pxgrid-direct/connector-config"),
+    "pxgd-config-by-name": ("-", "/api/v1/pxgrid-direct/connector-config/$name"),
+    "pxgd-references": ("-", "/api/v1/pxgrid-direct/dictionary-references"),
+    "externalradiusserver": ("ExternalRadiusServer", "/ers/config/externalradiusserver"),
+    "radiusserversequence": ("RadiusServerSequence", "/ers/config/radiusserversequence"),
+    "idstoresequence": ("IdStoreSequence", "/ers/config/idstoresequence"),
     # Network Devices
-    'networkdevicegroup': ('NetworkDeviceGroup', '/ers/config/networkdevicegroup'),
-    'networkdevice': ('NetworkDevice', '/ers/config/networkdevice'), # 
-
+    "networkdevicegroup": ("NetworkDeviceGroup", "/ers/config/networkdevicegroup"),
+    "networkdevice": ("NetworkDevice", "/ers/config/networkdevice"),  #
     # TrustSec
-    'sgt': ('Sgt', '/ers/config/sgt'),
-    'sgacl': ('Sgacl', '/ers/config/sgacl'),
-    'sgmapping': ('SGMapping', '/ers/config/sgmapping'),
-    'sgmappinggroup': ('SGMappingGroup', '/ers/config/sgmappinggroup'),
-    'sgtvnvlan': ('SgtVNVlanContainer', '/ers/config/sgtvnvlan'),
-    'egressmatrixcell': ('EgressMatrixCell', '/ers/config/egressmatrixcell'),
-    'sxpconnections': ('ERSSxpConnection', '/ers/config/sxpconnections'),
-    'sxplocalbindings': ('ERSSxpLocalBindings', '/ers/config/sxplocalbindings'),
-    'sxpvpns': ('ERSSxpVpn', '/ers/config/sxpvpns'),
-    'sgt-reservation': ('-', '/api/v1/sgt/reservation'), # SgtRangeReservation @ https://cs.co/ise-api#!sgt-reservation-openapi
-    # 'sgt-reservation-by-id': ('-', '/api/v1/sgt/reservation/{clientID}'), # 💡 Requires {id}. Get the reserved range for the specific Client.
-
+    "sgt": ("Sgt", "/ers/config/sgt"),
+    "sgacl": ("Sgacl", "/ers/config/sgacl"),
+    "sgmapping": ("SGMapping", "/ers/config/sgmapping"),
+    "sgmappinggroup": ("SGMappingGroup", "/ers/config/sgmappinggroup"),
+    "sgtvnvlan": ("SgtVNVlanContainer", "/ers/config/sgtvnvlan"),
+    "egressmatrixcell": ("EgressMatrixCell", "/ers/config/egressmatrixcell"),
+    "sxpconnections": ("ERSSxpConnection", "/ers/config/sxpconnections"),
+    "sxplocalbindings": ("ERSSxpLocalBindings", "/ers/config/sxplocalbindings"),
+    "sxpvpns": ("ERSSxpVpn", "/ers/config/sxpvpns"),
+    "sgt-reservation": ("-", "/api/v1/sgt/reservation"),  # SgtRangeReservation @ https://cs.co/ise-api#!sgt-reservation-openapi
+    "sgt-reservation-by-id": ("-", "/api/v1/sgt/reservation/$id"),  # Requires $id. Get the reserved range for the specific Client.
     # SDA/TrustSec @ https://cs.co/ise-api#!trustsec-openapi
-    'trustsec-sgacl-nbarapp': ('-', '/api/v1/trustsec/sgacl/nbarapp'),
-    'trustsec-sgvnmapping': ('-', '/api/v1/trustsec/sgvnmapping'),
-    'trustsec-virtualnetwork': ('-', '/api/v1/trustsec/virtualnetwork'),
-    'trustsec-vnvlanmapping': ('-', '/api/v1/trustsec/vnvlanmapping'),
-    'profilerprofile': ('ProfilerProfile', '/ers/config/profilerprofile'), # Endpoint Profiles @ https://cs.co/ise-api#!profilerprofile
-
+    "trustsec-sgacl-nbarapp": ("-", "/api/v1/trustsec/sgacl/nbarapp"),
+    "trustsec-sgvnmapping": ("-", "/api/v1/trustsec/sgvnmapping"),
+    "trustsec-virtualnetwork": ("-", "/api/v1/trustsec/virtualnetwork"),
+    "trustsec-vnvlanmapping": ("-", "/api/v1/trustsec/vnvlanmapping"),
+    "profilerprofile": ("ProfilerProfile", "/ers/config/profilerprofile"),  # Endpoint Profiles @ https://cs.co/ise-api#!profilerprofile
     # Endpoints
-    'endpointgroup': ('EndPointGroup', '/ers/config/endpointgroup'), # EndpointGroups @ https://cs.co/ise-api#!endpointgroup
-    'endpoint-custom-attribute': ('-', '/api/v1/endpoint-custom-attribute'),
-    # 'endpoint-custom-attribute-by-name': ('-', '/api/v1/endpoint-custom-attribute/{name}'), # Get custom attribute by name
+    "endpointgroup": ("EndPointGroup", "/ers/config/endpointgroup"),  # EndpointGroups @ https://cs.co/ise-api#!endpointgroup
+    "endpoint-custom-attribute": ("-", "/api/v1/endpoint-custom-attribute"),
+    "endpoint-custom-attribute-by-name": ("-", "/api/v1/endpoint-custom-attribute/$name"),  # Get custom attribute by name
     # 'endpoint-stop-replication': ('-', '/api/v1/stop-replication'),    # Endpoint Stop Replication Service
-    'endpoint': ('ERSEndPoint', '/ers/config/endpoint'), # Endpoint @ https://cs.co/ise-api#!endpoint
+    "endpoint": ("ERSEndPoint", "/ers/config/endpoint"),  # Endpoint @ https://cs.co/ise-api#!endpoint
     # 'endpointcert': ('ERSEndPointCert', '/ers/config/endpointcert'),  # 🛑 No GET; POST only
-    'endpoints': ('-', '/api/v1/endpoint'), # 💡 Requires ISE 3.2. Endpoints @ https://cs.co/ise-api#!get-all-endpoints
-    # 'endpoint-value': ('-', '/api/v1/endpoint/{value}'), # 💡 Requires {value}
+    "endpoints": ("-", "/api/v1/endpoint"),  # 💡 Requires ISE 3.2. Endpoints @ https://cs.co/ise-api#!get-all-endpoints
+    "endpoint-value": ("-", "/api/v1/endpoint/$value"),  # Requires $value
     # 'endpoint-summary': ('-', '/api/v1/endpoint/deviceType/summary'), # 🛑 404?
-
     # TACACS+
-    'tacacscommandsets': ('TacacsCommandSets', '/ers/config/tacacscommandsets'),    # TACACS @ https://cs.co/ise-api#!tacacscommandsets
-    'tacacsexternalservers': ('TacacsExternalServer', '/ers/config/tacacsexternalservers'),  # 💡 404 if none configured. TACACS @ https://cs.co/ise-api#!tacacsexternalservers
-    'tacacsprofile': ('TacacsProfile', '/ers/config/tacacsprofile'),    # TACACS @ https://cs.co/ise-api#!tacacsprofile
-    'tacacsserversequence': ('TacacsServerSequence', '/ers/config/tacacsserversequence'),  # 💡 404 if none configured. TACACS @ https://cs.co/ise-api#!tacacsserversequence
-
+    "tacacscommandsets": ("TacacsCommandSets", "/ers/config/tacacscommandsets"),  # TACACS @ https://cs.co/ise-api#!tacacscommandsets
+    "tacacsexternalservers": (
+        "TacacsExternalServer",
+        "/ers/config/tacacsexternalservers",
+    ),  # 💡 404 if none configured. TACACS @ https://cs.co/ise-api#!tacacsexternalservers
+    "tacacsprofile": ("TacacsProfile", "/ers/config/tacacsprofile"),  # TACACS @ https://cs.co/ise-api#!tacacsprofile
+    "tacacsserversequence": (
+        "TacacsServerSequence",
+        "/ers/config/tacacsserversequence",
+    ),  # 💡 404 if none configured. TACACS @ https://cs.co/ise-api#!tacacsserversequence
     # Policy Sets - RADIUS Network Access
     # ERS policy elements
-    'allowedprotocols': ('AllowedProtocols', '/ers/config/allowedprotocols'),
-    'authorizationprofile': ('AuthorizationProfile', '/ers/config/authorizationprofile'),
-    'downloadableacl': ('DownloadableAcl', '/ers/config/downloadableacl'),
-    'filterpolicy': ('ERSFilterPolicy', '/ers/config/filterpolicy'),  # 404 if none configured
+    "allowedprotocols": ("AllowedProtocols", "/ers/config/allowedprotocols"),
+    "authorizationprofile": ("AuthorizationProfile", "/ers/config/authorizationprofile"),
+    "downloadableacl": ("DownloadableAcl", "/ers/config/downloadableacl"),
+    "filterpolicy": ("ERSFilterPolicy", "/ers/config/filterpolicy"),  # 404 if none configured
     # Network Access Policy @ https://cs.co/ise-api#!policy-openapi
     # ⓘ Network Access policy is the assumed default; prefix "na-" not required
-    'na-authorization-profiles': ('-', '/api/v1/policy/network-access/authorization-profiles'),
-    # 'condition-id': ('-', '/api/v1/policy/network-access/condition/{conditionId}'),
-    'na-condition-policyset': ('-', '/api/v1/policy/network-access/condition/policyset'),
-    'na-condition-authn': ('-', '/api/v1/policy/network-access/condition-authentication'),
-    'na-condition-authz': ('-', '/api/v1/policy/network-access/condition-authorization'),
-    'na-dicts': ('-', '/api/v1/policy/network-access/dictionaries'),
-    # 'dict-name': ('-', '/api/v1/policy/network-access/dictionaries/{name}'), # 💡 Requires {name}
-    'na-dict-authn': ('-', '/api/v1/policy/network-access/dictionaries/authentication'),
-    'na-dict-authz': ('-', '/api/v1/policy/network-access/dictionaries/authorization'),
-    'na-dict-policyset': ('-', '/api/v1/policy/network-access/dictionaries/policyset'),
-    'na-identity-stores': ('-', '/api/v1/policy/network-access/identity-stores'),
-    'na-network-condition': ('-', '/api/v1/policy/network-access/network-condition'),
-    'na-policy-set': ('-', '/api/v1/policy/network-access/policy-set'),
-    # 'policy-set-id': ('-', '/api/v1/policy/network-access/policy-set/{id}'),
-    # 'policy-set-id-authn': ('-', '/api/v1/policy/network-access/policy-set/{policyId}/authentication'),
-    # 'policy-set-id-authz': ('-', '/api/v1/policy/network-access/policy-set/{policyId}/authorization'),
-    # 'policy-set-id-exception': ('-', '/api/v1/policy/network-access/policy-set/{policyId}/exception'),
-    'na-global-exception': ('-', '/api/v1/policy/network-access/policy-set/global-exception'),
-    'na-security-groups': ('-', '/api/v1/policy/network-access/security-groups'),
-    'na-service-names': ('-', '/api/v1/policy/network-access/service-names'),
-    'na-time-condition': ('-', '/api/v1/policy/network-access/time-condition'),
-
+    "na-authorization-profiles": ("-", "/api/v1/policy/network-access/authorization-profiles"),
+    # 'condition-id': ('-', '/api/v1/policy/network-access/condition/$id'),
+    "na-condition-policyset": ("-", "/api/v1/policy/network-access/condition/policyset"),
+    "na-condition-authn": ("-", "/api/v1/policy/network-access/condition-authentication"),
+    "na-condition-authz": ("-", "/api/v1/policy/network-access/condition-authorization"),
+    "na-dicts": ("-", "/api/v1/policy/network-access/dictionaries"),
+    "dict-name": ("-", "/api/v1/policy/network-access/dictionaries/$name"),  # Requires $name
+    "na-dict-authn": ("-", "/api/v1/policy/network-access/dictionaries/authentication"),
+    "na-dict-authz": ("-", "/api/v1/policy/network-access/dictionaries/authorization"),
+    "na-dict-policyset": ("-", "/api/v1/policy/network-access/dictionaries/policyset"),
+    "na-identity-stores": ("-", "/api/v1/policy/network-access/identity-stores"),
+    "na-network-condition": ("-", "/api/v1/policy/network-access/network-condition"),
+    "na-policy-set": ("-", "/api/v1/policy/network-access/policy-set"),
+    # 'na-policy-set-id': ('-', '/api/v1/policy/network-access/policy-set/$id'),
+    "na-policy-set-authn": ("-", "/api/v1/policy/network-access/policy-set/$id/authentication"),
+    "na-policy-set-authz": ("-", "/api/v1/policy/network-access/policy-set/$id/authorization"),
+    "na-policy-set-exception": ("-", "/api/v1/policy/network-access/policy-set/$id/exception"),
+    "na-global-exception": ("-", "/api/v1/policy/network-access/policy-set/global-exception"),
+    "na-security-groups": ("-", "/api/v1/policy/network-access/security-groups"),
+    "na-service-names": ("-", "/api/v1/policy/network-access/service-names"),
+    "na-time-condition": ("-", "/api/v1/policy/network-access/time-condition"),
     # Policy Sets - TACACS+ Device Admin @ https://cs.co/ise-api#!policy-openapi
     # ⓘ All Device Admin policy objects have the prefix "da-"
-    'da-command-sets': ('-', '/api/v1/policy/device-admin/command-sets'),
-    'da-condition': ('-', '/api/v1/policy/device-admin/condition'),
-    # 'da-condition-id': ('-', '/api/v1/policy/device-admin/condition/{conditionId}'),
-    'da-condition-policyset': ('-', '/api/v1/policy/device-admin/condition/policyset'),
-    'da-condition-authn': ('-', '/api/v1/policy/device-admin/condition-authentication'),
-    'da-condition-authz': ('-', '/api/v1/policy/device-admin/condition-authorization'),
-    'da-dict-authn': ('-', '/api/v1/policy/device-admin/dictionaries/authentication'),
-    'da-dict-authz': ('-', '/api/v1/policy/device-admin/dictionaries/authorization'),
-    'da-dict-policyset': ('-', '/api/v1/policy/device-admin/dictionaries/policyset'),
-    'da-identity-stores': ('-', '/api/v1/policy/device-admin/identity-stores'),
-    'da-policy-set': ('-', '/api/v1/policy/device-admin/policy-set'),
-    # 'da-policy-set-id': ('-', '/api/v1/policy/device-admin/policy-set/{id}'), # 💡 requires {id}
-    'da-global-exception': ('-', '/api/v1/policy/device-admin/policy-set/global-exception'),
-    'da-service-names': ('-', '/api/v1/policy/device-admin/service-names'),
-    'da-shell-profiles': ('-', '/api/v1/policy/device-admin/shell-profiles'),
-    'da-time-condition': ('-', '/api/v1/policy/device-admin/time-condition'),
-
+    "da-command-sets": ("-", "/api/v1/policy/device-admin/command-sets"),
+    "da-condition": ("-", "/api/v1/policy/device-admin/condition"),
+    "da-condition-id": ("-", "/api/v1/policy/device-admin/condition/$id"),
+    "da-condition-policyset": ("-", "/api/v1/policy/device-admin/condition/policyset"),
+    "da-condition-authn": ("-", "/api/v1/policy/device-admin/condition-authentication"),
+    "da-condition-authz": ("-", "/api/v1/policy/device-admin/condition-authorization"),
+    "da-dict-authn": ("-", "/api/v1/policy/device-admin/dictionaries/authentication"),
+    "da-dict-authz": ("-", "/api/v1/policy/device-admin/dictionaries/authorization"),
+    "da-dict-policyset": ("-", "/api/v1/policy/device-admin/dictionaries/policyset"),
+    "da-identity-stores": ("-", "/api/v1/policy/device-admin/identity-stores"),
+    "da-policy-set": ("-", "/api/v1/policy/device-admin/policy-set"),
+    "da-policy-set-id": ("-", "/api/v1/policy/device-admin/policy-set/$id"),  # Requires $id
+    "da-global-exception": ("-", "/api/v1/policy/device-admin/policy-set/global-exception"),
+    "da-service-names": ("-", "/api/v1/policy/device-admin/service-names"),
+    "da-shell-profiles": ("-", "/api/v1/policy/device-admin/shell-profiles"),
+    "da-time-condition": ("-", "/api/v1/policy/device-admin/time-condition"),
     # Users
-    'adminuser': ('AdminUser', '/ers/config/adminuser'),
-    'identitygroup': ('IdentityGroup', '/ers/config/identitygroup'),
-    'internaluser': ('InternalUser', '/ers/config/internaluser'),
-
+    "adminuser": ("AdminUser", "/ers/config/adminuser"),
+    "identitygroup": ("IdentityGroup", "/ers/config/identitygroup"),
+    "internaluser": ("InternalUser", "/ers/config/internaluser"),
     # Guest Portals
-    'portal': ('ERSPortal', '/ers/config/portal'),
-    'portalglobalsetting': ('PortalCustomizationGlobalSetting', '/ers/config/portalglobalsetting'),
-    'portaltheme': ('PortalTheme', '/ers/config/portaltheme'),
-    'hotspotportal': ('HotspotPortal', '/ers/config/hotspotportal'),
-    'selfregportal': ('SelfRegPortal', '/ers/config/selfregportal'),
-    'sponsorportal': ('SponsorPortal', '/ers/config/sponsorportal'),
-    'sponsoredguestportal': ('SponsoredGuestPortal', '/ers/config/sponsoredguestportal'),
+    "portal": ("ERSPortal", "/ers/config/portal"),
+    "portalglobalsetting": ("PortalCustomizationGlobalSetting", "/ers/config/portalglobalsetting"),
+    "portaltheme": ("PortalTheme", "/ers/config/portaltheme"),
+    "hotspotportal": ("HotspotPortal", "/ers/config/hotspotportal"),
+    "selfregportal": ("SelfRegPortal", "/ers/config/selfregportal"),
+    "sponsorportal": ("SponsorPortal", "/ers/config/sponsorportal"),
+    "sponsoredguestportal": ("SponsoredGuestPortal", "/ers/config/sponsoredguestportal"),
     # 'guestlocation': ('LocationIdentification', '/ers/config/guestlocation'),
-    'guestsmtpnotificationsettings': ('ERSGuestSmtpNotificationSettings', '/ers/config/guestsmtpnotificationsettings'),
-    'guestssid': ('GuestSSID', '/ers/config/guestssid'),
-    'guesttype': ('GuestType', '/ers/config/guesttype'), # 🛑 500 internal errors?
-    # 'guestuser': ('GuestUser', '/ers/config/___GuestUser__'), # 🛑 requires sponsor account!!!
+    "guestsmtpnotificationsettings": ("ERSGuestSmtpNotificationSettings", "/ers/config/guestsmtpnotificationsettings"),
+    "guestssid": ("GuestSSID", "/ers/config/guestssid"),
+    "guesttype": ("GuestType", "/ers/config/guesttype"),  # 🛑 500 internal errors?
+    "guestuser": ("GuestUser", "/ers/config/guestuser"),  # 🛑 requires sponsor account!!!
     # 'smsprovider': ('SmsProviderIdentification', '/ers/config/smsprovider'),
-    'sponsorgroup': ('SponsorGroup', '/ers/config/sponsorgroup'),
-    'sponsorgroupmember': ('SponsorGroupMember', '/ers/config/sponsorgroupmember'),
-
+    "sponsorgroup": ("SponsorGroup", "/ers/config/sponsorgroup"),
+    "sponsorgroupmember": ("SponsorGroupMember", "/ers/config/sponsorgroupmember"),
     # BYOD
-    'certificateprofile': ('CertificateProfile', '/ers/config/certificateprofile'),
-    'certificatetemplate': ('ERSCertificateTemplate', '/ers/config/certificatetemplate'),
-    'byodportal': ('BYODPortal', '/ers/config/byodportal'),
-    'mydeviceportal': ('MyDevicePortal', '/ers/config/mydeviceportal'),
-    'nspprofile': ('ERSNSPProfile', '/ers/config/nspprofile'),
-    'ipsec': ('ipsec', '/api/v1/ipsec'), # IPsec @ https://cs.co/ise-api#!ipsec-openapi
-    # 'ipsec': ('ipsec', '/api/v1/ipsec/{hostName}/{nadIp}'),
-    'ipsec-certificates': ('ipsec-certificates','/api/v1/ipsec/certificates'),
+    "certificateprofile": ("CertificateProfile", "/ers/config/certificateprofile"),
+    "certificatetemplate": ("ERSCertificateTemplate", "/ers/config/certificatetemplate"),
+    "byodportal": ("BYODPortal", "/ers/config/byodportal"),
+    "mydeviceportal": ("MyDevicePortal", "/ers/config/mydeviceportal"),
+    "nspprofile": ("ERSNSPProfile", "/ers/config/nspprofile"),
+    "ipsec": ("ipsec", "/api/v1/ipsec"),  # IPsec @ https://cs.co/ise-api#!ipsec-openapi
+    "ipsec": ("ipsec", "/api/v1/ipsec/$hostname/$ip"),
+    "ipsec-certificates": ("ipsec-certificates", "/api/v1/ipsec/certificates"),
     # Support / Operations
     # 'supportbundle': ('_____', '/ers/config/supportbundle'),
     # 'supportbundledownload': ('_____', '/ers/config/_____'),
     # 'supportbundlestatus': ('_____', '/ers/config/_____'),
     # Task
-    'task': ('-', '/api/v1/task'),
-    # 'task-id': ('-', '/api/v1/task/{id}'),
-
+    "task": ("-", "/api/v1/task"),
+    "task-id": ("-", "/api/v1/task/$id"),
     # pxGrid / ANC / RTC / TC-NAC @ https://github.com/cisco-pxgrid/pxgrid-rest-ws/wiki
     # 'pxgridsettings': ('PxgridSettings', '/ers/config/pxgridsettings/autoapprove'), # 🛑 PUT only; GET not supported!
     # 'pxgridnode': ('pxGridNode', '/ers/config/pxgridnode'),  # 🛑 🐛 404 always whether pxGrid is enabled or not
-    'ancendpoint': ('ErsAncEndpoint', '/ers/config/ancendpoint'),    # ANCEndpoint @ https://cs.co/ise-api#!ancendpoint
-
-    'ancpolicy': ('ErsAncPolicy', '/ers/config/ancpolicy'), # ANCPolicy @ https://cs.co/ise-api#!ancpolicy
+    "ancendpoint": ("ErsAncEndpoint", "/ers/config/ancendpoint"),  # ANCEndpoint @ https://cs.co/ise-api#!ancendpoint
+    "ancpolicy": ("ErsAncPolicy", "/ers/config/ancpolicy"),  # ANCPolicy @ https://cs.co/ise-api#!ancpolicy
     # 'ancpolicy-version': ('VersionInfo', '/ers/config/ancpolicy/versioninfo'), # 💡 No `SearchResult`, only `VersionInfo` object. Get ANC policy version information
     # 'clearThreatsAndVulneribilities': ('ERSIrfThreatContext', '/ers/config/threat/clearThreatsAndVulneribilities'),  # 🛑 PUT only; GET not supported! @ https://cs.co/ise-api#!clearThreatsAndVulneribilities
-    'telemetryinfo': ('TelemetryInfo', '/ers/config/telemetryinfo'), # Telemetry @ https://cs.co/ise-api#!telemetryinfo
+    "telemetryinfo": ("TelemetryInfo", "/ers/config/telemetryinfo"),  # Telemetry @ https://cs.co/ise-api#!telemetryinfo
     # 'acibindings': ('ACIBindings', '/ers/config/acibindings/getall'), # ACI @ https://cs.co/ise-api#!acibindings
     # 'acisettings': ('AciSettings', '/ers/config/acisettings'), # ACI @ https://cs.co/ise-api#!acisettings
     # Operations
@@ -270,214 +284,369 @@ ISE_REST_ENDPOINTS = {
     # 'op/systemconfig': ('_____', '/ers/config/_____'),
     # 'op/systemconfig/iseversion': ('_____', '/ers/config/_____'),
     # License
-    'license-system-smart-state': ('-', '/api/v1/license/system/smart-state'),
-    'license-system-register': ('-', '/api/v1/license/system/register'),
-    'license-system-tier-state': ('-', '/api/v1/license/system/tier-state'),
-    'license-system-eval-license': ('-', '/api/v1/license/system/eval-license'),
-    'license-system-connection-type': ('-', '/api/v1/license/system/connection-type'),
-    'license-system-feature-to-tier-mapping': ('-', '/api/v1/license/system/feature-to-tier-mapping'),
-
-    # FiveG
-    # '': ('-', ''),
-
+    "license-system-smart-state": ("-", "/api/v1/license/system/smart-state"),
+    "license-system-register": ("-", "/api/v1/license/system/register"),
+    "license-system-tier-state": ("-", "/api/v1/license/system/tier-state"),
+    "license-system-eval-license": ("-", "/api/v1/license/system/eval-license"),
+    "license-system-connection-type": ("-", "/api/v1/license/system/connection-type"),
+    "license-system-feature-to-tier-mapping": ("-", "/api/v1/license/system/feature-to-tier-mapping"),
 }
 
 
-def show(resources=None, name=None, filepath='-', format='json'):
+async def show_resources(
+    resources: [dict] = None, name: str = None, format="json", filepath: str = "-", hide: [str] = None, show: [str] = None
+) -> None:
     """
     Show/print/dump the resources in the specified format to the file. `sys.stdout` ('-') by default.
 
-    - resources ([dict]) : a list of dictionary items to format
-    - name (str) : the name of the resource. Example: endpoint, sgt, etc.
-    - format (str): one the following formats:
-        - `csv`   : Show the items in a Comma-Separated Value (CSV) format
-        - `grid`  : Show the items in a table grid with borders
-        - `table` : Show the items in a text-based table
-        - `id`    : Show only the id column for the objects (if available)
-        - `json`  : Show the items as a single JSON string
-        - `line`  : Show the items as JSON with each item on it's own line
-        - `pretty`: Show the items as JSON pretty-printed with 2-space indents
-        - `yaml`  : Show the items as YAML with 2-space indents
-    - filepath (str) : Default: `sys.stdout`
+    :param resources ([dict]) : a list of dictionary items to format
+    :param name (str) : the name of the resource. Example: endpoint, sgt, etc.
+    :param format (str): one the following formats:
+            - `csv`   : Show the items in a Comma-Separated Value (CSV) format
+            - `grid`  : Show the items in a table grid with borders
+            - `table` : Show the items in a text-based table
+            - `json`  : Show the items as a single JSON string
+            - `line`  : Show the items as JSON with each item on it's own line
+            - `pretty`: Show the items as JSON pretty-printed with 2-space indents
+            - `yaml`  : Show the items as YAML with 2-space indents
+    :param filepath (str) : Default: `sys.stdout`
     """
-    if resources == None: return
-    object_type = None if len(resources) <= 0 else type(resources[0]) 
-    if args.verbosity >= 3: print(f"▷ show({len(resources)} x '{name}' as {format} to {filepath})", file=sys.stderr)
+    if resources == None:
+        return
+    object_type = None if len(resources) <= 0 else type(resources[0])
+    if args.verbosity >= 3:
+        print(f"▷ show_resources({len(resources)} x '{name}' as {format} to {filepath})", file=sys.stderr)
 
-    # 💡 Do not close sys.stdout or it may not be re-opened with multiple show() calls
-    fh = sys.stdout if filepath == '-' else open(filepath, 'w') # write to sys.stdout/terminal by default
+    # Hide or show attributes?
+    if hide is not None and show is not None:
+        raise ValueError(f"hide and show are mutually exclusive and should not be used at the same time")
+    if hide is not None:
+        resources = [{k: v for k, v in resource.items() if k not in hide} for resource in resources]
+    if show is not None:
+        resources = [{k: v for k, v in resource.items() if k in show} for resource in resources]
 
-    if format == 'csv':  # CSV
+    # 💡 Do not close sys.stdout or it may not be re-opened with multiple show_resources() calls
+    fh = sys.stdout if filepath == "-" else open(filepath, "w")  # write to sys.stdout/terminal by default
+
+    if format == "csv":  # CSV
         headers = {}
         [headers.update(r) for r in resources]  # find all unique keys
         writer = csv.DictWriter(fh, headers.keys(), quoting=csv.QUOTE_MINIMAL)
         writer.writeheader()
         for row in resources:
             writer.writerow(row)
-    elif format == 'id':  # list of ids only
-        ids = [[r['id']] for r in resources]  # single column table
-        print(f"{tabulate(ids, tablefmt='plain')}", file=fh)
-    elif format == 'grid': # grid
+    elif format == "grid":  # grid
         print(f"{tabulate(resources, headers='keys', tablefmt='simple_grid')}", file=fh)
-    elif format == 'table': # table
+    elif format == "table":  # table
         print(f"{tabulate(resources, headers='keys', tablefmt='table')}", file=fh)
-    elif format == 'json':  # JSON, one long string
-        print(json.dumps({ name: resources }), file=fh)
-    elif format == 'line':  # 1 JSON line per object
-        print('{')
-        print(f'"{name}" : [')
+    elif format == "json":  # one long string of JSON
+        print(json.dumps({name: resources}), file=fh)
+    elif format == "line":  # 1 JSON object per line
+        print("{", file=fh)
+        print(f'"{name}" : [', file=fh)
         print(",\n".join([json.dumps(r) for r in resources]), file=fh)
-        print(']\n}')
-    elif format == 'pretty':  # pretty-print
-        print(json.dumps({ name: resources }, indent=2), file=fh)
-    elif format == 'yaml':  # YAML
-        print(yaml.dump({ name: resources }, indent=2, default_flow_style=False), file=fh)
-    else:  # just in case something gets through the CLI parser
-        print(f' 🛑 Unknown format: {format}', file=sys.stderr)
+        print("]\n}", file=fh)
+    elif format == "pretty":  # pretty-print
+        print(json.dumps({name: resources}, indent=2), file=fh)
+    elif format == "yaml":  # YAML
+        print(yaml.dump({name: resources}, indent=2, default_flow_style=False), file=fh)
+    else:
+        print(f"{ICONS['ERROR']} Unknown format: {format}", file=sys.stderr)
 
 
-async def get_ise_ers_resources (session:aiohttp.ClientSession=None, urlpath:str=None, details:bool=False):
+async def get_url_task(session: aiohttp.ClientSession = None, q: asyncio.Queue = None, resources: list = None, ers_name: str = None):
     """
-    Return the resources from the JSON response.
-    - session (aiohttp.ClientSession): the aiohttp session to reuse
-    - urlpath (str): the REST endpoint path.
-    - details (bool): return endpoint details
+    Runs URL requests.
+
+    :param session (aiohttp.ClientSession) : a session to run the requests.
+    :param q (asyncio.Queue) : a queue to pull API requests from
+    :param resources (list) : a list to append the response data into
+    :param ers_name (str) : the ISE ERS REST object name being fetched; used to extract the details data
     """
-    async with session.get(urlpath) as response:
-        if args.verbosity: print('.', end='', file=sys.stderr, flush=True) # print '.' for progress
-        data = await response.json()
-        return data if details else data['SearchResult']['resources']
+    if q is None:
+        raise ValueError(f"q is None")
+    if session is None:
+        raise ValueError(f"session is None")
+    while True:
+        url = await q.get()  # Get an item or wait if empty
+        try:
+            response = await session.get(url)
+            if response.status == 200:
+                data = await response.json()
+                if data.get(ers_name, None) is None:
+                    resources.extend(data["SearchResult"]["resources"])
+                else:
+                    resources.append(data)
+                # if args.verbosity > 1: print(f"{ICONS['PASS']} | {url}", file=sys.stdout)
+                if args.verbosity == 1:
+                    print(".", end="", file=sys.stderr, flush=True)  # print '.' for progress
+
+            elif response.status == 401:
+                print("Set the environment variables and verify your credentials are correct!", file=sys.stderr)
+                print(await response.json(), file=sys.stderr)
+            else:
+                print(f"{ICONS['FAIL']} {response.status}:\n{json.dumps(await response.json(), indent=2)}")
+        except Exception as e:
+            tb_text = "\n".join(traceback.format_exc().splitlines()[1:])  # remove 'Traceback (most recent call last):'
+            print(f"{ICONS['ERROR']} {e.__class__} {url} | {data} | {tb_text}", file=sys.stderr)
+
+        q.task_done()  # Notify queue the item is processed
 
 
-async def ise_get (session:aiohttp.ClientSession=None, ers_name:str=None, urlpath:str=None, details:bool=False):
+async def ise_get_all(session: aiohttp.ClientSession = None, ers_name: str = None, urlpath: str = None, details: bool = False) -> [dict]:
     """
-    Return the specified resources from ISE.
+    Return all of the specified resources from ISE.
 
-    - session (aiohttp.ClientSession): the aiohttp session to reuse
-    - ers_name (str) : the ERS object name.
-    - urlpath (str): the REST endpoint path.
-    - details (bool): True to get all object details, False otherwise
+    :param session (aiohttp.ClientSession): the aiohttp session to reuse
+    :param ers_name (str) : the ERS object name.
+    :param urlpath (str): the REST endpoint path.
+    :param details (bool): True to get all object details, False otherwise
     """
-    if args.verbosity: print(f"▷ ise_get {ers_name} ({urlpath})", end=' ', file=sys.stderr, flush=True)
+    if args.verbosity:
+        print(f"▷ ise_get_all {'' if ers_name is None else ers_name} ({urlpath})", end=" ", file=sys.stderr, flush=True)
+
     resources = []
-    response = await session.get(f"{urlpath}") # Get the first page for the `total` resources
+    response = await session.get(f"{urlpath}?size={REST_PAGE_SIZE}&page=1")  # Get the first page for the `total` resources
     data = await response.json()
+    #
+    # ISE ERS or OpenAPI?
+    # ERS returns a dict: {'SearchResult': {'total': 7, 'resources': [{'id': ...
+    # OpenAPI requires no `name` and returns a response list: {'response': [{'id': ...
+    #
     try:
-        if urlpath.startswith('/ers'): # ERS is a dict: {'SearchResult': {'total': 7, 'resources': [{'id': ...
-            total = data['SearchResult']['total']
-            if args.verbosity: print(f"[{total}]", end=' ', file=sys.stderr, flush=True)
+        if urlpath.startswith("/ers"):  # ERS is a dict: {'SearchResult': {'total': 7, 'resources': [{'id': ...
+            total = data["SearchResult"]["total"]
+            if args.verbosity:
+                print(f"[{total}]", end=" ", file=sys.stderr, flush=True)
 
-            # Get all resources if more than the REST page size
-            urls = [f"{urlpath}?size={REST_PAGE_SIZE}&page={page}" for page in range(1, 1+int(total/REST_PAGE_SIZE)+(1 if total%REST_PAGE_SIZE else 0))] # Generate paging URLs
-            tasks = [asyncio.ensure_future(get_ise_ers_resources(session, url)) for url in urls]
-            responses = await asyncio.gather(*tasks)
-            [resources.extend(response) for response in responses]
+            # Create AsyncIO Queue and Tasks to control the number of outstanding requests
+            resource_q = asyncio.Queue(maxsize=TCP_LIMIT * 2)
+            tasks = [asyncio.create_task(get_url_task(session, resource_q, resources, ers_name=ers_name)) for idx in range(TCP_LIMIT)]
 
-            if total > 0 and details and ers_name != 'SponsorGroupMember': # 🔺 There is no GET by ID for /ers/config/sponsorgroupmember
-                uuids = [r['id'] for r in resources] # Extract UUIDs from summary resources
-                urls = [f"{urlpath}/{uuid}" for uuid in uuids] # Generate resource URLs
-                tasks = [asyncio.ensure_future(get_ise_ers_resources(session, url, details)) for url in urls]
-                responses = await asyncio.gather(*tasks)
-                # if ers_name == 'GuestType': await asyncio.sleep(1)  # 💡 There is a conconcurrency issue with GuestType resources. 
-                resources = [response[ers_name] for response in responses]
+            # Get *all* resource ids if more than the initial REST page size
+            urls = [
+                f"{urlpath}?size={REST_PAGE_SIZE}&page={page}"
+                for page in range(1, 1 + int(total / REST_PAGE_SIZE) + (1 if total % REST_PAGE_SIZE else 0))
+            ]  # Generate paging URLs
+            [await resource_q.put(url) for url in urls]  # enqueue URLs
+            await resource_q.join()  # Block until all items in queue are processed
 
-        elif urlpath.startswith('/api'): # OpenAPI is a list [] *or* dict with a list: {'response': [{'id': ...
+            # Get resource details
+            if total > 0 and details and ers_name != "SponsorGroupMember":  # 🔺 There is no GET by ID for /ers/config/sponsorgroupmember
+                uuids = [r["id"] for r in resources]  # Extract UUIDs from summary resources
+                urls = [f"{urlpath}/{uuid}" for uuid in uuids]  # Generate resource URLs
+                resources.clear()  # remove all original data
+                [await resource_q.put(url) for url in urls]  # enqueue URLs
+                await resource_q.join()  # Block until all items in queue are processed
+
+                if ers_name == "GuestType":
+                    await asyncio.sleep(1)  # 💡 There is a conconcurrency issue with GuestType resources.
+
+                resources = [resource[ers_name] for resource in resources]
+
+            # Cancel our worker tasks and wait for their cancellation.
+            [task.cancel() for task in tasks]
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+        elif urlpath.startswith("/api"):  # OpenAPI is a list [] *or* dict with a list: {'response': [{'id': ...
             if isinstance(data, list):  # list of resources Example: endpoints
                 resources = data
             elif isinstance(data, dict):
-                if data.get('response'): # 'response' key to resources list?
-                    resources = data['response']   # response contains a list of resources
-                else: # the data is the object. Example: hotpatch, patch, etc.
+                if data.get("response"):  # 'response' key to resources list?
+                    resources = data["response"]  # response contains a list of resources
+                else:  # the data is the object. Example: hotpatch, patch, etc.
                     resources = data
         else:
-            if args.verbosity: print(f"Unknown ISE urlpath: {urlpath})", file=sys.stderr)
+            if args.verbosity:
+                print(f"Unknown ISE urlpath: {urlpath})", file=sys.stderr)
             resources = data
     except Exception as e:
-        tb_text = '\n'.join(traceback.format_exc().splitlines()[1:]) # remove 'Traceback (most recent call last):'
-        print(f"💣 {e.__class__} {urlpath} | {data} | {tb_text}", file=sys.stderr) # {urlpath} | {url} | {data} |  {response.status} {request.method} {request.path}
+        tb_text = "\n".join(traceback.format_exc().splitlines()[1:])  # remove 'Traceback (most recent call last):'
+        print(f"{ICONS['ERROR']} {e.__class__} {urlpath} | {data} | {tb_text}", file=sys.stderr)
     finally:
-        if args.verbosity: print(file=sys.stderr, flush=True) # send a newline after the outputs
+        if args.verbosity:
+            print(file=sys.stderr, flush=True)  # send a newline after the outputs
 
     # remove ugly 'link' attribute to flatten data
     for r in resources:
-        if type(r) == dict and r.get('link'): 
-            del r['link']
+        if type(r) == dict and r.get("link"):
+            del r["link"]
     return resources
 
 
-async def get(session:aiohttp.ClientSession=None, resource:str=None, details:bool=False, filepath:str=None, format:str=None, noid:bool=True):
+async def cache_filter_by_paging(response):
     """
-    Entrypoint for packaged script.
+    Filter which pages get cached with aiohttp_client_cache, if any.
     """
+    return False if len(response.url.query_string) > 0 else True  # do not cache queries
+
+
+async def get(
+    resource: str = None,
+    details: bool = False,
+    filepath: str = None,
+    format: str = None,
+    noid: bool = True,
+    insecure: bool = True,
+    hide: [str] = None,
+    show: [str] = None,
+    vars: dict = None,
+) -> None:
+    """
+    Get ISE resources via REST API.
+
+    param: resource (str) :
+    param: details (bool) :
+    param: filepath (str :
+    param: format (str) :
+    param: noid (bool) :
+    param: insecure (bool) :
+    """
+    env = {k: v for (k, v) in os.environ.items() if k.startswith("ISE_")}  # Load environment variables
 
     resources = []
     try:
-        # Create HTTP session
-        env = {k:v for (k, v) in os.environ.items() if k.startswith('ISE_')}  # Load environment variables
-        verify_ssl = (False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)
-        tcp_conn = aiohttp.TCPConnector(limit=TCP_LIMIT, limit_per_host=TCP_LIMIT, ssl=verify_ssl) # limit default: 100
-        auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        if args.insecure or env.get("ISE_CERT_VERIFY", "True")[0:1].lower() in ["f", "n"]:
+            ssl_context.check_hostname = False  # required before setting verify_mode == ssl.CERT_NONE
+            ssl_context.verify_mode = ssl.CERT_NONE  # any cert is accepted; validation errors are ignored
+            # if args.verbosity: print(f"{ICONS['UNLOCK']} Certificate verification disabled", file=sys.stderr)
+
+        tcp_conn = aiohttp.TCPConnector(limit=TCP_LIMIT, limit_per_host=TCP_LIMIT, ssl=ssl_context)
+        auth = aiohttp.BasicAuth(login=env["ISE_REST_USERNAME"], password=env["ISE_REST_PASSWORD"])
         base_url = f"https://{env['ISE_PPAN']}"
-        headers = {'Accept':'application/json', 'Content-Type':'application/json'}
-        session = aiohttp.ClientSession(base_url, auth=auth, connector=tcp_conn, headers=headers)
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+
+        session = None
+        if args.nocache:
+            session = aiohttp.ClientSession(base_url, auth=auth, connector=tcp_conn, headers=headers)
+            if args.verbosity:
+                print(f"{ICONS['NONE']} Caching disabled")
+        else:
+            cache = aiohttp_client_cache.SQLiteBackend(
+                cache_name="aiohttp-cache", filter_fn=cache_filter_by_paging, use_temp=False, autoclose=True
+            )
+            if args.verbosity:
+                print(f"{ICONS['CACHE']} Caching enabled for all URLs with SQLite")
+
+            session = aiohttp_client_cache.CachedSession(
+                base_url=base_url,
+                auth=auth,
+                cache=cache,
+                connector=tcp_conn,
+                headers=headers,
+                expire_after=datetime.timedelta(seconds=args.expiration),
+                # keepalive_timeout=600,
+                # force_close=True, # use True to close underlying sockets after connection releasing and disable keep-alive feature
+            )
 
         # map the REST endpoint to the ERS object name and URL
         (ers_name, urlpath) = ISE_REST_ENDPOINTS.get(resource, (None, None))
-        if urlpath:
-            resources = await ise_get(session, ers_name, urlpath, details)
-
-            if noid and isinstance(resources[0], dict): # remove id from resource dict?
-                for r in resources: del r['id']
-
-            if isinstance(resources, dict): resources = [ resources ]
-            if filepath and filepath != '-':
-                if not os.path.exists(filepath): os.makedirs(filepath)
-                filename = '.'.join([resource, format])
-                filepath = os.path.join(filepath,filename)
-            show(resources, resource, filepath, format)
-        else:
-            print(f"\nUnknown resource: {resource}\n", file=sys.stderr)
-            # print(f"Supported API objects:\n{', '.join(ISE_REST_ENDPOINTS.keys())}\n", file=sys.stderr)
+        if urlpath is None:
+            print(f"{ICONS['ERROR']} Unknown resource: {resource}\n", file=sys.stderr)
             print(f"Did you mean: {', '.join(filter(lambda x: x.startswith(resource[0:3]), ISE_REST_ENDPOINTS.keys()))}\n", file=sys.stderr)
+        else:
+            if vars_dict:
+                from string import Template
+
+                urlpath = Template(urlpath).substitute(vars_dict)
+
+            resources = await ise_get_all(session, ers_name, urlpath, details)
+
+            # remove id from resource dict?
+            if noid and isinstance(resources[0], dict):
+                for r in resources:
+                    del r["id"]
+
+            if isinstance(resources, dict):
+                resources = [resources]  # put individual dicts into a list for consistency
+
+            if filepath and filepath != "-":
+                if not os.path.exists(filepath):
+                    os.makedirs(filepath)
+                filename = ".".join([resource, format])
+                filepath = os.path.join(filepath, filename)
+
     except aiohttp.ContentTypeError as e:
-        print(f"\n❌ Error: {e.message}\n\n💡Enable the ISE REST APIs\n")
+        print(f"\n{ICONS['ERROR']} Error: {e.message}\n\n💡Enable the ISE REST APIs\n")
     except aiohttp.ClientConnectorError as e:  # cannot connect to host
-        print(f"\n❌ Host unreachable: {e}\n", file=sys.stderr)
-    except:                                    # catch *all* exceptions
-        print(f"\n❌ Exception: {e}\n", file=sys.stderr)
+        print(f"\n{ICONS['ERROR']} Host unreachable: {e}\n", file=sys.stderr)
+    except:  # catch *all* exceptions
+        print(f"\n{ICONS['ERROR']} Exception: {e}\n", file=sys.stderr)
     finally:
+        # print('-----', flush=True)
+        # print(f"{ICONS['INFO']} finally: session.close() with {len(resources)} resources\n", file=sys.stderr)
         await session.close()
 
+    await show_resources(resources, resource, format, filepath, hide=hide, show=show)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     """
     Command line script invocation.
     """
-    global args     # promote to global scope for use in other functions
+    global args  # promote to global scope for use in other functions
     argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    argp.add_argument('resource', type=str, help='resource name')
-    argp.add_argument('--noid', action='store_true', default=False, dest='noid', help='hide object UUIDs')
-    argp.add_argument('-s', '--save', default='-', required=False, help='Save output to directory. Default: stdout')
-    argp.add_argument('-d', '--details', action='store_true', default=False, help='Get resource details')
-    argp.add_argument('-i', '--insecure', action='store_true', default=False, help='ignore cert checks')
-    argp.add_argument('-f', '--format', choices=['csv', 'id', 'grid', 'table', 'json', 'line', 'pretty', 'yaml'], default='pretty')
-    argp.add_argument('-t', '--timer', action='store_true', default=False, help='show response timer' )
-    argp.add_argument('-v', '--verbosity', action='count', default=0, help='Verbosity; multiple allowed')
+    argp.add_argument("resource", type=str, help="resource name")
+    argp.add_argument("--noid", action="store_true", default=False, dest="noid", help="hide resource object UUIDs")
+    argp.add_argument("-d", "--details", action="store_true", default=False, help="get ERS resource details")
+    argp.add_argument("-e", "--expiration", type=int, default=3600, help="cache expiration, in seconds")
+    argp.add_argument(
+        "-f",
+        "--format",
+        choices=["csv", "id", "grid", "table", "json", "line", "pretty", "yaml"],
+        default="table",
+        help="output format or styling",
+    )
+    argp.add_argument("-i", "--insecure", action="store_true", default=False, help="do not verify certificates (allow self-signed certs)")
+    argp.add_argument("-n", "--nocache", action="store_true", default=False, help="use caching to improve performance")
+    argp.add_argument("-s", "--save", default="-", required=False, help="save output to specified directory. Default: stdout")
+    argp.add_argument("-t", "--timer", action="store_true", default=False, help="show total runtime, in seconds")
+    argp.add_argument("-v", "--verbosity", action="count", default=0, help="verbosity; multiple allowed")
+    argp.add_argument("--hide", help="attributes (columns) to hide", type=str, default=None, required=False)
+    argp.add_argument("--show", help="attributes (columns) to show", type=str, default=None, required=False)
+    argp.add_argument("--vars", type=str, default=None, help="variable key=value")
     args = argp.parse_args()
 
-    if args.verbosity >= 2: print(f"ⓘ details: {args.details}", file=sys.stderr)
-    if args.verbosity >= 2: print(f"ⓘ save: {args.save}", file=sys.stderr)
-    if args.verbosity >= 2: print(f"ⓘ insecure: {args.insecure}", file=sys.stderr)
-    if args.verbosity >= 2: print(f"ⓘ format: {args.format}", file=sys.stderr)
-    if args.verbosity >= 2: print(f"ⓘ noid: {args.noid}", file=sys.stderr)
-    if args.verbosity >= 2: print(f"ⓘ timer: {args.timer}", file=sys.stderr)
-    if args.verbosity >= 2: print(f"ⓘ verbosity: {args.verbosity}", file=sys.stderr)
-    if args.timer: start_time = time.time()
+    if args.timer:
+        start_time = time.time()
 
-    if args.resource.lower() == 'all':
+    # parse vars into a dict
+    vars_dict = None
+    if args.vars:
+        vars_dict = {}
+        key, value = args.vars.split("=")
+        vars_dict[key.strip()] = value.strip()
+
+    if args.resource.lower() == "all":
         for resource in ISE_REST_ENDPOINTS.keys():
-            asyncio.run(get(resource=resource, details=args.details, filepath=args.save, format=args.format, noid=args.noid))
+            asyncio.run(
+                get(
+                    resource=resource,
+                    details=args.details,
+                    filepath=args.save,
+                    format=args.format,
+                    noid=args.noid,
+                    insecure=args.insecure,
+                    hide=args.hide,
+                    show=args.show,
+                    vars=vars_dict,
+                )
+            )
     else:
-        asyncio.run(get(resource=args.resource, details=args.details, filepath=args.save, format=args.format, noid=args.noid))
+        asyncio.run(
+            get(
+                resource=args.resource,
+                details=args.details,
+                filepath=args.save,
+                format=args.format,
+                noid=args.noid,
+                insecure=args.insecure,
+                hide=args.hide,
+                show=args.show,
+                vars=vars_dict,
+            )
+        )
 
-    if args.timer: print(f"⏲ {len(resources)} {args.resource} in {'{0:.3f}'.format(time.time() - start_time)} seconds", file=sys.stderr)
+    if args.timer:
+        print(f"⏲ {'{0:.3f}'.format(time.time() - start_time)} seconds", file=sys.stderr)
