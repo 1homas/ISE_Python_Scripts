@@ -6,19 +6,22 @@ Show ISE REST APIs data.
 Examples:
     ise-get.py endpoint 
     ise-get.py endpoint -itv
+    ise-get.py endpoints -itv
     ise-get.py endpointgroup -f csv -f endpointgroup.csv
     ise-get.py endpointgroup -f pretty --details
     ise-get.py endpointgroup -f grid --details --noid
     ise-get.py endpointgroup -f yaml
     ise-get.py allowedprotocols -f yaml --details
     ise-get.py internaluser -ivt -f table --details
+    ise-get.py na-policy-set-authz --vars id=11a1d056-7a2b-4b58-bdd0-624d005ac92e
+
     ise-get.py all -v --details -f yaml --save saved_config
 
 Requires setting the these environment variables using the `export` command:
   export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PAN
   export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
   export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
-  export ISE_CERT_VERIFY=false          # validate the ISE certificate
+  export ISE_VERIFY=false          # validate the ISE certificate
 
 You may add these export lines to a text file and load with `source`:
   source ise.sh
@@ -45,6 +48,7 @@ import sys
 import time
 import traceback
 import yaml
+from string import Template
 from tabulate import tabulate
 
 ICONS = {
@@ -83,12 +87,12 @@ ISE_REST_ENDPOINTS = {
     "deployment-node": ("-", "/api/v1/deployment/node"),
     "node-group": ("-", "/api/v1/deployment/node-group"),
     "pan-ha": ("-", "/api/v1/deployment/pan-ha"),
-    # 'node-interface': ('-', '/api/v1/node/$hostname/interface'), # 💡 requires ISE node hostname
-    # 'sxp-interface': ('-', '/api/v1/node/$hostname/sxp-interface'), # 💡 requires ISE node hostname
-    # 'profile': ('-', '/api/v1/profile/$hostname'), # 💡 requires ISE node hostname
+    # 'node-interface': ('-', '/api/v1/node/$hostname/interface'),
+    # 'sxp-interface': ('-', '/api/v1/node/$hostname/sxp-interface'),
+    # 'profile': ('-', '/api/v1/profile/$hostname'),
     "repository": ("-", "/api/v1/repository"),  # Repository @ https://cs.co/ise-api#!repository-openapi
     "repository-name": ("-", "/api/v1/repository/$name"),  # 💡 requires repository $name
-    "repository-name-files": ("-", "/api/v1/repository/$name/files"),  # 💡 requires repository $name
+    "repository-name-files": ("-", "/api/v1/repository/$name/files"),
     # Patching @ https://cs.co/ise-api#!patch-and-hot-patch-openapi
     "hotpatch": ("-", "/api/v1/hotpatch"),
     "patch": ("-", "/api/v1/patch"),
@@ -99,13 +103,10 @@ ISE_REST_ENDPOINTS = {
     "sessionservicenode": ("SessionServiceNode", "/ers/config/sessionservicenode"),
     # Certificates @ https://cs.co/ise-api#!certificate-openapi
     "trusted-certificate": ("-", "/api/v1/certs/trusted-certificate"),  # Get list of all trusted certificates
-    "trusted-certificate-by-id": ("-", "/api/v1/certs/trusted-certificate/$id"),  # Get Trust Certificate By ID
-    "system-certificate": ("-", "/api/v1/certs/system-certificate/$hostname"),  # 💡 requires ISE node hostname
+    "trusted-certificate-id": ("-", "/api/v1/certs/trusted-certificate/$id"),
+    "system-certificate": ("-", "/api/v1/certs/system-certificate/$hostname"),
     "certificate-signing-request": ("-", "/api/v1/certs/certificate-signing-request"),
-    "system-certificate-by-name": (
-        "-",
-        "/api/v1/certs/system-certificate/$hostname",
-    ),  # 💡 requires ISE node hostname. Get all system certificates of a particular node
+    "system-certificate-by-name": ("-", "/api/v1/certs/system-certificate/$hostname"),
     # Backup Restore
     "last-backup-status": ("-", "/api/v1/backup-restore/config/last-backup-status"),
     # Upgrade
@@ -128,13 +129,13 @@ ISE_REST_ENDPOINTS = {
     # 'ldap-rootcacertificates': ('???', '/ers/config/ldap/rootcacertificates'),
     # 'ldap-hosts': ('???', '/ers/config/ldap/hosts'),
     "ldap-by-name": ("???", "/ers/config/ldap/name/$name"),
-    # 'ldap-by-id': ('???', '/ers/config/ldap/$id'),
+    "ldap-by-id": ("???", "/ers/config/ldap/$id"),
     # Duo MFA
-    "duo-sync-ads": ("-", "/api/v1/duo-identitysync/activedirectories"),  # Get the list of all configured Active Directories
-    "duo-sync-groups": ("-", "/api/v1/duo-identitysync/adgroups/$id"),  # 💡 requires id for a list of all groups in the specified AD
-    "duo-identitysync": ("-", "/api/v1/duo-identitysync/identitysync"),  # Get the list of all Identitysync configurations
+    "duo-sync-ads": ("-", "/api/v1/duo-identitysync/activedirectories"),
+    "duo-sync-groups": ("-", "/api/v1/duo-identitysync/adgroups/$id"),
+    "duo-identitysync": ("-", "/api/v1/duo-identitysync/identitysync"),
     "duo-mfa": ("-", "/api/v1/duo-mfa/mfa"),  # Get the list of all Duo-MFA configurations
-    # 'duo-mfa-enable': ('-', '/api/v1/duo-mfa/enable'), # PUT Enable MFA feature
+    # 'duo-mfa-enable': ('-', '/api/v1/duo-mfa/enable'), # PUT
     "duo-mfa-by-name": ("-", "/api/v1/duo-mfa/mfa/$name"),  # Get the specified Duo-MFA configuration
     "duo-mfa-status": ("-", "/api/v1/duo-mfa/status"),  # MFA feature enabled status
     # pxGrid Direct @ https://cs.co/ise-api#!pxgrid-direct-open-api
@@ -171,21 +172,15 @@ ISE_REST_ENDPOINTS = {
     "endpoint-custom-attribute-by-name": ("-", "/api/v1/endpoint-custom-attribute/$name"),  # Get custom attribute by name
     # 'endpoint-stop-replication': ('-', '/api/v1/stop-replication'),    # Endpoint Stop Replication Service
     "endpoint": ("ERSEndPoint", "/ers/config/endpoint"),  # Endpoint @ https://cs.co/ise-api#!endpoint
-    # 'endpointcert': ('ERSEndPointCert', '/ers/config/endpointcert'),  # 🛑 No GET; POST only
+    # 'endpointcert': ('ERSEndPointCert', '/ers/config/endpointcert'),  # 🛑 POST only
     "endpoints": ("-", "/api/v1/endpoint"),  # 💡 Requires ISE 3.2. Endpoints @ https://cs.co/ise-api#!get-all-endpoints
     "endpoint-value": ("-", "/api/v1/endpoint/$value"),  # Requires $value
     # 'endpoint-summary': ('-', '/api/v1/endpoint/deviceType/summary'), # 🛑 404?
     # TACACS+
-    "tacacscommandsets": ("TacacsCommandSets", "/ers/config/tacacscommandsets"),  # TACACS @ https://cs.co/ise-api#!tacacscommandsets
-    "tacacsexternalservers": (
-        "TacacsExternalServer",
-        "/ers/config/tacacsexternalservers",
-    ),  # 💡 404 if none configured. TACACS @ https://cs.co/ise-api#!tacacsexternalservers
-    "tacacsprofile": ("TacacsProfile", "/ers/config/tacacsprofile"),  # TACACS @ https://cs.co/ise-api#!tacacsprofile
-    "tacacsserversequence": (
-        "TacacsServerSequence",
-        "/ers/config/tacacsserversequence",
-    ),  # 💡 404 if none configured. TACACS @ https://cs.co/ise-api#!tacacsserversequence
+    "tacacscommandsets": ("TacacsCommandSets", "/ers/config/tacacscommandsets"),
+    "tacacsexternalservers": ("TacacsExternalServer", "/ers/config/tacacsexternalservers"),  # 💡 404 if none configured
+    "tacacsprofile": ("TacacsProfile", "/ers/config/tacacsprofile"),
+    "tacacsserversequence": ("TacacsServerSequence", "/ers/config/tacacsserversequence"),  # 💡 404 if none configured
     # Policy Sets - RADIUS Network Access
     # ERS policy elements
     "allowedprotocols": ("AllowedProtocols", "/ers/config/allowedprotocols"),
@@ -195,19 +190,20 @@ ISE_REST_ENDPOINTS = {
     # Network Access Policy @ https://cs.co/ise-api#!policy-openapi
     # ⓘ Network Access policy is the assumed default; prefix "na-" not required
     "na-authorization-profiles": ("-", "/api/v1/policy/network-access/authorization-profiles"),
-    # 'condition-id': ('-', '/api/v1/policy/network-access/condition/$id'),
+    "na-condition": ("-", "/api/v1/policy/network-access/condition"),
+    "na-condition-id": ("-", "/api/v1/policy/network-access/condition/$id"),
     "na-condition-policyset": ("-", "/api/v1/policy/network-access/condition/policyset"),
     "na-condition-authn": ("-", "/api/v1/policy/network-access/condition-authentication"),
     "na-condition-authz": ("-", "/api/v1/policy/network-access/condition-authorization"),
     "na-dicts": ("-", "/api/v1/policy/network-access/dictionaries"),
-    "dict-name": ("-", "/api/v1/policy/network-access/dictionaries/$name"),  # Requires $name
+    "na-dict-name": ("-", "/api/v1/policy/network-access/dictionaries/$name"),
     "na-dict-authn": ("-", "/api/v1/policy/network-access/dictionaries/authentication"),
     "na-dict-authz": ("-", "/api/v1/policy/network-access/dictionaries/authorization"),
     "na-dict-policyset": ("-", "/api/v1/policy/network-access/dictionaries/policyset"),
     "na-identity-stores": ("-", "/api/v1/policy/network-access/identity-stores"),
     "na-network-condition": ("-", "/api/v1/policy/network-access/network-condition"),
     "na-policy-set": ("-", "/api/v1/policy/network-access/policy-set"),
-    # 'na-policy-set-id': ('-', '/api/v1/policy/network-access/policy-set/$id'),
+    "na-policy-set-id": ("-", "/api/v1/policy/network-access/policy-set/$id"),
     "na-policy-set-authn": ("-", "/api/v1/policy/network-access/policy-set/$id/authentication"),
     "na-policy-set-authz": ("-", "/api/v1/policy/network-access/policy-set/$id/authorization"),
     "na-policy-set-exception": ("-", "/api/v1/policy/network-access/policy-set/$id/exception"),
@@ -228,7 +224,7 @@ ISE_REST_ENDPOINTS = {
     "da-dict-policyset": ("-", "/api/v1/policy/device-admin/dictionaries/policyset"),
     "da-identity-stores": ("-", "/api/v1/policy/device-admin/identity-stores"),
     "da-policy-set": ("-", "/api/v1/policy/device-admin/policy-set"),
-    "da-policy-set-id": ("-", "/api/v1/policy/device-admin/policy-set/$id"),  # Requires $id
+    "da-policy-set-id": ("-", "/api/v1/policy/device-admin/policy-set/$id"),
     "da-global-exception": ("-", "/api/v1/policy/device-admin/policy-set/global-exception"),
     "da-service-names": ("-", "/api/v1/policy/device-admin/service-names"),
     "da-shell-profiles": ("-", "/api/v1/policy/device-admin/shell-profiles"),
@@ -249,7 +245,7 @@ ISE_REST_ENDPOINTS = {
     "guestsmtpnotificationsettings": ("ERSGuestSmtpNotificationSettings", "/ers/config/guestsmtpnotificationsettings"),
     "guestssid": ("GuestSSID", "/ers/config/guestssid"),
     "guesttype": ("GuestType", "/ers/config/guesttype"),  # 🛑 500 internal errors?
-    "guestuser": ("GuestUser", "/ers/config/guestuser"),  # 🛑 requires sponsor account!!!
+    "guestuser": ("GuestUser", "/ers/config/guestuser"),  # 🛑 requires sponsor account
     # 'smsprovider': ('SmsProviderIdentification', '/ers/config/smsprovider'),
     "sponsorgroup": ("SponsorGroup", "/ers/config/sponsorgroup"),
     "sponsorgroupmember": ("SponsorGroupMember", "/ers/config/sponsorgroupmember"),
@@ -259,7 +255,8 @@ ISE_REST_ENDPOINTS = {
     "byodportal": ("BYODPortal", "/ers/config/byodportal"),
     "mydeviceportal": ("MyDevicePortal", "/ers/config/mydeviceportal"),
     "nspprofile": ("ERSNSPProfile", "/ers/config/nspprofile"),
-    "ipsec": ("ipsec", "/api/v1/ipsec"),  # IPsec @ https://cs.co/ise-api#!ipsec-openapi
+    # IPsec @ https://cs.co/ise-api#!ipsec-openapi
+    "ipsec": ("ipsec", "/api/v1/ipsec"),
     "ipsec": ("ipsec", "/api/v1/ipsec/$hostname/$ip"),
     "ipsec-certificates": ("ipsec-certificates", "/api/v1/ipsec/certificates"),
     # Support / Operations
@@ -527,7 +524,7 @@ async def get(
                 cache_name="aiohttp-cache", filter_fn=cache_filter_by_paging, use_temp=False, autoclose=True
             )
             if args.verbosity:
-                print(f"{ICONS['CACHE']} Caching enabled for all URLs with SQLite")
+                print(f"{ICONS['CACHE']} Caching enabled for {args.expiration} seconds on all URLs with SQLite")
 
             session = aiohttp_client_cache.CachedSession(
                 base_url=base_url,
@@ -546,9 +543,7 @@ async def get(
             print(f"{ICONS['ERROR']} Unknown resource: {resource}\n", file=sys.stderr)
             print(f"Did you mean: {', '.join(filter(lambda x: x.startswith(resource[0:3]), ISE_REST_ENDPOINTS.keys()))}\n", file=sys.stderr)
         else:
-            if vars_dict:
-                from string import Template
-
+            if vars_dict:  # apply vars substitution
                 urlpath = Template(urlpath).substitute(vars_dict)
 
             resources = await ise_get_all(session, ers_name, urlpath, details)
@@ -603,20 +598,22 @@ if __name__ == "__main__":
     argp.add_argument("-s", "--save", default="-", required=False, help="save output to specified directory. Default: stdout")
     argp.add_argument("-t", "--timer", action="store_true", default=False, help="show total runtime, in seconds")
     argp.add_argument("-v", "--verbosity", action="count", default=0, help="verbosity; multiple allowed")
-    argp.add_argument("--hide", help="attributes (columns) to hide", type=str, default=None, required=False)
-    argp.add_argument("--show", help="attributes (columns) to show", type=str, default=None, required=False)
-    argp.add_argument("--vars", type=str, default=None, help="variable key=value")
+    argp.add_argument("--hide", help="comma-separated attributes (columns) to hide", type=str, default=None, required=False)
+    argp.add_argument("--show", help="comma-separated attributes (columns) to show", type=str, default=None, required=False)
+    argp.add_argument("--vars", type=str, default=None, help="substitute variables in URLs: key1=val1,key2=val2")
     args = argp.parse_args()
 
     if args.timer:
         start_time = time.time()
 
-    # parse vars into a dict
+    # parse vars into a dict for URL variables ($id, $name, $hostname, etc.)
     vars_dict = None
     if args.vars:
         vars_dict = {}
-        key, value = args.vars.split("=")
-        vars_dict[key.strip()] = value.strip()
+        pairs = args.vars.split(",")
+        for pair in pairs:
+            key, val = pair.split("=")
+            vars_dict[key.strip()] = val.strip()
 
     if args.resource.lower() == "all":
         for resource in ISE_REST_ENDPOINTS.keys():
