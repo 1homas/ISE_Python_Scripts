@@ -2,15 +2,6 @@
 """
 Query ISE Data Connect using SQL on the ISE Monitoring and Troubleshooting (MNT) node.
 
-ⓘ Thin vs Thick oracledb Clients
-  This script uses the oracledb package and runs as a "thin" client without the need for additional ODBC drivers.
-  The main limitation with the ISE database has been timestamp fields containing TimeZone information.
-  You may workaround this problem by simply excluding those columns in your queries.
-  Refer to the ISE Data Connect documentation (https://cs.co/ise-dataconnect) for tables with TimeZone fields.
-  If you want to run in "thick" mode, you will need to locally install the 
-  Oracle Instant Client (https://www.oracle.com/database/technologies/instant-client/downloads.html) 
-  which is not currently available for the macOS ARM architecture.
-
 Example commands:
   iseql.py -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list"
   iseql.py -it -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT * FROM radius_authentications ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
@@ -30,6 +21,7 @@ Example queries (wrap them in quotes!):
 For frequent queries, it is faster to save your SQL queries into files and invoke them directly from the command line:
   iseql.py "$(cat data/SQL/nodes_list_table.sql)"
   iseql.py -n ise.demo.local -u dataconnect -p "ISEisC00L" --port 2484 -it "$(cat data/SQL/policy_sets_table.sql)"
+Many SQL queries have been created in https://github.com/1homas/ISE_Python_Scripts/tree/main/data/SQL
 
 Supported environment variables:
   export ISE_PMNT='1.2.3.4'             # hostname or IP address of ISE Primary MNT
@@ -40,6 +32,15 @@ Supported environment variables:
 
 You may add these export lines to a text file and load with `source`:
   source ~/.secrets/ise-dataconnect.sh
+
+ⓘ Thin vs Thick oracledb Clients
+  This script uses the oracledb package and runs as a "thin" client without the need for additional ODBC drivers.
+  The main limitation with the ISE database has been timestamp fields containing TimeZone information.
+  You may workaround this problem by simply excluding those columns in your queries.
+  Refer to the ISE Data Connect documentation (https://cs.co/ise-dataconnect) for tables with TimeZone fields.
+  If you want to run in "thick" mode, you will need to locally install the 
+  Oracle Instant Client (https://www.oracle.com/database/technologies/instant-client/downloads.html) 
+  which is not currently available for the macOS ARM architecture.
 
 """
 __author__ = "Thomas Howard"
