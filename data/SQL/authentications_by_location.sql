@@ -22,4 +22,5 @@ SELECT location,
   ) AS total_response_time,
   MAX(max_response_time) AS max_response_time
 FROM radius_authentication_summary
+-- WHERE TRUNC(timestamp) > '01-OCT-24' -- Format: 'DD-MMM-YY HH.MM.SS.mmmmmmmmm AM|PM'
 GROUP BY location
