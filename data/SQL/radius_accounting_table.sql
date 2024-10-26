@@ -1,0 +1,57 @@
+SELECT * 
+    -- id,
+    -- timestamp_timezone,
+    -- ise_node,
+    -- syslog_message_code,
+    -- session_id,
+    -- username,
+    -- user_type,
+    -- calling_station_id,
+    -- acct_session_id, -- Unique numeric string identifying the server session
+    -- acct_status_type, -- Specifies whether accounting packet starts or stops a bridging, routing, or terminal server session.
+    -- acct_session_time, -- Length of time (in seconds) for which the session has been logged in
+    -- service_type,
+    -- framed_protocol,
+    -- acct_input_octets, -- Number of octets received during the session
+    -- acct_output_octets, -- Number of octets sent during the session
+    -- acct_input_packets, -- Number of packets received during the session
+    -- acct_output_packets, -- Number of octets sent during the session
+    -- framed_ip_address,
+    -- nas_port, -- Physical port number of the NAS (Network Access Server) originating the request
+    -- nas_ip_address, -- The IP address of the NAS originating the request
+    -- acct_terminate_cause, -- Reason a connection was terminated
+    -- access_service,
+    -- audit_session_id,
+    -- acct_multi_session_id,
+    -- acct_authentic,
+    -- termination_action,
+    -- session_timeout,
+    -- idle_timeout,
+    -- acct_interim_interval, -- Number of seconds between each transmittal of an interim update for a specific session
+    -- acct_delay_time, -- Length of time (in seconds) for which the NAS has been sending the same accounting packet
+    -- event_timestamp, -- The date and time that this event occurred on the NAS
+    -- nas_identifier,
+    -- nas_port_id,
+    -- acct_tunnel_connection,
+    -- acct_tunnel_packet_lost,
+    -- device_name,
+    -- device_groups,
+    -- service_selection_policy,
+    -- identity_store,
+    -- ad_domain,
+    -- identity_group,
+    -- authorization_policy,
+    -- failure_reason,
+    -- security_group,
+    -- cisco_h323_setup_time,
+    -- cisco_h323_connect_time,
+    -- cisco_h323_disconnect_time,
+    -- response_time,
+    -- started,
+    -- stopped,
+    -- nas_ipv6_address,
+    -- framed_ipv6_address,
+    -- timestamp,
+    -- vn
+FROM radius_accounting
+-- FETCH FIRST 10 ROWS ONLY

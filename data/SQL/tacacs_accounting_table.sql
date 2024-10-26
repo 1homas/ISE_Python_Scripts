@@ -1,0 +1,3 @@
+SELECT *
+FROM tacacs_accounting
+-- FETCH FIRST 10 ROWS ONLY

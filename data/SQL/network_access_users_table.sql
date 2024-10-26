@@ -1,0 +1,24 @@
+SELECT *
+-- id,
+-- status,
+-- username,
+-- description,
+-- first_name,
+-- last_name,
+-- email_address,
+-- identity_group,
+-- is_admin,
+-- allow_password_change_after_login,
+-- current_successful_login_time,
+-- last_successful_login_time,
+-- last_unsuccessful_login_time,
+-- success_login_ipaddress,
+-- failed_login_ipaddress,
+-- expiry_date_enabled,
+-- expiry_date,
+-- account_name_alias,
+-- password_last_updated_on,
+-- password_never_expires,
+-- alarm_emailable
+FROM network_access_users
+-- FETCH FIRST 10 ROWS ONLY

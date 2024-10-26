@@ -1,0 +1,49 @@
+SELECT *
+    -- details, -- details
+    -- portal_name, -- portal name
+    -- result, -- result
+    -- sponsor_first_name, -- sponsor first name
+    -- sponsor_last_name, -- sponsor last name
+    -- identity_group, -- identity group to which user belongs
+    -- sponsor_email_address, -- sponsor email address
+    -- sponsor_phone_number, -- sponsor phone number
+    -- sponsor_company, -- sponsor company
+    -- guest_last_name, -- guest last name
+    -- guest_first_name, -- guest first name
+    -- guest_email_address, -- guest email address
+    -- guest_phone_number, -- guest phone number
+    -- guest_company, -- guest company
+    -- guest_status, -- guest status
+    -- guest_type, -- guest type
+    -- valid_days, -- number of days guest user is valid
+    -- from_date, -- start date of the guest user
+    -- to_date, -- end date of the guest user
+    -- location, -- location of the guest user
+    -- ssid, -- SSID of guest user
+    -- group_tag, -- group tag of guest user
+    -- guest_person_visited, -- guest person visited
+    -- guest_reason_for_visit, -- guest reason for visit
+    -- nas_ip_address, -- NAS IP address
+    -- user_link char specifies the user link
+    -- guest_link char specifies the guest link
+    -- failure_reason, -- reason for failure
+    -- time_spent, -- time spent
+    -- logged_in varchar2 Specifies when logged in
+    -- logged_out varchar2 Specifies when logged out
+    -- optional_data, -- optional data
+    -- identity_store, -- identity store to which the user belongs
+    -- nad_address, -- NAD address
+    -- server, -- ISE node
+    -- sponsor_user_details, -- sponsor user details
+    -- guest_user_details, -- guest user details
+    -- mac_address, -- MAC address
+    -- ip_address, -- IP address
+    -- sponsor_username, -- sponsor user name
+    -- guest_username, -- guest user name
+    -- guest_users clob Specifies the guest users
+    -- operation, -- operation
+    -- aup_acceptance, -- AUP acceptance
+    -- logged_at timestamp(6) Shows the time when the syslog was stored
+    -- message
+FROM primary_guest
+-- FETCH FIRST 10 ROWS ONLY

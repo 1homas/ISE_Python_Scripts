@@ -1,0 +1,22 @@
+SELECT hostname,
+  node_type,
+  -- pic_node,
+  -- installation_type,
+  -- gateway,
+  node_role,
+  active_status,
+  -- replication_status,
+  pdp_services,
+  -- host_alias,
+  -- create_time,
+  -- update_time,
+  -- xgrid_enabled,
+  -- xgrid_peer,
+  udi_pid,
+  udi_vid,
+  udi_sn,
+  -- udi_pt,
+  patch_version,
+  vm_info
+  -- api_node
+FROM node_list
