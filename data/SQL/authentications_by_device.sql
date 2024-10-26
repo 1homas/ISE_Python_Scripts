@@ -1,5 +1,10 @@
 SELECT device_name,
-  COUNT(*) -- 
+  SUM(passed_count) AS passed,
+  SUM(failed_count) AS failed,
+  SUM(passed_count) + SUM(failed_count) AS total,
+  ROUND( (SUM(failed_count) / (SUM(passed_count) + SUM(failed_count)) * 100), 2) AS failed_pct,
+  ROUND(SUM(total_response_time) / (SUM(passed_count) + SUM(failed_count)), 2) AS total_response_time,
+  MAX(max_response_time) AS max_response_time
   -- access_service,
   -- audit_session_id,
   -- authentication_method,
@@ -43,4 +48,5 @@ FROM radius_authentication_summary
 -- WHERE timestamp > '20-OCT-24 01.00.00.000000000 PM' -- Format: 'DD-MMM-YY HH.MM.SS.mmmmmmmmm AM|PM'
 -- WHERE TRUNC(timestamp) = '20-OCT-24' -- Format: 'DD-MMM-YY HH.MM.SS.mmmmmmmmm AM|PM'
 GROUP BY device_name
+ORDER BY device_name
 -- FETCH FIRST 10 ROWS ONLY
