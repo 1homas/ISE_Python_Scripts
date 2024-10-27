@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Query ISE Data Connect using SQL on the ISE Monitoring and Troubleshooting (MNT) node.
+Query ISE using SQL via Data Connect on the ISE Monitoring and Troubleshooting (MNT) node.
 
 Example commands:
   iseql.py -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list"
@@ -121,7 +121,7 @@ argp.add_argument("-v", "--verbosity", action="count", default=0, help="verbosit
 args = argp.parse_args()
 
 if args.query is None or args.query == "":
-    print(f"query is empty", file=sys.stderr)
+    sys.exit(f"Required query is empty")
 if args.timer:
     start_time = time.time()
 
