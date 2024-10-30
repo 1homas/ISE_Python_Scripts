@@ -1,20 +1,24 @@
+# dot files and directories
+.git
+.vscode
+.cache
+.resources
+.*
+
 # Environments
 .env
-.venv
 env/
-venv/
 ENV/
-env.bak/
-venv.bak/
 
-
-# Hidden Files
+# macOS Files
 .DS_Store
 
-
-# pipenv
+# Python Virtual Environments
 Pipfile*
+.venv
+venv/
 
-
-.cache/
-.resources/
+# Incomplete
+*⚠*
+*🚧*
+*💡*
