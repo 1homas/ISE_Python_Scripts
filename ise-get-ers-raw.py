@@ -32,13 +32,12 @@ import json
 import os
 import sys
 
-# Silence any warnings about certificates
-requests.packages.urllib3.disable_warnings()
+requests.packages.urllib3.disable_warnings()  # Silence any warnings about certificates
 
-HEADERS_JSON = { 'Accept': 'application/json' }
+HEADERS_JSON = {"Accept": "application/json"}
 
 # Validate command line arguments
-if len(sys.argv) < 2 : 
+if len(sys.argv) < 2:
     print(USAGE)
     sys.exit(1)
 
@@ -47,21 +46,22 @@ resource_name = sys.argv[1]
 #
 # Load Environment Variables
 #
-env = { k : v for (k, v) in os.environ.items() }
+env = {k: v for (k, v) in os.environ.items()}
 
 #
 # Show the resource
 #
 url = f"https://{env['ISE_PPAN']}/ers/config/{resource_name}"
-r = requests.get(url, 
-                 auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
-                 headers=HEADERS_JSON,
-                 verify=(False if env['ISE_CERT_VERIFY'][0].lower() in ['f','n'] else True)
-                 )
+r = requests.get(
+    url,
+    auth=(env["ISE_REST_USERNAME"], env["ISE_REST_PASSWORD"]),
+    headers=HEADERS_JSON,
+    verify=(False if env["ISE_CERT_VERIFY"][0].lower() in ["f", "n"] else True),
+)
 
-if r.status_code == 401 :
+if r.status_code == 401:
     print(r.status_code, file=sys.stderr)
     print(USAGE, file=sys.stderr)
     print(r.json())
-else :
+else:
     print(json.dumps(r.json(), indent=2))
