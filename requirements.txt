@@ -3,6 +3,7 @@ aiocsv          # async CSV files
 aiofiles        # async file I/O
 aiohttp         # asynchronous HTTP/S
 aiohttp_client_cache # caching!
+aiosqlite       # AIO HTTP Client cache backend
 
 argparse        # CLI commands and options
 bs4             # HTML parsing
@@ -10,8 +11,12 @@ ciscoisesdk     # ISE Python REST API wrapper
 faker           # generate fake users, MACs, IPs
 oracledb        # Oracle DB thin client for ISE Data Connect queries
 pandas          # import and manipulate data in Pandas DataFrames
+pxgrid-util     # Cisco pxGrid utilities
 PyYAML          # YAML
 requests        # synchronous HTTP/S
-semantic-verion # semantic version comparisons
+semantic-version # semantic version comparisons
 tabulate        # dump data in tables
-urllib3
+tqdm            # terminal progress bar
+urllib3         # URLs
+meraki          # Cisco Meraki
+setuptools      # run scripts without needing .py extension
