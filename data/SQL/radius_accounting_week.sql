@@ -1,0 +1,62 @@
+-- 
+-- 🛑 The radius_accounting_week table only contains 1 week of historical data!
+-- 
+SELECT
+    -- id,
+    timestamp,
+    -- timestamp_timezone,
+    -- ise_node,
+    syslog_message_code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Acct-Watchdog-Update
+    session_id,
+    username,
+    -- user_type,
+    calling_station_id,
+    acct_session_id,
+    -- acct_status_type,
+    -- acct_session_time,
+    -- service_type,
+    -- framed_protocol,
+    -- acct_input_octets,
+    -- acct_output_octets,
+    -- acct_input_packets,
+    -- acct_output_packets,
+    framed_ip_address,
+    -- nas_port,
+    -- nas_ip_address,
+    acct_terminate_cause
+    -- access_service,
+    -- audit_session_id,
+    -- acct_multi_session_id,
+    -- acct_authentic,
+    -- termination_action,
+    -- session_timeout,
+    -- idle_timeout,
+    -- acct_interim_interval,
+    -- acct_delay_time,
+    -- event_timestamp,
+    -- nas_identifier,
+    -- nas_port_id,
+    -- acct_tunnel_connection,
+    -- acct_tunnel_packet_lost,
+    -- device_name,
+    -- device_groups,
+    -- service_selection_policy,
+    -- identity_store,
+    -- ad_domain,
+    -- identity_group,
+    -- authorization_policy,
+    -- failure_reason,
+    -- security_group,
+    -- cisco_h323_setup_time,
+    -- cisco_h323_connect_time,
+    -- cisco_h323_disconnect_time,
+    -- response_time,
+    -- started,
+    -- stopped,
+    -- nas_ipv6_address,
+    -- framed_ipv6_address,
+    -- vn
+FROM radius_accounting_week
+WHERE username = 'thomas'
+ORDER BY acct_session_id,timestamp ASC
+-- FETCH FIRST 10 ROWS ONLY
