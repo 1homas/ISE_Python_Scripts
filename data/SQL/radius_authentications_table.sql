@@ -38,5 +38,6 @@ SELECT *
     -- checksum,
     -- timestamp
 FROM radius_authentications
+ORDER BY timestamp ASC
 -- FETCH FIRST 10 ROWS ONLY
 
