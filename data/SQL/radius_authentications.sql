@@ -45,6 +45,6 @@ SELECT -- ⓘ Request
   -- posture_status,
   -- mdm_server_name,
 FROM radius_authentications
-WHERE username = 'INVALID'
-ORDER BY username ASC
+-- WHERE username = 'INVALID'
+ORDER BY timestamp ASC
 -- FETCH FIRST 10 ROWS ONLY
