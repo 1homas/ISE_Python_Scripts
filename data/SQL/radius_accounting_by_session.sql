@@ -11,10 +11,11 @@ SELECT
     -- MIN(event_timestamp) AS nas_timestamp, -- seconds since epoch that this event occurred on the NAS
     -- MIN(syslog_message_code) AS min_code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
     MAX(timestamp) AS stopped,
-    MAX(syslog_message_code) AS msg_code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
-    NVL(MAX(acct_session_time), 0) AS session_time, -- time (seconds) for which the session has been Started
-    -- NVL(MAX(acct_session_time), ((CAST(SYSTIMESTAMP AS DATE) - (CAST(MIN(timestamp) AS DATE))) * 86400)) AS session_time, -- calculate time (seconds) since the session Started
-    CASE WHEN MAX(acct_status_type) != 'Stop' AND (MAX(timestamp) < (SYSDATE - 1)) THEN 'TRUE' ELSE 'FALSE' END AS ghost,
+    MAX(syslog_message_code) AS code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
+    COUNT(timestamp) AS num, -- total accounting updates
+    CASE WHEN MAX(syslog_message_code) = 3001 THEN '□' WHEN (MAX(timestamp) < (SYSDATE - 1)) THEN '!' WHEN MAX(syslog_message_code) = '3002' THEN '⧖'  ELSE '▷' END AS ℹ, -- [⏹ stopped, | ⚠ ghosted, ⧖ interim, ▷ started] alternatives: ▷|⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
+    NVL(MAX(acct_session_time), 0) AS time, -- time (seconds) for which the session has been Started
+    -- NVL(MAX(acct_session_time), ((CAST(SYSTIMESTAMP AS DATE) - (CAST(MIN(timestamp) AS DATE))) * 86400)) AS length, -- calculate time (seconds) since the session Started
     -- MAX(session_id), -- very long string (8a37ff0600001811672d50d2:ise-span/519859596/4561)
     MAX(calling_station_id) AS mac, -- endpoint MAC address (00:00:00:00:00:00)
     MAX(username) AS username, -- username or MAC (00-00-00-00-00-00)
