@@ -1,8 +1,8 @@
 --
 -- List All Cisco ISE RADIUS Accounting Sessions by ID with start, stop and session time.
--- Active sessions (no RADIUS Accounting Stop) are assigned a -1 for session time.
+-- Session states are in the `ℹ` column: □ stopped, ! ghosted, ⧖ interim, ▷ started
 -- An active session is generally considered 'ghosted' after >24 hours without a Stop or Interim Update.
--- Un/Comment columns to quickly customize queries.
+-- Un/Comment columns to quickly customize queries to suite your needs.
 --
 
 SELECT
