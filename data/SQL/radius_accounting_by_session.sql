@@ -13,7 +13,7 @@ SELECT
     MAX(timestamp) AS stopped,
     MAX(syslog_message_code) AS code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
     COUNT(timestamp) AS num, -- total accounting updates
-    CASE WHEN MAX(syslog_message_code) = 3001 THEN '□' WHEN (MAX(timestamp) < (SYSDATE - 1)) THEN '!' WHEN MAX(syslog_message_code) = '3002' THEN '⧖'  ELSE '▷' END AS ℹ, -- [⏹ stopped, | ⚠ ghosted, ⧖ interim, ▷ started] alternatives: ▷|⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
+    CASE WHEN MAX(syslog_message_code) = 3001 THEN '□' WHEN (MAX(timestamp) < (SYSDATE - 1)) THEN '!' WHEN MAX(syslog_message_code) = '3002' THEN '⧖'  ELSE '▷' END AS ℹ, -- [□ stopped, ! ghosted, ⧖ interim, ▷ started] alternatives: ▷ | □ ⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
     NVL(MAX(acct_session_time), 0) AS time, -- time (seconds) for which the session has been Started
     -- NVL(MAX(acct_session_time), ((CAST(SYSTIMESTAMP AS DATE) - (CAST(MIN(timestamp) AS DATE))) * 86400)) AS length, -- calculate time (seconds) since the session Started
     -- MAX(session_id), -- very long string (8a37ff0600001811672d50d2:ise-span/519859596/4561)
