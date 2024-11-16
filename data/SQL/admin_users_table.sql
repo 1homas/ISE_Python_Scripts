@@ -1,3 +1,0 @@
-SELECT *
-FROM admin_users
--- FETCH FIRST 10 ROWS ONLY

@@ -1,3 +1,7 @@
+--
+-- endpoint_purge_view
+--
+
 SELECT id,
     endpoint_purge_id,
     run_time,
@@ -7,4 +11,4 @@ SELECT id,
     endpoint_count
 FROM endpoint_purge_view
 ORDER BY endpoint_purge_id
--- FETCH FIRST 10 ROWS ONLY
+FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets

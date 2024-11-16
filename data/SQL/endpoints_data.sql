@@ -1,12 +1,16 @@
+--
+-- endpoints_data
+--
+
 SELECT
   mac_address,
   endpoint_ip,
-  endpoint_policy,
+  endpoint_policy, -- endpoint profile classification
   static_group_assignment,
   matched_value, -- Matched Certainty Factor
   custom_attributes,
   hostname,
-  id,
+  -- id,
   static_assignment,
   -- reg_timestamp, -- 🐞 Always 0?
   -- auth_store_id, -- Always blank?
@@ -32,4 +36,5 @@ SELECT
   -- unique_subject_id,
   version
 FROM endpoints_data
--- FETCH FIRST 10 ROWS ONLY
+ORDER BY mac_address ASC
+FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets

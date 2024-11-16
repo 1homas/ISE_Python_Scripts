@@ -1,62 +1,71 @@
--- 
--- 🛑 The radius_accounting_week table only contains 1 week of historical data!
--- 
+--
+-- radius_accounting_week
+--
+-- 🛑 contains only 1 week of historical data!
+-- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
+--
+
 SELECT
-    -- id,
-    timestamp,
+    * -- all columns
+    -- timestamp,
     -- timestamp_timezone,
-    -- ise_node,
-    syslog_message_code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Acct-Watchdog-Update
-    session_id,
-    username,
-    -- user_type,
-    calling_station_id,
-    acct_session_id,
-    -- acct_status_type,
-    -- acct_session_time,
-    -- service_type,
-    -- framed_protocol,
-    -- acct_input_octets,
-    -- acct_output_octets,
-    -- acct_input_packets,
-    -- acct_output_packets,
-    framed_ip_address,
-    -- nas_port,
-    -- nas_ip_address,
-    acct_terminate_cause
     -- access_service,
-    -- audit_session_id,
-    -- acct_multi_session_id,
     -- acct_authentic,
-    -- termination_action,
-    -- session_timeout,
-    -- idle_timeout,
-    -- acct_interim_interval,
-    -- acct_delay_time,
-    -- event_timestamp,
-    -- nas_identifier,
-    -- nas_port_id,
+    -- acct_delay_time, -- Length of time (in seconds) for which the NAS has been sending the same accounting packet
+    -- acct_input_octets, -- Number of octets received during the session
+    -- acct_input_packets, -- Number of packets received during the session
+    -- acct_interim_interval, -- Number of seconds between each transmittal of an interim update for a specific session
+    -- acct_multi_session_id,
+    -- acct_output_octets, -- Number of octets sent during the session
+    -- acct_output_packets, -- Number of octets sent during the session
+    -- acct_session_id, -- Unique numeric string identifying the server session
+    -- acct_session_time, -- Length of time (in seconds) for which the session has been logged in
+    -- acct_status_type, -- Specifies whether accounting packet starts or stops a bridging, routing, or terminal server session.
+    -- acct_terminate_cause, -- Reason a connection was terminated
     -- acct_tunnel_connection,
     -- acct_tunnel_packet_lost,
-    -- device_name,
-    -- device_groups,
-    -- service_selection_policy,
-    -- identity_store,
     -- ad_domain,
-    -- identity_group,
+    -- audit_session_id,
     -- authorization_policy,
-    -- failure_reason,
-    -- security_group,
-    -- cisco_h323_setup_time,
+    -- calling_station_id,
     -- cisco_h323_connect_time,
     -- cisco_h323_disconnect_time,
+    -- cisco_h323_setup_time,
+    -- device_groups,
+    -- device_name,
+    -- event_timestamp, -- The date and time that this event occurred on the NAS
+    -- failure_reason,
+    -- framed_ip_address,
+    -- framed_ipv6_address,
+    -- framed_protocol,
+    -- id,
+    -- identity_group,
+    -- identity_store,
+    -- idle_timeout,
+    -- ise_node,
+    -- nas_identifier,
+    -- nas_ip_address, -- The IP address of the NAS originating the request
+    -- nas_ipv6_address,
+    -- nas_port_id,
+    -- nas_port, -- Physical port number of the NAS (Network Access Server) originating the request
     -- response_time,
+    -- security_group,
+    -- service_selection_policy,
+    -- service_type,
+    -- session_id,
+    -- session_timeout,
     -- started,
     -- stopped,
-    -- nas_ipv6_address,
-    -- framed_ipv6_address,
+    -- syslog_message_code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Acct-Watchdog-Update
+    -- termination_action,
+    -- user_type,
+    -- username,
     -- vn
-FROM radius_accounting_week
-WHERE username = 'thomas'
-ORDER BY acct_session_id,timestamp ASC
--- FETCH FIRST 10 ROWS ONLY
+FROM radius_accounting_week -- WHERE username = 'thomas'
+-- ORDER BY acct_session_id, timestamp ASC
+-- ORDER BY timestamp ASC -- first/oldest records
+-- WHERE TRUNC(timestamp) = TRUNC(SYSDATE) -- today
+-- WHERE TRUNC(timestamp, 'HH24') = TRUNC(SYSDATE, 'HH24') -- sessions this hour
+-- WHERE TRUNC(timestamp, 'MI') = TRUNC(SYSDATE, 'MI') -- sessions this minute
+ORDER BY timestamp DESC -- most recent records
+FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
