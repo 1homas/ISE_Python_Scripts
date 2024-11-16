@@ -1,4 +1,11 @@
-SELECT *
+--
+-- primary_guest
+--
+-- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
+--
+
+SELECT
+    * -- all columns
     -- details, -- details
     -- portal_name, -- portal name
     -- result, -- result
@@ -46,4 +53,4 @@ SELECT *
     -- logged_at timestamp(6) Shows the time when the syslog was stored
     -- message
 FROM primary_guest
--- FETCH FIRST 10 ROWS ONLY
+-- FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
