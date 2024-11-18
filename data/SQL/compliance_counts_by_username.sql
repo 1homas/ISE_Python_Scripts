@@ -1,7 +1,11 @@
+--
 -- From the ISE Data Connect Guides' Posture Examples
 -- https://developer.cisco.com/docs/dataconnect/guides/#radius-authentication-summary
 -- Posture > Number of times a user becomes compliant and non-compliant
-SELECT *
+--
+
+SELECT
+    * -- all columns
 FROM (
         SELECT username,
             posture_status

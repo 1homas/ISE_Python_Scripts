@@ -1,3 +1,10 @@
+--
+--  RADIUS Authentication Summary by Endpoints
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 SELECT DISTINCT calling_station_id,
   MAX(username) as username,
   SUM(passed_count) AS passed,

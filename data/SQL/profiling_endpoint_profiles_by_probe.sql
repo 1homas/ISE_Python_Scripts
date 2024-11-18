@@ -1,7 +1,11 @@
+--
 -- From the ISE Data Connect Guides' Profiling Examples
 -- https://developer.cisco.com/docs/dataconnect/guides/#radius-authentication-summary
 -- Profiling > Number of different endpoint profiles profiled per endpoint sources
-SELECT *
+--
+
+SELECT
+    * -- all columns
 FROM (
     SELECT source,
       endpoint_profile

@@ -1,3 +1,8 @@
-SELECT *
+--
+-- authorization_profiles
+--
+
+SELECT
+    * -- all columns
 FROM authorization_profiles
--- FETCH FIRST 10 ROWS ONLY
+ORDER BY name ASC
