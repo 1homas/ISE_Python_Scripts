@@ -1,26 +1,28 @@
 --
--- List All Cisco ISE RADIUS Accounting Sessions by ID with start, stop and session time.
+-- Show All Cisco ISE RADIUS Accounting Sessions by ID with start, stop and session time.
 -- Session states are in the `ℹ` column: □ stopped, ! ghosted, ⧖ interim, ▷ started
 -- An active session is generally considered 'ghosted' after >24 hours without a Stop or Interim Update.
--- Un/Comment columns to quickly customize queries.
+-- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
 --
 
 SELECT
     acct_session_id,
-    MIN(timestamp) AS started,
-    -- MIN(event_timestamp) AS nas_timestamp, -- seconds since epoch that this event occurred on the NAS
-    -- MIN(syslog_message_code) AS min_code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
-    MAX(timestamp) AS stopped,
+    TO_CHAR(MIN(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS started, -- drop fractional seconds
+    TO_CHAR(MAX(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS stopped, -- drop fractional seconds
     MAX(syslog_message_code) AS code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
     COUNT(timestamp) AS num, -- total accounting updates
     CASE WHEN MAX(syslog_message_code) = 3001 THEN '□' WHEN (MAX(timestamp) < (SYSDATE - 1)) THEN '!' WHEN MAX(syslog_message_code) = '3002' THEN '⧖'  ELSE '▷' END AS ℹ, -- [□ stopped, ! ghosted, ⧖ interim, ▷ started] alternatives: ▷ | □ ⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
     NVL(MAX(acct_session_time), 0) AS time, -- time (seconds) for which the session has been Started
-    -- NVL(MAX(acct_session_time), ((CAST(SYSTIMESTAMP AS DATE) - (CAST(MIN(timestamp) AS DATE))) * 86400)) AS length, -- calculate time (seconds) since the session Started
-    -- MAX(session_id), -- very long string (8a37ff0600001811672d50d2:ise-span/519859596/4561)
     MAX(calling_station_id) AS mac, -- endpoint MAC address (00:00:00:00:00:00)
     MAX(username) AS username, -- username or MAC (00-00-00-00-00-00)
-    -- MAX(user_type) AS user_type, -- ⚠ empty
     MAX(acct_terminate_cause) AS termination, -- Reason a connection was terminated
+    MAX(device_name) AS device_name, -- ISE device name
+    MAX(response_time) as resp_ms
+    -- MIN(event_timestamp) AS nas_timestamp, -- seconds since epoch that this event occurred on the NAS
+    -- MIN(syslog_message_code) AS min_code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
+    -- NVL(MAX(acct_session_time), ((CAST(SYSTIMESTAMP AS DATE) - (CAST(MIN(timestamp) AS DATE))) * 86400)) AS length, -- calculate time (seconds) since the session Started
+    -- MAX(session_id), -- very long string (8a37ff0600001811672d50d2:ise-span/519859596/4561)
+    -- MAX(user_type) AS user_type, -- ⚠ empty
     -- MIN(acct_status_type) AS status_min, -- [Interim-Update, Start, Stop]
     -- MAX(acct_status_type) AS status_max, -- [Interim-Update, Start, Stop]
     -- MAX(service_type) AS service_type, -- RADIUS Service-Type: [Framed, Call Check, ...]
@@ -42,7 +44,6 @@ SELECT
     -- MAX(acct_delay_time), -- time (seconds) for which the NAS has been sending the same accounting packet
     -- MAX(acct_tunnel_connection), -- ⚠ empty
     -- MAX(acct_tunnel_packet_lost), -- ⚠ empty
-    MAX(device_name) AS device_name, -- ISE device name
     -- MAX(device_groups) AS device_groups,
     -- MAX(nas_identifier),
     -- MAX(nas_port_id) AS port_id, -- ⚠ empty
@@ -56,10 +57,8 @@ SELECT
     -- cisco_h323_setup_time,
     -- cisco_h323_connect_time,
     -- cisco_h323_disconnect_time,
-    MAX(response_time) as resp_ms
 FROM radius_accounting
-WHERE
-    syslog_message_code != 3003 AND syslog_message_code != 3004 -- ignore Accounting-On/Off messages
+WHERE syslog_message_code != 3003 AND syslog_message_code != 3004 -- ignore Accounting-On/Off messages
     -- AND username = 'thomas'
     -- AND device_name = 'thomas-mr46-2nl6'
     -- AND acct_session_time < (60*60) -- sessions < 1 hour
@@ -77,4 +76,4 @@ WHERE
 GROUP BY acct_session_id
 ORDER BY MIN(timestamp) ASC
 -- ORDER BY NVL(MAX(acct_session_time), 0) DESC, MIN(timestamp) ASC -- longest sessions
--- FETCH FIRST 50 ROWS ONLY -- limit output
+FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets

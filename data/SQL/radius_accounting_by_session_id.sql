@@ -2,7 +2,7 @@
 -- List All Cisco ISE RADIUS Accounting Sessions by ID with start, stop and session time.
 -- Session states are in the `ℹ` column: □ stopped, ! ghosted, ⧖ interim, ▷ started
 -- An active session is generally considered 'ghosted' after >24 hours without a Stop or Interim Update.
--- Un/Comment columns to quickly customize queries to suite your needs.
+-- 💡 Un/Comment columns to quickly customize queries to suite your needs.
 --
 
 SELECT
@@ -15,9 +15,11 @@ SELECT
     acct_session_time AS session_time, -- time (seconds) for which the session has been Started
     acct_terminate_cause AS termination, -- Reason a connection was terminated
     NVL(acct_session_time, 0) AS duration, -- calculate time (seconds) since the session Started
-    -- session_id), -- very long string (8a37ff0600001811672d50d2:ise-span/519859596/4561)
     calling_station_id AS mac, -- endpoint MAC address (00:00:00:00:00:00)
     username AS username, -- username or MAC (00-00-00-00-00-00)
+    device_name, -- ISE device name
+    response_time as resp_ms
+    -- session_id, -- very long string (8a37ff0600001811672d50d2:ise-span/519859596/4561)
     -- user_type AS user_type, -- ⚠ empty
     -- service_type AS service_type, -- RADIUS Service-Type: [Framed, Call Check, ...]
     -- acct_input_octets AS acct_input_octets, -- Number of octets received during the session
@@ -35,25 +37,23 @@ SELECT
     -- session_timeout AS session_timeout, -- ⚠ empty
     -- idle_timeout AS idle_timeout, -- ⚠ empty
     -- acct_interim_interval AS interim, -- ⚠ empty. Number of seconds between each transmittal of an interim update for a specific session
-    -- acct_delay_time), -- time (seconds) for which the NAS has been sending the same accounting packet
-    -- acct_tunnel_connection), -- ⚠ empty
-    -- acct_tunnel_packet_lost), -- ⚠ empty
-    device_name, -- ISE device name
+    -- acct_delay_time, -- time (seconds) for which the NAS has been sending the same accounting packet
+    -- acct_tunnel_connection, -- ⚠ empty
+    -- acct_tunnel_packet_lost, -- ⚠ empty
     -- device_groups AS device_groups,
-    -- nas_identifier),
+    -- nas_identifier,
     -- nas_port_id AS port_id, -- ⚠ empty
     -- service_selection_policy AS service_selection_policy,-- ⚠ empty
     -- identity_store AS identity_store,-- ⚠ empty
     -- ad_domain AS ad_domain,
     -- identity_group AS identity_group, -- ⚠ empty
     -- authorization_policy AS authz, -- ⚠ empty
-    -- failure_reason), -- ⚠ empty - no session if authentication failed
+    -- failure_reason, -- ⚠ empty - no session if authentication failed
     -- security_group AS SGT, -- ⚠ empty
     -- cisco_h323_setup_time,
     -- cisco_h323_connect_time,
     -- cisco_h323_disconnect_time,
-    response_time as resp_ms
 FROM radius_accounting
 WHERE acct_session_id = '9F41F68A7FBE8B9E'
 ORDER BY acct_session_id ASC, timestamp ASC
--- FETCH FIRST 50 ROWS ONLY -- limit output
+FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
