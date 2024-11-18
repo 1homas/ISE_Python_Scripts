@@ -1,90 +1,57 @@
-SELECT TRUNC(timestamp) DAY,
+--
+-- Show RADIUS Authentications per ISE Node Daily
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
+SELECT
+  TO_CHAR(MIN(timestamp), 'YYYY-MM-DD') AS timestamp, -- drop fractional seconds
+  -- TRUNC(timestamp) DAY,
   ise_node,
   -- device_name,
   -- passed, -- 'Fail' for username='INVALID'
   -- failed, -- '1' for username='INVALID'
-  SUM(
-    CASE
-      WHEN failed = '0' THEN 1
-    END
-  ) AS passed,
-  SUM(
-    CASE
-      WHEN failed = '1' THEN 1
-    END
-  ) AS failed,
-  SUM(
-    CASE
-      WHEN failed = '0' THEN 1
-    END
-  ) + SUM(
-    CASE
-      WHEN failed = '1' THEN 1
-    END
-  ) AS total,
-  ROUND(
-    to_char(
-      (
-        (
-          SUM(
-            CASE
-              WHEN failed = '1' THEN 1
-            END
-          ) / (
-            SUM(
-              CASE
-                WHEN failed = '0' THEN 1
-              END
-            ) + SUM(failed)
-          )
-        ) * 100
-      )
-    ),
-    0
-  ) AS fail_pct,
+  SUM( CASE WHEN failed = '0' THEN 1 END ) AS passed,
+  SUM( CASE WHEN failed = '1' THEN 1 END ) AS failed,
+  SUM( CASE WHEN failed = '0' THEN 1 END ) + SUM( CASE WHEN failed = '1' THEN 1 END ) AS total,
+  ROUND( TO_CHAR( ( ( SUM( CASE WHEN failed = '1' THEN 1 END ) / ( SUM( CASE WHEN failed = '0' THEN 1 END ) + SUM(failed) ) ) * 100 ) ), 0) AS fail_pct,
   MAX(response_time) AS max_resp_time -- ⓘ Request
-  -- audit_session_id,
-  -- syslog_message_code,
-  -- failure_reason,
-  -- response_time,
-  -- checksum
-  -- ⓘ Endpoint
-  -- calling_station_id,
-  -- framed_ip_address,
-  -- orig_calling_station_id,
-  -- framed_ipv6_address,
-  -- ⓘ User
-  -- username,
-  -- user_type, -- blank?
-  -- id,
-  -- service_type,
   -- access_service, -- Allowed Protocols
-  -- ⓘ NAD
-  -- device_name,
-  -- device_type, -- NDG
-  -- location, -- NDG
-  -- nas_ip_address,
-  -- nas_port_id,
-  -- nas_port_type,
-  -- nas_ipv6_address,
-  -- ⓘ Auth
-  -- identity_store,
-  -- identity_group,
+  -- audit_session_id,
   -- authentication_method,
   -- authentication_protocol,
-  -- credential_check -- Auth protocol?
-  -- ⓘ Policy
-  -- policy_set_name -- Default, Wired, etc.
-  -- authorization_rule, -- 💡 Blank for failed auths!
   -- authorization_profiles, -- 💡 Blank for failed auths!
-  -- security_group, -- 💡 Blank for failed auths!
-  -- response_time
-  -- 💡 Blank for failed auths!
-  -- posture_status,
+  -- authorization_rule, -- 💡 Blank for failed auths!
+  -- calling_station_id,
+  -- checksum
+  -- credential_check -- Auth protocol?
+  -- device_name,
+  -- device_type, -- NDG
+  -- failure_reason,
+  -- framed_ip_address,
+  -- framed_ipv6_address,
+  -- id,
+  -- identity_group,
+  -- identity_store,
+  -- location, -- NDG
   -- mdm_server_name,
+  -- nas_ip_address,
+  -- nas_ipv6_address,
+  -- nas_port_id,
+  -- nas_port_type,
+  -- orig_calling_station_id,
+  -- policy_set_name -- Default, Wired, etc.
+  -- posture_status,
+  -- response_time
+  -- response_time,
+  -- security_group, -- 💡 Blank for failed auths!
+  -- service_type,
+  -- syslog_message_code,
+  -- user_type, -- blank?
+  -- username,
 FROM radius_authentications
-GROUP BY TRUNC(timestamp),
-  ise_node
-ORDER BY TRUNC(timestamp),
-  ise_node ASC
--- FETCH FIRST 10 ROWS ONLY
+GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD'), ise_node
+-- ORDER BY TRUNC(timestamp) ASC, ise_node ASC
+ORDER BY timestamp DESC, ise_node ASC
+FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
