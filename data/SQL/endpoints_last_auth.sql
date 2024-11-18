@@ -4,6 +4,9 @@
 --
 -- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
 --
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
 
 SELECT
     calling_station_id AS mac, --  
