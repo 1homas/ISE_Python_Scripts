@@ -1,3 +1,11 @@
+--
+-- Show RADIUS Authentications stats for each Device
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
+
 SELECT device_name,
   SUM(passed_count) AS passed,
   SUM(failed_count) AS failed,
@@ -49,4 +57,4 @@ FROM radius_authentication_summary
 -- WHERE TRUNC(timestamp) = '20-OCT-24' -- Format: 'DD-MMM-YY HH.MM.SS.mmmmmmmmm AM|PM'
 GROUP BY device_name
 ORDER BY device_name
--- FETCH FIRST 10 ROWS ONLY
+FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets

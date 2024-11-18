@@ -1,3 +1,8 @@
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 SELECT MAX(timestamp),
   MAX(ise_node),
   admin_name,

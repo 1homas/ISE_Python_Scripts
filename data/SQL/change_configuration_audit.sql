@@ -1,4 +1,10 @@
+--
 -- ISE Reports > Audit > Change Configuration Audit Report
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 SELECT
   timestamp              , -- Time when record added (TIMESTAMP(6))
   admin_name             , -- Name of the admin who made config change
@@ -24,4 +30,4 @@ SELECT
   object_type            -- Type of object for which config is changed
   -- timestamp_timezone  -- Time with timezone when record added (⚠ TIMESTAMP(6)+TZ)
 FROM change_configuration_audit
--- FETCH FIRST 10 ROWS ONLY
+FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets

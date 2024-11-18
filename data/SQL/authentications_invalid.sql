@@ -1,6 +1,14 @@
-SELECT -- ⓘ Request
-  timestamp,
-  failed,
+--
+-- RADIUS Authentications with Username 'INVALID'
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
+SELECT
+  -- timestamp,
+  TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') AS timestamp, -- drop fractional seconds
+  -- failed,
   calling_station_id,
   username,
   failure_reason,
@@ -8,43 +16,38 @@ SELECT -- ⓘ Request
   nas_port_id,
   nas_port_type,
   response_time,
-  -- audit_session_id,
-  -- passed, -- 'Fail' for username='INVALID'
+  policy_set_name, -- Default, Wired, etc.
+  ise_node
+  -- user_type,
   -- '1' for username='INVALID'
-  -- syslog_message_code,
-  -- checksum,
-  -- ⓘ Endpoint
-  -- framed_ip_address,
-  -- orig_calling_station_id,
-  -- framed_ipv6_address,
-  -- ⓘ User
-  user_type,
-  -- blank?
-  -- id,
-  -- service_type,
   -- access_service, -- Allowed Protocols
-  -- ⓘ NAD
-  -- device_type, -- NDG
-  -- location, -- NDG
-  -- nas_ip_address,
-  -- nas_ipv6_address,
-  -- ⓘ Auth
-  -- identity_store,
-  -- identity_group,
+  -- audit_session_id,
   -- authentication_method,
   -- authentication_protocol,
+  -- authorization_profiles, -- ⚠ blank for failed auths
+  -- authorization_rule, -- ⚠ blank for failed auths
+  -- checksum,
   -- credential_check -- Auth protocol?
-  -- ⓘ Policy
-  ise_node,
-  policy_set_name -- Default, Wired, etc.
-  -- authorization_rule, -- 💡 Blank for failed auths!
-  -- authorization_profiles, -- 💡 Blank for failed auths!
-  -- security_group, -- 💡 Blank for failed auths!
+  -- device_type, -- NDG
+  -- framed_ip_address,
+  -- framed_ipv6_address,
+  -- ⓘ Endpoint
+  -- id,
+  -- identity_group,
+  -- identity_store,
+  -- location, -- NDG
+  -- mdm_server_name, -- ⚠ blank for failed auths
+  -- nas_ip_address,
+  -- nas_ipv6_address,
+  -- orig_calling_station_id,
+  -- passed, -- 'Fail' for username='INVALID'
+  -- posture_status, -- ⚠ blank for failed auths
   -- response_time
-  -- 💡 Blank for failed auths!
-  -- posture_status,
-  -- mdm_server_name,
+  -- security_group, -- ⚠ blank for failed auths
+  -- service_type,
+  -- syslog_message_code,
 FROM radius_authentications
 WHERE username = 'INVALID'
-ORDER BY username ASC
--- FETCH FIRST 10 ROWS ONLY
+-- ORDER BY timestamp ASC -- first/oldest records
+ORDER BY timestamp DESC -- most recent records
+FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets

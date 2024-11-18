@@ -1,3 +1,10 @@
+--
+-- RADIUS Authentications by Username
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 SELECT username,
   SUM(passed_count) AS passed,
   SUM(failed_count) AS failed,
@@ -8,4 +15,4 @@ SELECT username,
 FROM radius_authentication_summary
 GROUP BY username
 ORDER BY username ASC
--- FETCH FIRST 10 ROWS ONLY
+FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets

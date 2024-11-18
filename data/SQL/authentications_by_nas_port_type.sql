@@ -1,3 +1,10 @@
+--
+-- Show RADIUS Authentications per Device Port Type
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 SELECT
     -- id,
     -- timestamp_timezone,
@@ -38,4 +45,6 @@ SELECT
     -- checksum,
     COUNT(timestamp) AS count
 FROM radius_authentications
-GROUP BY nas_port_type -- FETCH FIRST 10 ROWS ONLY
+GROUP BY nas_port_type
+ORDER BY count DESC
+-- FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets

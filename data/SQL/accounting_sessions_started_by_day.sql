@@ -1,7 +1,14 @@
+--
+-- Accounting Sessions Started by Day
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 SELECT
-    TRUNC(timestamp) AS datetime,
+    TO_CHAR(timestamp, 'YYYY-MM-DD') AS timestamp, -- drop fractional seconds
     COUNT(*)
 FROM radius_accounting
-WHERE started = 1 and stopped = 0
-GROUP BY TRUNC(timestamp)
-ORDER BY TRUNC(timestamp) ASC
+WHERE acct_status_type = 'Start'
+GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD')
+ORDER BY timestamp ASC

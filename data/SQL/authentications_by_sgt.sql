@@ -1,3 +1,10 @@
+--
+-- RADIUS Authentications by SGT
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 SELECT
     security_group,
     MAX(calling_station_id) AS calling_station_id,
@@ -13,4 +20,4 @@ GROUP BY security_group,
     -- username,
     -- passed
 ORDER BY security_group ASC,timestamp DESC
--- FETCH FIRST 10 ROWS ONLY
+FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
