@@ -1,5 +1,6 @@
 --
 -- Show the last RADIUS authentication per endpoint.
+-- Includes random MAC detection (2nd digit is 26AE).
 -- Optionally filter for >N days or more.
 --
 -- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
@@ -10,7 +11,10 @@
 
 SELECT
     calling_station_id AS mac, --  
-    MAX(timestamp) as timestamp,
+    MAX(CASE WHEN REGEXP_LIKE(calling_station_id, '^.[26AE].*', 'i') THEN '✔' END) AS random, -- Indicator: ✔
+    -- MAX(CASE WHEN REGEXP_LIKE(calling_station_id, '^.[26AE].*', 'i') THEN '✔' ELSE '✖' END) AS random, -- Indicator: ✔|✖
+    -- MAX(CASE WHEN REGEXP_LIKE(calling_station_id, '^.[26AE].*', 'i') THEN SUBSTR(calling_station_id, 2, 1) END) AS random, -- Indicator: 2|6|A|E
+    TO_CHAR(MAX(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS timestamp, -- drop fractional seconds
     MAX(location) AS location, --  
     MAX(username) AS username, --  
     MAX(endpoint_profile) AS endpoint_profile, --  
