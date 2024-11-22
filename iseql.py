@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 """
 Query ISE using SQL via Data Connect on the ISE Monitoring and Troubleshooting (MNT) node.
+The default output format is a streamed CSV (comma-separated value) to minimize client memory usage with large datasets.
+⚠ Many output formats are supported however they require buffering all query results in memory before printing to calculate column widths (grid,table) or map attriute names (json,yaml).
 
 Example commands:
-  iseql.py -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list"
-  iseql.py -it -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT * FROM radius_authentications ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
-  iseql.py "SELECT * FROM node_list" # requires setting environment variables
+  iseql.py -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list" -f table
+  iseql.py -it -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT COUNT(*) AS total FROM radius_authentications"
+  iseql.py "SELECT * FROM node_list" -f yaml  # ⚠ requires environment variables
+  iseql.py "SELECT * FROM radius_authentications ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
   iseql.py -it "SELECT * FROM radius_authentications ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
 
-Example queries (wrap them in quotes!):
+Here are a few example queries (wrap them in quotes!):
   SELECT view_name FROM user_views ORDER BY view_name ASC
   SELECT * FROM node_list
   SELECT * FROM network_devices
+  SELECT COUNT(*) FROM radius_authentications
+  SELECT timestamp, calling_station_id, username FROM radius_accounting WHERE timestamp > sysdate - INTERVAL '1' MINUTE 
   SELECT authentication_method, COUNT(*) FROM radius_authentications GROUP BY authentication_method
-  SELECT status,username,is_admin,password_never_expires FROM network_access_users
-  SELECT * FROM radius_authentications ORDER BY timestamp ASC
-  SELECT timestamp,username,calling_station_id,policy_set_name,authorization_rule,authorization_profiles,ise_node,endpoint_profile,framed_ip_address,security_group FROM radius_authentications
-  SELECT timestamp,username,calling_station_id,nas_identifier,ise_node FROM radius_accounting WHERE stopped = 0 ORDER BY timestamp ASC
 
-For frequent queries, it is faster to save your SQL queries into files and invoke them directly from the command line:
-  iseql.py "$(cat data/SQL/nodes_list_table.sql)"
-  iseql.py -n ise.demo.local -u dataconnect -p "ISEisC00L" --port 2484 -it "$(cat data/SQL/policy_sets_table.sql)"
-Many SQL queries have been created in https://github.com/1homas/ISE_Python_Scripts/tree/main/data/SQL
+It is faster to edit and save your favorite or complex SQL queries into files then include them:
+  iseql.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
+
+Many SQL queries have been created for you in https://github.com/1homas/ISE_Python_Scripts/tree/main/data/SQL
 
 Supported environment variables:
   export ISE_PMNT='1.2.3.4'             # hostname or IP address of ISE Primary MNT
@@ -54,11 +55,14 @@ import ssl
 import sys
 import time
 import tabulate
+import csv
+import json
+import yaml
 
 ISE_DC_PORT = 2484  # Data Connect port
 ISE_DC_SID = "cpm10"  # Data Connect service name identifier
 ISE_DC_USERNAME = "dataconnect"  # Data Connect username
-FORMATS = ["csv", "grid", "json", "table", "text"]
+FORMATS = ["csv", "grid", "json", "line", "pretty", "yaml", "raw", "table", "text"]
 
 
 def show(table: list = None, headers: list = None, format: str = "text", filepath: str = "-") -> None:
@@ -71,8 +75,11 @@ def show(table: list = None, headers: list = None, format: str = "text", filepat
       - `csv`   : Show the items in a Comma-Separated Value (CSV) format
       - `grid`  : Show the items in a table grid with borders
       - `json`  : Show the items as a single JSON string
+      - `line`  : Show the items each on their own line in JSON format
+      - `pretty`: Show the items in an indented JSON format
       - `table` : Show the items in a text-based table
       - `text`  : Show the items in a text-based table (no header line separator)
+      - `yaml`  : Show the items in a YAML format
     - filepath (str) : Default: `sys.stdout`
     """
     if table == None or len(table) <= 0:
@@ -82,8 +89,6 @@ def show(table: list = None, headers: list = None, format: str = "text", filepat
     fh = sys.stdout if filepath == "-" else open(filepath, "w")  # write to sys.stdout/terminal by default
 
     if format == "csv":  # CSV
-        import csv
-
         writer = csv.writer(fh)
         writer.writerow(headers)
         writer.writerows(table)
@@ -92,16 +97,16 @@ def show(table: list = None, headers: list = None, format: str = "text", filepat
     elif format == "table":  # table
         print(f"{tabulate.tabulate(table, headers=headers, tablefmt='table')}", file=fh)
     elif format == "json":  # JSON, one long string
-        import json
-
-        # must convert table values to str in case of datetime objects
-        d = {}
-        table_dicts = []
-        for row in table:
-            for header, value in zip(headers, row):
-                d[header] = str(value)
-            table_dicts.append(d)
-        print(json.dumps({"table": table_dicts}), file=fh)
+        print(json.dumps({"table": [dict(zip(headers, row)) for row in rows]}, default=(lambda o: str(o))), file=fh)
+    elif format == "line":  # 1 JSON object per line
+        print("{", file=fh)
+        print(f'"table" : [', file=fh)
+        print(",\n".join([json.dumps(r, default=(lambda o: str(o))) for r in [dict(zip(headers, row)) for row in rows]]), file=fh)
+        print("]\n}", file=fh)
+    elif format == "pretty":  # pretty-print with 2-space indents
+        print(json.dumps({"table": [dict(zip(headers, row)) for row in rows]}, default=(lambda o: str(o)), indent=2), file=fh)
+    elif format == "yaml":  # YAML
+        print(yaml.dump({"table": [dict(zip(headers, row)) for row in rows]}, indent=2, default_flow_style=False), file=fh)
     elif format == "text":  # pretty-print
         print(f"{tabulate.tabulate(table, headers=headers, tablefmt='plain')}", file=fh)
     else:  # just in case something gets through the CLI parser
@@ -114,7 +119,7 @@ argp.add_argument("-n", "--name", action="store", default=None, help="ISE MNT ho
 argp.add_argument("-u", "--username", action="store", default=ISE_DC_USERNAME, help="username", type=str)
 argp.add_argument("-p", "--password", action="store", default=None, help="password", type=str)
 argp.add_argument("--port", action="store", default=None, help="Data Connect Port number", type=int)
-argp.add_argument("-f", "--format", choices=FORMATS, default="table")
+argp.add_argument("-f", "--format", choices=FORMATS, default="csv")
 argp.add_argument("-i", "--insecure", action="store_true", default=False, help="do not verify certificates (allow self-signed certs)")
 argp.add_argument("-t", "--timer", action="store_true", default=False, help="show total script time")
 argp.add_argument("-v", "--verbosity", action="count", default=0, help="verbosity; multiple allowed")
@@ -173,11 +178,25 @@ try:
     with oracledb.connect(params=params) as connection:
         with connection.cursor() as cursor:
             cursor.execute(args.query)
-            headers = [
-                i[0].lower() for i in cursor.description
-            ]  # description: (name, type_code, display_size, internal_size, precision, scale, null_ok)
-            rows = cursor.fetchall()  # returns a list of tuples
-            show(table=rows, headers=headers, format=args.format)
+
+            # Use CSV by default to stream results without large memory buffering
+            if args.format == "csv":
+                # Get header names from cursor.description, a list of sets about each column:
+                #   [ (name, type_code, display_size, internal_size, precision, scale, null_ok), ... ]
+                headers = [f"{i[0]}".lower() for i in cursor.description]
+                writer = csv.writer(sys.stdout, quoting=0, skipinitialspace=True)
+                writer.writerow(headers)
+                while True:
+                    rows = cursor.fetchmany()  # use default Cursor.arraysize
+                    if not rows:
+                        break
+                    writer.writerows(rows)
+            else:
+                # All other formats require buffering all results in memory for column width sizing (grid|table) or map attribute names (JSON|YAML)
+                headers = [f"{i[0]}".lower() for i in cursor.description]
+                rows = cursor.fetchall()  # returns a list of tuples
+                show(table=rows, headers=headers, format=args.format)
+
 except oracledb.Error as e:
     print(f"Oracle Error: {e}", file=sys.stderr)
 except Exception as e:
