@@ -1,7 +1,12 @@
 --
 -- radius_authentication_summary
 --
+-- ⚠ `radius_authentication_summary` table is limited to only 30 days of data! 
+-- 💡 Use `radius_authentications` for *all* records in database!
 -- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
+--
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
 --
 
 SELECT
@@ -24,6 +29,6 @@ SELECT
     -- passed_count, -- The number of passed authentication
     -- failed_count -- Number of failed authentication
 FROM radius_authentication_summary
--- ORDER BY timestamp ASC -- first/oldest records
-ORDER BY timestamp DESC -- most recent records
+ORDER BY timestamp ASC -- first/oldest records
+-- ORDER BY timestamp DESC -- most recent records
 FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
