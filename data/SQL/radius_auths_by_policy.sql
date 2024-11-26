@@ -12,10 +12,11 @@ SELECT
     authentication_protocol AS authn_protocol, -- 
     NVL(authorization_rule, '-') AS authz_rule, -- 
     NVL(authorization_profiles, 'ACCESS-REJECT') AS authz_profile, -- 
+    MAX(security_group) AS security_group, -- 
     COUNT(CASE WHEN passed = 'Pass' THEN 1 END) AS passed,
     COUNT(CASE WHEN passed = 'Fail' THEN 1 END) AS failed,
-    -- ROUND( (COUNT(CASE WHEN passed = 'Fail' THEN 1 END) / (COUNT(CASE WHEN passed = 'Pass' THEN 1 END) + COUNT(CASE WHEN passed = 'Fail' THEN 1 END)) * 100), 0) AS failed_pct,
-    COUNT(timestamp) AS total
+    COUNT(timestamp) AS total,
+    TO_CHAR(ROUND( (COUNT(CASE WHEN passed = 'Fail' THEN 1 END) / (COUNT(CASE WHEN passed = 'Pass' THEN 1 END) + COUNT(CASE WHEN passed = 'Fail' THEN 1 END)) * 100), 0), 'FM99') || '%' AS fail_pct
     -- COUNT(DISTINCT device_name) AS devices,
     -- MAX(audit_session_id) AS audit_session_id, -- 
     -- MAX(calling_station_id) AS mac, -- 
@@ -41,7 +42,6 @@ SELECT
     -- MAX(passed) AS passed, -- 
     -- MAX(posture_status) AS posture_status, -- 
     -- MAX(response_time) AS response_time, -- 
-    -- MAX(security_group) AS security_group, -- 
     -- MAX(service_type) AS service_type, -- 
     -- MAX(syslog_message_code) AS syslog_message_code, -- 
     -- MAX(timestamp) AS timestamp, -- 
@@ -49,8 +49,13 @@ SELECT
     -- MAX(user_type) AS user_type, -- 
     -- MAX(username) AS username, -- 
 FROM radius_authentications
+-- WHERE timestamp > sysdate - INTERVAL '10' SECOND -- last N seconds
+-- WHERE timestamp > sysdate - INTERVAL '1' MINUTE  -- last N minutes
+-- WHERE timestamp > sysdate - INTERVAL '1' HOUR -- last N hours
+WHERE timestamp > sysdate - INTERVAL '30' DAY -- last N days
 GROUP BY policy_set_name, access_service, authentication_method, authentication_protocol, authorization_rule, authorization_profiles
+-- GROUP BY policy_set_name
 ORDER BY policy_set_name ASC, total DESC 
 -- ORDER BY calling_station_id ASC
 -- ORDER BY username ASC
-FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
+-- FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets

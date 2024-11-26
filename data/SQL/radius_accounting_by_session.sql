@@ -4,14 +4,18 @@
 -- An active session is generally considered 'ghosted' after >24 hours without a Stop or Interim Update.
 -- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
 --
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 
 SELECT
     acct_session_id,
+    CASE WHEN MAX(syslog_message_code) = 3001 THEN '□' WHEN (MAX(timestamp) < (SYSDATE - 1)) THEN '!' WHEN MAX(syslog_message_code) = '3002' THEN '⧖'  ELSE '▷' END AS ℹ, -- [□ stopped, ! ghosted, ⧖ interim, ▷ started] alternatives: ▷ | □ ⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
     TO_CHAR(MIN(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS started, -- drop fractional seconds
     TO_CHAR(MAX(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS stopped, -- drop fractional seconds
     MAX(syslog_message_code) AS code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
     COUNT(timestamp) AS num, -- total accounting updates
-    CASE WHEN MAX(syslog_message_code) = 3001 THEN '□' WHEN (MAX(timestamp) < (SYSDATE - 1)) THEN '!' WHEN MAX(syslog_message_code) = '3002' THEN '⧖'  ELSE '▷' END AS ℹ, -- [□ stopped, ! ghosted, ⧖ interim, ▷ started] alternatives: ▷ | □ ⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
     NVL(MAX(acct_session_time), 0) AS time, -- time (seconds) for which the session has been Started
     MAX(calling_station_id) AS mac, -- endpoint MAC address (00:00:00:00:00:00)
     MAX(username) AS username, -- username or MAC (00-00-00-00-00-00)
@@ -59,6 +63,7 @@ SELECT
     -- cisco_h323_disconnect_time,
 FROM radius_accounting
 WHERE syslog_message_code != 3003 AND syslog_message_code != 3004 -- ignore Accounting-On/Off messages
+    -- AND calling_station_id = 'DC:A6:32:6D:A3:BA'
     -- AND username = 'thomas'
     -- AND device_name = 'thomas-mr46-2nl6'
     -- AND acct_session_time < (60*60) -- sessions < 1 hour
@@ -69,11 +74,14 @@ WHERE syslog_message_code != 3003 AND syslog_message_code != 3004 -- ignore Acco
     -- AND TRUNC(timestamp, 'HH24') = TRUNC(SYSDATE, 'HH24') -- sessions this hour
     -- AND TRUNC(timestamp) = '01-NOV-24' -- Specific day (trunc default)
     -- AND TRUNC(timestamp, 'DD') = '20-OCT-24' -- Specific DoM Format: 'DD-MMM-YY HH.MM.SS.mmmmmmmmm AM|PM'
-    -- AND timestamp > '01-NOV-24 08.00.00.000 AM' -- Format: 'DD-MMM-YY HH.MM.SS.mmmmmmmmm AM|PM'
+    -- AND timestamp > sysdate - INTERVAL '10' SECOND -- last N seconds
+    -- AND timestamp > sysdate - INTERVAL '1' MINUTE  -- last N minutes
+    -- AND timestamp > sysdate - INTERVAL '1' HOUR -- last N hours
+    -- AND timestamp > sysdate - INTERVAL '1' DAY -- last N days
     -- AND timestamp > TIMESTAMP '2024-11-01 19:39:00' -- after a timestamp
     -- AND timestamp > TIMESTAMP '2024-11-01 19:00:00' AND timestamp < TIMESTAMP '2024-11-01 20:00:00' -- time window
     -- AND timestamp BETWEEN Date '2024-11-01' and Date '2024-11-02' -- exclusive of end date
 GROUP BY acct_session_id
-ORDER BY MIN(timestamp) ASC
+ORDER BY MIN(timestamp) ASC -- first/oldest records
 -- ORDER BY NVL(MAX(acct_session_time), 0) DESC, MIN(timestamp) ASC -- longest sessions
-FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
+-- FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets

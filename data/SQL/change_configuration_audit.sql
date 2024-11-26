@@ -30,4 +30,10 @@ SELECT
   object_type            -- Type of object for which config is changed
   -- timestamp_timezone  -- Time with timezone when record added (⚠ TIMESTAMP(6)+TZ)
 FROM change_configuration_audit
-FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
+-- WHERE timestamp > sysdate - INTERVAL '10' SECOND -- last N seconds
+-- WHERE timestamp > sysdate - INTERVAL '1' MINUTE  -- last N minutes
+-- WHERE timestamp > sysdate - INTERVAL '1' HOUR -- last N hours
+WHERE timestamp > sysdate - INTERVAL '1' DAY -- last N days
+ORDER BY timestamp ASC -- first/oldest records
+-- ORDER BY timestamp DESC -- most recent records
+-- FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets

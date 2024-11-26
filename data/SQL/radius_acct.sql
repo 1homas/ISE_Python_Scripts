@@ -71,6 +71,12 @@ FROM radius_accounting
 -- WHERE acct_session_time > 3700 -- > sessions 1 hour
 -- WHERE acct_session_time > (60*60*24) -- sessions > 1 day
 -- WHERE acct_session_time > (60*60*24*3) -- sessions > 3 days
+-- WHERE timestamp > sysdate - INTERVAL '10' SECOND -- last N seconds
+-- WHERE timestamp > sysdate - INTERVAL '1' MINUTE  -- last N minutes
+WHERE timestamp > sysdate - INTERVAL '1' HOUR -- last N hours
+-- WHERE timestamp > sysdate - INTERVAL '1' DAY -- last N days
+-- WHERE TO_CHAR(timestamp, 'YYYY-MM-DD') = '2024-11-01' -- match a timestamp by day
+-- WHERE TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') = '2024-11-01 00:08:27' -- match a timestamp (YYYY-MM-DD HH24:MI:SS.ffffff)
 -- WHERE TRUNC(timestamp) = TRUNC(SYSDATE) -- today
 -- WHERE TRUNC(timestamp) = '01-NOV-24' -- Specific day (trunc format)
 -- WHERE TRUNC(timestamp, 'HH24') = TRUNC(SYSDATE, 'HH24') -- sessions this hour
@@ -79,7 +85,6 @@ FROM radius_accounting
 -- WHERE timestamp > TIMESTAMP '2024-11-01 19:39:00' -- after a timestamp
 -- WHERE timestamp > TIMESTAMP '2024-11-01 19:00:00' AND timestamp < TIMESTAMP '2024-11-01 20:00:00' -- time window
 -- WHERE timestamp BETWEEN Date '2024-11-01' and Date '2024-11-02' -- exclusive of end date
--- WHERE timestamp_timezone > '23-APR-22 08.25.35.839000000 PM +05:30' AND timestamp_timezone < '24-APR-22 08.25.35.839000000 PM +05:30'
--- ORDER BY timestamp ASC -- first/oldest records
-ORDER BY timestamp DESC -- most recent records
-FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
+ORDER BY timestamp ASC -- first/oldest records
+-- ORDER BY timestamp DESC -- most recent records
+-- FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
