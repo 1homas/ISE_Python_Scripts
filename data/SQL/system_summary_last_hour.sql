@@ -21,8 +21,10 @@ SELECT
     TO_CHAR(diskspace_tmp, 'fm999') || '%' AS tmp_disk  -- 
     -- TO_CHAR(diskspace_runtime, 'fm990D99') || '%' AS runtime_disk ,
 FROM system_summary
-WHERE timestamp > sysdate - INTERVAL '1' HOUR -- last 1 hour
--- WHERE timestamp > sysdate - INTERVAL '1' DAY -- last 1 day
+-- WHERE timestamp > sysdate - INTERVAL '10' SECOND -- last N seconds
+-- WHERE timestamp > sysdate - INTERVAL '1' MINUTE  -- last N minutes
+WHERE timestamp > sysdate - INTERVAL '1' HOUR -- last N hours
+-- WHERE timestamp > sysdate - INTERVAL '1' DAY -- last N days
     -- AND ise_node = 'ise-ppan'
 ORDER BY timestamp ASC
 -- FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
