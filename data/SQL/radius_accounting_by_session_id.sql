@@ -4,12 +4,16 @@
 -- An active session is generally considered 'ghosted' after >24 hours without a Stop or Interim Update.
 -- 💡 Un/Comment columns to quickly customize queries to suite your needs.
 --
+-- Author: Thomas Howard, thomas@cisco.com
+-- License: MIT - https://mit-license.org
+--
+
 
 SELECT
     acct_session_id,
+    CASE WHEN syslog_message_code = 3001 THEN '□' WHEN syslog_message_code = '3002' THEN '⧖' WHEN syslog_message_code = '3000' THEN '▷' WHEN (timestamp < (SYSDATE - 1)) THEN '!'  ELSE '▷' END AS ℹ, -- [□ stopped, ! ghosted, ⧖ interim, ▷ started] alternatives: ▷|⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
     timestamp,
     -- event_timestamp AS nas_timestamp, -- seconds since epoch that this event occurred on the NAS
-    CASE WHEN syslog_message_code = 3001 THEN '□' WHEN syslog_message_code = '3002' THEN '⧖' WHEN syslog_message_code = '3000' THEN '▷' WHEN (timestamp < (SYSDATE - 1)) THEN '!'  ELSE '▷' END AS ℹ, -- [□ stopped, ! ghosted, ⧖ interim, ▷ started] alternatives: ▷|⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
     syslog_message_code as msg_code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
     acct_status_type AS status_type, -- [Interim-Update, Start, Stop]
     acct_session_time AS session_time, -- time (seconds) for which the session has been Started
@@ -17,7 +21,7 @@ SELECT
     NVL(acct_session_time, 0) AS duration, -- calculate time (seconds) since the session Started
     calling_station_id AS mac, -- endpoint MAC address (00:00:00:00:00:00)
     username AS username, -- username or MAC (00-00-00-00-00-00)
-    device_name, -- ISE device name
+    device_name AS device, -- ISE device name
     response_time as resp_ms
     -- session_id, -- very long string (8a37ff0600001811672d50d2:ise-span/519859596/4561)
     -- user_type AS user_type, -- ⚠ empty
@@ -54,6 +58,6 @@ SELECT
     -- cisco_h323_connect_time,
     -- cisco_h323_disconnect_time,
 FROM radius_accounting
-WHERE acct_session_id = '9F41F68A7FBE8B9E'
+WHERE acct_session_id = '009D34AFC779ED0F' -- change for your specific session
 ORDER BY acct_session_id ASC, timestamp ASC
 FETCH FIRST 50 ROWS ONLY -- limit default number of rows returned for large datasets
