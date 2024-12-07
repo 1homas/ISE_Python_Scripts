@@ -16,7 +16,7 @@ SELECT
     COUNT(CASE WHEN passed = 'Pass' THEN 1 END) AS passed,
     COUNT(CASE WHEN passed = 'Fail' THEN 1 END) AS failed,
     COUNT(timestamp) AS total,
-    TO_CHAR(ROUND( (COUNT(CASE WHEN passed = 'Fail' THEN 1 END) / (COUNT(CASE WHEN passed = 'Pass' THEN 1 END) + COUNT(CASE WHEN passed = 'Fail' THEN 1 END)) * 100), 0), 'FM99') || '%' AS fail_pct
+    TO_CHAR(ROUND( (COUNT(CASE WHEN passed = 'Fail' THEN 1 END) / (COUNT(CASE WHEN passed = 'Pass' THEN 1 END) + COUNT(CASE WHEN passed = 'Fail' THEN 1 END)) * 100), 0), 'FM999') || '%' AS fail_pct
     -- COUNT(DISTINCT device_name) AS devices,
     -- MAX(audit_session_id) AS audit_session_id, -- 
     -- MAX(calling_station_id) AS mac, -- 
