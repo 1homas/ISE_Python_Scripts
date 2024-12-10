@@ -62,7 +62,7 @@ import yaml
 ISE_DC_PORT = 2484  # Data Connect port
 ISE_DC_SID = "cpm10"  # Data Connect service name identifier
 ISE_DC_USERNAME = "dataconnect"  # Data Connect username
-FORMATS = ["csv", "grid", "json", "line", "pretty", "yaml", "raw", "table", "text"]
+FORMATS = ["csv", "grid", "json", "line", "markdown", "pretty", "yaml", "raw", "table", "text"]
 
 
 def show(table: list = None, headers: list = None, format: str = "text", filepath: str = "-") -> None:
@@ -76,6 +76,7 @@ def show(table: list = None, headers: list = None, format: str = "text", filepat
       - `grid`  : Show the items in a table grid with borders
       - `json`  : Show the items as a single JSON string
       - `line`  : Show the items each on their own line in JSON format
+      - `markdown`: Show the items in Markdown format
       - `pretty`: Show the items in an indented JSON format
       - `table` : Show the items in a text-based table
       - `text`  : Show the items in a text-based table (no header line separator)
@@ -97,16 +98,18 @@ def show(table: list = None, headers: list = None, format: str = "text", filepat
     elif format == "table":  # table
         print(f"{tabulate.tabulate(table, headers=headers, tablefmt='table')}", file=fh)
     elif format == "json":  # JSON, one long string
-        print(json.dumps({"table": [dict(zip(headers, row)) for row in rows]}, default=(lambda o: str(o))), file=fh)
+        print(json.dumps({"table": [dict(zip(headers, row)) for row in table]}, default=(lambda o: str(o))), file=fh)
     elif format == "line":  # 1 JSON object per line
         print("{", file=fh)
         print(f'"table" : [', file=fh)
-        print(",\n".join([json.dumps(r, default=(lambda o: str(o))) for r in [dict(zip(headers, row)) for row in rows]]), file=fh)
+        print(",\n".join([json.dumps(r, default=(lambda o: str(o))) for r in [dict(zip(headers, row)) for row in table]]), file=fh)
         print("]\n}", file=fh)
+    elif format == "markdown":
+        print(f"{tabulate.tabulate(table, headers=headers, tablefmt='github')}", file=fh)
     elif format == "pretty":  # pretty-print with 2-space indents
-        print(json.dumps({"table": [dict(zip(headers, row)) for row in rows]}, default=(lambda o: str(o)), indent=2), file=fh)
+        print(json.dumps({"table": [dict(zip(headers, row)) for row in table]}, default=(lambda o: str(o)), indent=2), file=fh)
     elif format == "yaml":  # YAML
-        print(yaml.dump({"table": [dict(zip(headers, row)) for row in rows]}, indent=2, default_flow_style=False), file=fh)
+        print(yaml.dump({"table": [dict(zip(headers, row)) for row in table]}, indent=2, default_flow_style=False), file=fh)
     elif format == "text":  # pretty-print
         print(f"{tabulate.tabulate(table, headers=headers, tablefmt='plain')}", file=fh)
     else:  # just in case something gets through the CLI parser
