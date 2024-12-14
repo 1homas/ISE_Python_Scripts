@@ -13,5 +13,8 @@ SELECT
     -- location,
     -- type
 FROM network_devices
+-- WHERE type LIKE '%MX%' -- Meraki MX
+-- WHERE type LIKE '%mr%' -- Meraki MR
+-- WHERE type LIKE '%ms%' -- Meraki MS
 ORDER BY name ASC
-FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
+-- FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets

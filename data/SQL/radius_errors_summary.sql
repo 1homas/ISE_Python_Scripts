@@ -56,4 +56,3 @@ FROM radius_errors_view
 GROUP BY message_code
 -- ORDER BY total ASC -- increasing
 ORDER BY total DESC -- decreasing
-FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets

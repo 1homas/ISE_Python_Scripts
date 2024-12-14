@@ -28,4 +28,4 @@ SELECT
     -- password_never_expires,
     -- success_login_ipaddress,
 FROM network_access_users
-FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
+-- FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets

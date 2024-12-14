@@ -15,4 +15,3 @@ SELECT
     -- active_status -- comment
 FROM network_device_groups
 ORDER BY name ASC -- alphabetical
-FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
