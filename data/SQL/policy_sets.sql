@@ -11,4 +11,3 @@ SELECT
   description -- Specifies the policy sets description
 FROM policy_sets
 ORDER BY policyset_name ASC
-FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
