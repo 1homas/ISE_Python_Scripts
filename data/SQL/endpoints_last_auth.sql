@@ -2,6 +2,7 @@
 -- Show the last RADIUS authentication per endpoint.
 -- Includes random MAC detection (2nd digit is 26AE).
 -- Optionally filter for >N days or more.
+-- Ideally you would use the `endpoints_data` table's `update_time` field but the `TIMESTAMP(6)+TZ` data type cannot be read by an oracledb thin client.
 --
 -- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
 --
