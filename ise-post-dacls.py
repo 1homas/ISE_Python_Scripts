@@ -165,6 +165,6 @@ async def create_ise_downloadableacls():
 
 if __name__ == "__main__":
     """
-    Entrypoint for local script.
+    Run from script
     """
     asyncio.run(create_ise_downloadableacls())

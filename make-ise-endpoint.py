@@ -369,7 +369,7 @@ def make_endpoint(
 
 if __name__ == "__main__":
     """
-    Entrypoint for local script.
+    Run from script
     """
     argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument("-n", "--number", action="store", type=int, default=1, help="number of endpoints to create", required=False)

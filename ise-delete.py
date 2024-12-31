@@ -419,7 +419,7 @@ async def ise_delete(resource_name: str = None):
 
 if __name__ == "__main__":
     """
-    Entrypoint for local script.
+    Run from script
     """
     global args
     argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)

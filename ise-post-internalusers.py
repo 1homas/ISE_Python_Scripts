@@ -234,6 +234,6 @@ async def main():
 
 if __name__ == "__main__":
     """
-    Entrypoint for local script.
+    Run from script
     """
     asyncio.run(main())
