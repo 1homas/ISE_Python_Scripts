@@ -32,21 +32,23 @@ requests.packages.urllib3.disable_warnings()
 """
 Return the number of resources of type resource.
 """
-def ise_ers_resource_count (resource) :
-    count = 0
-    r = requests.get(f"https://{ENV['ISE_PPAN']}/ers/config/{resource_name}",
-                     auth=(ENV['ISE_REST_USERNAME'], ENV['ISE_REST_PASSWORD']),
-                     headers={'Accept': 'application/json'},
-                     verify=ENV['ISE_CERT_VERIFY'].lower().startswith('t')
-                    )
-    if r.status_code == 200 :
-        count = r.json()['SearchResult']['total']
-    elif r.status_code == 404 :
-        print(f'{r.status_code} Unknown resource: {resource}', file=sys.stderr)
-    else :
-        print(f'{r.status_code} uh oh {r.text}', file=sys.stderr)
-    return count
 
+
+def ise_ers_resource_count(resource):
+    count = 0
+    r = requests.get(
+        f"https://{ENV['ISE_PPAN']}/ers/config/{resource_name}",
+        auth=(ENV["ISE_REST_USERNAME"], ENV["ISE_REST_PASSWORD"]),
+        headers={"Accept": "application/json"},
+        verify=ENV["ISE_CERT_VERIFY"].lower().startswith("t"),
+    )
+    if r.status_code == 200:
+        count = r.json()["SearchResult"]["total"]
+    elif r.status_code == 404:
+        print(f"{r.status_code} Unknown resource: {resource}", file=sys.stderr)
+    else:
+        print(f"{r.status_code} uh oh {r.text}", file=sys.stderr)
+    return count
 
 
 """
@@ -54,19 +56,18 @@ __main__
 """
 if __name__ == "__main__":
     """
-    Entrypoint for local script.
+    Run from script
     """
 
     # Load Environment Variables
-    ENV = { k : v for (k, v) in os.environ.items() }
+    ENV = {k: v for (k, v) in os.environ.items()}
 
-    if len(sys.argv) <= 1 :
-        print('❌ Missing resource name', file=sys.stderr)
+    if len(sys.argv) <= 1:
+        print("❌ Missing resource name", file=sys.stderr)
         print(USAGE, file=sys.stderr)
-        sys.exit(1) # not OK
+        sys.exit(1)  # not OK
     resource_name = sys.argv[1]
 
     count = ise_ers_resource_count(resource_name)
     print(count)
-    sys.exit(0) # 0 == OK
-
+    sys.exit(0)  # 0 == OK

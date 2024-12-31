@@ -29,126 +29,116 @@ import time
 requests.packages.urllib3.disable_warnings()
 
 # List of supported ISE resources
-RESOURCE_NAMES = [      
+RESOURCE_NAMES = [
     # Deployment
-    'node',
-    'sessionservicenode',
-
+    "node",
+    "sessionservicenode",
     # Network Devices
-    'networkdevicegroup',
-    'networkdevice',
-
+    "networkdevicegroup",
+    "networkdevice",
     # Endpoints
-    'endpointgroup',
-    'endpoint',
-    'endpointcert',  # POST(create) only!!!
-    'profilerprofile',
-
+    "endpointgroup",
+    "endpoint",
+    "endpointcert",  # POST(create) only!!!
+    "profilerprofile",
     # RADIUS Authentications
-    'activedirectory',
-    'allowedprotocols',
-    'adminuser',
-    'identitygroup',
-    'internaluser',
-    'externalradiusserver',
-    'radiusserversequence',
-    'idstoresequence',
-    'restidstore',  # RESTIDStore must be enabled / 404 if not configured
-
+    "activedirectory",
+    "allowedprotocols",
+    "adminuser",
+    "identitygroup",
+    "internaluser",
+    "externalradiusserver",
+    "radiusserversequence",
+    "idstoresequence",
+    "restidstore",  # RESTIDStore must be enabled / 404 if not configured
     # RADIUS Authorizations / Policy
-    'authorizationprofile',
-    'downloadableacl',
-    'filterpolicy',  # 404 if none configured
-
+    "authorizationprofile",
+    "downloadableacl",
+    "filterpolicy",  # 404 if none configured
     # Portals
-    'portal',
-    'portalglobalsetting',
-    'portaltheme',
-    'hotspotportal',
-    'selfregportal',
-
+    "portal",
+    "portalglobalsetting",
+    "portaltheme",
+    "hotspotportal",
+    "selfregportal",
     # Guest
-    'guestlocation',
-    'guestsmtpnotificationsettings',
-    'guestssid',
-    'guesttype',
-    'guestuser',          # 🛑 requires sponsor account!!!
-    'smsprovider',
-    'sponsorportal',
-    'sponsoredguestportal',
-    'sponsorgroup',
-    'sponsorgroupmember',
-
+    "guestlocation",
+    "guestsmtpnotificationsettings",
+    "guestssid",
+    "guesttype",
+    "guestuser",  # 🛑 requires sponsor account!!!
+    "smsprovider",
+    "sponsorportal",
+    "sponsoredguestportal",
+    "sponsorgroup",
+    "sponsorgroupmember",
     # BYOD
-    'certificateprofile',
-    'certificatetemplate',
-    'byodportal',
-    'mydeviceportal',
-    'nspprofile',
-
+    "certificateprofile",
+    "certificatetemplate",
+    "byodportal",
+    "mydeviceportal",
+    "nspprofile",
     # SDA
-    'sgt',
-    'sgacl',
-    'sgmapping',
-    'sgmappinggroup',
-    'sgtvnvlan',
-    'egressmatrixcell',
-    'sxpconnections',
-    'sxplocalbindings',
-    'sxpvpns',
-
+    "sgt",
+    "sgacl",
+    "sgmapping",
+    "sgmappinggroup",
+    "sgtvnvlan",
+    "egressmatrixcell",
+    "sxpconnections",
+    "sxplocalbindings",
+    "sxpvpns",
     # TACACS
-    'tacacscommandsets',
-    'tacacsexternalservers',  # 404 if none configured
-    'tacacsprofile',
-    'tacacsserversequence',  # 404 if none configured
-
+    "tacacscommandsets",
+    "tacacsexternalservers",  # 404 if none configured
+    "tacacsprofile",
+    "tacacsserversequence",  # 404 if none configured
     # pxGrid / ANC / RTC / TC-NAC
     # 'pxgridnode',  # 🐛 🛑 404 always whether pxGrid is enabled or not
-    'ancendpoint',
-    'ancpolicy',
+    "ancendpoint",
+    "ancpolicy",
 ]
 
 
-
-def resource_count (resource) :
+def resource_count(resource):
     """
-    Walk through the list of ISE Resources and count them. 
+    Walk through the list of ISE Resources and count them.
     """
-    LEAF = ' ┣╸'
+    LEAF = " ┣╸"
     count = 0
-    try :
-        url = 'https://'+env['ISE_PPAN']+'/ers/config/'+resource
-        r = requests.get(url,
-                        auth=(env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD']),
-                        headers={'Accept': 'application/json'},
-                        verify=(False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True)
-                        )
+    try:
+        url = "https://" + env["ISE_PPAN"] + "/ers/config/" + resource
+        r = requests.get(
+            url,
+            auth=(env["ISE_REST_USERNAME"], env["ISE_REST_PASSWORD"]),
+            headers={"Accept": "application/json"},
+            verify=(False if env["ISE_CERT_VERIFY"][0:1].lower() in ["f", "n"] else True),
+        )
 
-        if r.status_code == 401 :
-            if resource == 'guestuser' :
+        if r.status_code == 401:
+            if resource == "guestuser":
                 print(f"{LEAF}{resource} [{count}] ⟁ requires sponsor account")
-        elif r.status_code == 404 :
-            print(f'{LEAF}{resource} [{count}] ⟁ Not configured')
-        else :
-            count = r.json()['SearchResult']['total']
-            print(f'{LEAF}{resource} [{count}]')
-            
+        elif r.status_code == 404:
+            print(f"{LEAF}{resource} [{count}] ⟁ Not configured")
+        else:
+            count = r.json()["SearchResult"]["total"]
+            print(f"{LEAF}{resource} [{count}]")
+
     except Exception as e:
-        if resource == 'endpointcert' :
+        if resource == "endpointcert":
             print(f"{LEAF}{resource} [{count}] ⟁ POST endpointcert only!")
-        else :
+        else:
             print(f"{LEAF}{resource} [{count}] ⟁ Exception ")
 
 
 if __name__ == "__main__":
     """
-    Entrypoint for local script.
+    Run from script
     """
 
     # Load Environment Variables
-    env = { k : v for (k, v) in os.environ.items() }
+    env = {k: v for (k, v) in os.environ.items()}
 
-    print('C▶'+env['ISE_PPAN'])
-    for resource in RESOURCE_NAMES :
+    print("C▶" + env["ISE_PPAN"])
+    for resource in RESOURCE_NAMES:
         resource_count(resource)

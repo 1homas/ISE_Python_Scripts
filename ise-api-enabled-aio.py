@@ -26,20 +26,18 @@ import os
 import sys
 
 
-async def ise_open_api_enable (session:aiohttp.ClientSession=None, ssl_verify:bool=True) :
-    """
-    """
-    url = '/admin/API/apiService/update'
+async def ise_open_api_enable(session: aiohttp.ClientSession = None, ssl_verify: bool = True):
+    """ """
+    url = "/admin/API/apiService/update"
     data = '{ "papIsEnabled":true, "psnsIsEnabled":true }'
-    async with session.post(url, data=data, ssl=ssl_verify) as response :
-        if response.status == 200 or response.status == 500 :
+    async with session.post(url, data=data, ssl=ssl_verify) as response:
+        if response.status == 200 or response.status == 500:
             print(f"✅ {response.status} ISE Open APIs Enabled")
 
 
-async def ise_ers_api_enable (session:aiohttp.ClientSession=None, ssl_verify:bool=True) :
-    """
-    """
-    url = '/admin/API/NetworkAccessConfig/ERS'
+async def ise_ers_api_enable(session: aiohttp.ClientSession = None, ssl_verify: bool = True):
+    """ """
+    url = "/admin/API/NetworkAccessConfig/ERS"
     data = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ersConfig>
 <id>1</id>
@@ -48,33 +46,36 @@ async def ise_ers_api_enable (session:aiohttp.ClientSession=None, ssl_verify:boo
 <isPsnsEnabled>true</isPsnsEnabled>
 </ersConfig>
 """
-    async with session.put(url, data=data, headers={'Accept':'application/xml', 'Content-Type':'application/xml'}, ssl=ssl_verify) as response :
-        if response.status == 200 or response.status == 500 :
+    async with session.put(
+        url, data=data, headers={"Accept": "application/xml", "Content-Type": "application/xml"}, ssl=ssl_verify
+    ) as response:
+        if response.status == 200 or response.status == 500:
             print(f"✅ {response.status} ISE ERS APIs Enabled")
-        else :
+        else:
             print(f"❌ {response.status} ISE ERS APIs Disabled")
-
 
 
 async def main():
     """
     Entrypoint for packaged script.
     """
-    env = { k : v for (k,v) in os.environ.items() } # Load environment variables
-    ssl_verify = False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
+    env = {k: v for (k, v) in os.environ.items()}  # Load environment variables
+    ssl_verify = False if env["ISE_CERT_VERIFY"][0:1].lower() in ["f", "n"] else True
 
-    auth = aiohttp.BasicAuth(login=env['ISE_REST_USERNAME'], password=env['ISE_REST_PASSWORD'])
-    session = aiohttp.ClientSession(f"https://{env['ISE_PPAN']}", auth=auth, headers={'Accept':'application/json', 'Content-Type':'application/json'})
+    auth = aiohttp.BasicAuth(login=env["ISE_REST_USERNAME"], password=env["ISE_REST_PASSWORD"])
+    session = aiohttp.ClientSession(
+        f"https://{env['ISE_PPAN']}", auth=auth, headers={"Accept": "application/json", "Content-Type": "application/json"}
+    )
     await asyncio.gather(
-      ise_ers_api_enable(session, ssl_verify),
-      ise_open_api_enable(session, ssl_verify),
+        ise_ers_api_enable(session, ssl_verify),
+        ise_open_api_enable(session, ssl_verify),
     )
     await session.close()
 
 
 if __name__ == "__main__":
     """
-    Entrypoint for local script.
+    Run from script
     """
     asyncio.run(main())
-    sys.exit(0) # 0 is ok
+    sys.exit(0)  # 0 is ok

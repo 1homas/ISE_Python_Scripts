@@ -24,21 +24,21 @@ import os
 import requests
 import sys
 
-requests.packages.urllib3.disable_warnings() # Silence any requests package warnings about certificates
+requests.packages.urllib3.disable_warnings()  # Silence any requests package warnings about certificates
 
 
-def ise_open_api_enable (session:requests.Session=None, ssl_verify:bool=True) :
-    url = 'https://'+env['ISE_PPAN']+'/admin/API/apiService/update'
+def ise_open_api_enable(session: requests.Session = None, ssl_verify: bool = True):
+    url = "https://" + env["ISE_PPAN"] + "/admin/API/apiService/update"
     data = '{ "papIsEnabled":true, "psnsIsEnabled":true }'
     r = session.post(url, data=data, verify=ssl_verify)
-    if (r.status_code == 200 or r.status_code == 500 ) : # 500 if already enabled
+    if r.status_code == 200 or r.status_code == 500:  # 500 if already enabled
         print(f"✅ {r.status_code} ISE Open APIs Enabled")
-    else :
+    else:
         print(f"❌ {r.status_code} ISE Open APIs Disabled")
 
 
-def ise_ers_api_enable (session:requests.Session=None, ssl_verify:bool=True) :
-    url = 'https://'+env['ISE_PPAN']+'/admin/API/NetworkAccessConfig/ERS'
+def ise_ers_api_enable(session: requests.Session = None, ssl_verify: bool = True):
+    url = "https://" + env["ISE_PPAN"] + "/admin/API/NetworkAccessConfig/ERS"
     data = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ersConfig>
 <id>1</id>
@@ -47,24 +47,23 @@ def ise_ers_api_enable (session:requests.Session=None, ssl_verify:bool=True) :
 <isPsnsEnabled>true</isPsnsEnabled>
 </ersConfig>
 """
-    r = session.put(url, data=data, headers={'Content-Type': 'application/xml', 'Accept': 'application/xml'}, verify=ssl_verify)
+    r = session.put(url, data=data, headers={"Content-Type": "application/xml", "Accept": "application/xml"}, verify=ssl_verify)
     print(f"{'✅' if r.ok else '❌'} {r.status_code} ISE ERS APIs {'Enabled' if r.ok else 'Disabled'}")
 
 
 if __name__ == "__main__":
     """
-    Entrypoint for local script.
+    Run from script
     """
-    env = { k : v for (k,v) in os.environ.items() } # Load environment variables
-    ssl_verify = False if env['ISE_CERT_VERIFY'][0:1].lower() in ['f','n'] else True
+    env = {k: v for (k, v) in os.environ.items()}  # Load environment variables
+    ssl_verify = False if env["ISE_CERT_VERIFY"][0:1].lower() in ["f", "n"] else True
 
     with requests.Session() as session:
-      session = requests.Session()
-      session.auth = ( env['ISE_REST_USERNAME'], env['ISE_REST_PASSWORD'] )
-      session.headers.update({'Content-Type': 'application/json', 'Accept': 'application/json'})
+        session = requests.Session()
+        session.auth = (env["ISE_REST_USERNAME"], env["ISE_REST_PASSWORD"])
+        session.headers.update({"Content-Type": "application/json", "Accept": "application/json"})
 
-      ise_open_api_enable(session, ssl_verify)
-      ise_ers_api_enable(session, ssl_verify)
+        ise_open_api_enable(session, ssl_verify)
+        ise_ers_api_enable(session, ssl_verify)
 
-    sys.exit(0) # 0 is ok
-
+    sys.exit(0)  # 0 is ok
