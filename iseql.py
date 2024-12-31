@@ -5,19 +5,11 @@ The default output format is a streamed CSV (comma-separated value) to minimize 
 ⚠ Many output formats are supported however they require buffering all query results in memory before printing to calculate column widths (grid,table) or map attriute names (json,yaml).
 
 Example commands:
-  iseql.py -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list" -f table
-  iseql.py -it -n ise.demo.local -u dataconnect -p "ISEisC00L" "SELECT COUNT(*) AS total FROM radius_authentications"
+  iseql.py -n ise.example.org -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list" -f table
+  iseql.py -it -n ise.example.org -u dataconnect -p "ISEisC00L" "SELECT COUNT(*) AS total FROM radius_authentications"
   iseql.py "SELECT * FROM node_list" -f yaml  # ⚠ requires environment variables
-  iseql.py "SELECT * FROM radius_authentications ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
-  iseql.py -it "SELECT * FROM radius_authentications ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
-
-Here are a few example queries (wrap them in quotes!):
-  SELECT view_name FROM user_views ORDER BY view_name ASC
-  SELECT * FROM node_list
-  SELECT * FROM network_devices
-  SELECT COUNT(*) FROM radius_authentications
-  SELECT timestamp, calling_station_id, username FROM radius_accounting WHERE timestamp > sysdate - INTERVAL '1' MINUTE 
-  SELECT authentication_method, COUNT(*) FROM radius_authentications GROUP BY authentication_method
+  iseql.py "SELECT * FROM radius_accounting ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
+  iseql.py -it "SELECT * FROM radius_accounting ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
 
 It is faster to edit and save your favorite or complex SQL queries into files then include them:
   iseql.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
@@ -26,9 +18,7 @@ Many SQL queries have been created for you in https://github.com/1homas/ISE_Pyth
 
 Supported environment variables:
   export ISE_PMNT='1.2.3.4'             # hostname or IP address of ISE Primary MNT
-  export ISE_DC_USERNAME='dataconnect'  # Data Connect username
-  export ISE_DC_PASSWORD='DataC0nnect'  # Data Connect password
-  export ISE_DC_PORT=2484               # Data Connect port
+  export ISE_DC_PASSWORD='D@t@C0nnect'  # Data Connect password
   export ISE_VERIFY=False               # Optional: Disable TLS certificate verification (allow self-signed certs)
 
 You may add these export lines to a text file and load with `source`:
@@ -49,14 +39,16 @@ __email__ = "thomas@cisco.com"
 __license__ = "MIT - https://mit-license.org/"
 
 import argparse
-import oracledb
-import os
-import ssl
-import sys
-import time
-import tabulate
 import csv
 import json
+import logging
+import oracledb
+import os
+import signal
+import ssl
+import sys
+import tabulate
+import time
 import yaml
 
 ISE_DC_PORT = 2484  # Data Connect port
@@ -113,59 +105,59 @@ def show(table: list = None, headers: list = None, format: str = "text", filepat
     elif format == "text":  # pretty-print
         print(f"{tabulate.tabulate(table, headers=headers, tablefmt='plain')}", file=fh)
     else:  # just in case something gets through the CLI parser
-        print(f"✖ Unknown format: {format}", file=sys.stderr)
+        log.error(f"Unknown format: {format}")
 
 
+signal.signal(signal.SIGINT, lambda signum, frame: sys.exit(0))  # Handle CTRL+C interrupts gracefully
+
+# Parse command line options
 argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 argp.add_argument("query", help="an Oracle PL/SQL Query, wrapped in double-quotes", default=None)
-argp.add_argument("-n", "--name", action="store", default=None, help="ISE MNT hostname or IP address", type=str)
-argp.add_argument("-u", "--username", action="store", default=ISE_DC_USERNAME, help="username", type=str)
+argp.add_argument("-n", "--hostname", action="store", default=None, help="ISE MNT hostname or IP address", type=str)
 argp.add_argument("-p", "--password", action="store", default=None, help="password", type=str)
-argp.add_argument("--port", action="store", default=None, help="Data Connect Port number", type=int)
-argp.add_argument("-f", "--format", choices=FORMATS, default="csv")
+argp.add_argument("-f", "--format", choices=FORMATS, default="csv", help="output format", type=str)
 argp.add_argument("-i", "--insecure", action="store_true", default=False, help="do not verify certificates (allow self-signed certs)")
+argp.add_argument("-l", "--level", default="WARNING", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], help="log threshold")
 argp.add_argument("-t", "--timer", action="store_true", default=False, help="show total script time")
-argp.add_argument("-v", "--verbosity", action="count", default=0, help="verbosity; multiple allowed")
 args = argp.parse_args()
 
 if args.query is None or args.query == "":
     sys.exit(f"Required query is empty")
+
 if args.timer:
     start_time = time.time()
 
-env = {k: v for (k, v) in os.environ.items() if k.startswith("ISE_")}  # Load environment variables
+# Create a default logger to sys.stderr
+logging.basicConfig(
+    stream=sys.stderr,
+    format="%(asctime)s.%(msecs)03d | %(levelname)s | %(module)s | %(funcName)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S %z",
+)
+log = logging.getLogger()
+log.setLevel(args.level)  # logging threshold
 
-# Merge settings from 1) CLI args, 2) environment variables and 3) static defaults
-host = args.name or env.get("ISE_PMNT")
-port = args.port or env.get("ISE_DC_PORT") or ISE_DC_PORT
-username = args.username or env.get("ISE_DC_USERNAME") or ISE_DC_USERNAME
-password = args.password or env.get("ISE_DC_PASSWORD")
+# Merge settings from 1) CLI args, 2) environment variables
+hostname = args.hostname or os.environ.get("ISE_PMNT")
+password = args.password or os.environ.get("ISE_DC_PASSWORD")
+insecure = args.insecure or os.environ.get("ISE_VERIFY", "True")[0:1].lower() in ["f", "n"]
 
-if host is None:
-    sys.exit("Missing host: Set ISE_PMNT environment variable or use --name option")
-if port is None:
-    sys.exit("Missing port: Set ISE_DC_PORT environment variable or use --port option")
-if username is None:
-    sys.exit("Missing username: Set ISE_DC_USERNAME environment variable or use --username option")
+if hostname is None:
+    sys.exit("Missing hostname: Set ISE_PMNT environment variable or use --hostname option")
 if password is None:
     sys.exit("Missing password: Set ISE_DC_PASSWORD environment variable or use --password option")
 
-if args.verbosity >= 3:
-    print(f"{username}:{password}@{host}:{port} with {'✖' if args.insecure else '✔'}TLS")
-
 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-if args.insecure or env.get("ISE_VERIFY", "True")[0:1].lower() in ["f", "n"]:
-    if args.verbosity:
-        print("ⓘ TLS security disabled", file=sys.stderr)
+if insecure:
     ssl_context.check_hostname = False  # required before setting verify_mode == ssl.CERT_NONE
     ssl_context.verify_mode = ssl.CERT_NONE  # any cert is accepted; validation errors are ignored
+log.debug(f"{'⚠🔓' if insecure else '✔🔒'} TLS security {'dis' if insecure else 'en'}abled")
 
 params = oracledb.ConnectParams(
     protocol="tcps",  # tcp "secure" with TLS
-    host=host,  # name or IP address of database host machine
-    port=port,  # Oracle Default: 1521
+    host=hostname,  # hostname or IP address of database host machine
+    port=ISE_DC_PORT,  # Oracle Default: 1521
     service_name=ISE_DC_SID,
-    user=username,  # the name of the user to connect to
+    user=ISE_DC_USERNAME,
     password=password,
     retry_count=3,  # connection attempts retries before being terminated. Default: 0
     retry_delay=3,  # seconds to wait before a new connection attempt. Default: 0
@@ -174,8 +166,7 @@ params = oracledb.ConnectParams(
     # ssl_server_cert_dn=False # the distinguished name (DN), which should be matched with the server
     # wallet_location=DIR_EWALLET, # the directory containing the PEM-encoded wallet file, ewallet.pem
 )
-if args.verbosity:
-    print(f"ⓘ OracleDB Connect String: {params.get_connect_string()}", file=sys.stderr)
+log.debug(f"OracleDB Connection String: {params.get_connect_string()}")
 
 try:
     with oracledb.connect(params=params) as connection:
@@ -201,9 +192,9 @@ try:
                 show(table=rows, headers=headers, format=args.format)
 
 except oracledb.Error as e:
-    print(f"Oracle Error: {e}", file=sys.stderr)
+    log.error(f"Oracle Error: {e}")
 except Exception as e:
-    print(f"Error: {e}", file=sys.stderr)
+    log.error(f"Error: {e}")
 
 if args.timer:
     print(f"⏱ {'{0:.3f}'.format(time.time() - start_time)} seconds", file=sys.stderr)
