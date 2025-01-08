@@ -29,10 +29,9 @@ import time
 ENDPOINTS_RUNTIME_FILEPATH = "./.endpoints_last_run.txt"
 FS_ISO8601_DT = "%Y-%m-%d %H:%M:%S"  # 2024-11-05 00:15:40 local time
 FS_ISO8601_UTC = "%Y-%m-%dT%H:%M:%SZ"  # 2024-11-05T00:15:40Z (UTC)
-MAX_NOTIFICATIONS = 3
-NTFY_TOPIC = "1homas"
+NTFY_TOPIC = "ise-endpoints-notifier"
 PERIOD_DEFAULT = 60  # seconds
-TR_NO_PUNCTUATION = str.maketrans("", "", string.punctuation)  # remove delimiters from MAC address
+PERIOD_MAX = 60 * 60 * 24  # maximum lookback period for new endpoint notifications
 
 
 # Create a default logger to sys.stderr
@@ -71,14 +70,13 @@ def load_ieee_oui_dict(expiration: datetime.timedelta = datetime.timedelta(days=
     IEEE_OUI_URL = "https://standards-oui.ieee.org/oui/oui.txt"
     IEEE_OUI_TXT_FILENAME = "ieee_ouis.txt"
     IEEE_OUI_CSV_FILENAME = "ieee_ouis.csv"
-
-    # use a fake User-Agent or they will reject your requests as a bot
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/89.0"}
+    # use a fake User-Agent or the IEEE site will reject your requests as a bot
+    USER_AGENT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/89.0"}
 
     def download(url: str = None, headers: dict = None):
         log.critical(f"load_ieee_oui_dict().download({IEEE_OUI_URL})")
         try:
-            response = requests.get(IEEE_OUI_URL, headers=headers)
+            response = requests.get(IEEE_OUI_URL, headers=USER_AGENT_HEADER)
             with open(IEEE_OUI_TXT_FILENAME, "w") as file:
                 file.write(response.text)
                 log.critical(f"load_ieee_oui_dict().download(): Saved {IEEE_OUI_TXT_FILENAME}")
@@ -88,26 +86,30 @@ def load_ieee_oui_dict(expiration: datetime.timedelta = datetime.timedelta(days=
     # Download IEEE OUIs locally if missing or older than `expiration`
     if not os.path.exists(IEEE_OUI_TXT_FILENAME):
         # No OUI file - download it
-        download(IEEE_OUI_URL, headers)
+        download(IEEE_OUI_URL, USER_AGENT_HEADER)
     else:
         # Check file modification, cache expiration, document Last-Modified header before downloading
         now_dt = datetime.datetime.now()
         ouis_text_modified_ts = os.path.getmtime(IEEE_OUI_TXT_FILENAME)
-        ouis_text_modified_dt = datetime.datetime.fromtimestamp(ouis_text_modified_ts)
+        ouis_text_modified_dt = datetime.datetime.fromtimestamp(int(ouis_text_modified_ts))  # use int() to drop μseconds
         ouis_text_expired_dt = ouis_text_modified_dt + expiration  # expire after `expiration` timedelta
 
-        if ouis_text_modified_ts > ouis_text_expired_dt.timestamp():
-            log.critical(f"{IEEE_OUI_TXT_FILENAME} modified @ {ouis_text_modified_dt} expires @ {ouis_text_expired_dt} ({expiration})")
+        if now_dt.timestamp() > ouis_text_expired_dt.timestamp():
+            log.info(f"IEEE file expired: {now_dt} (now) > {ouis_text_expired_dt} text expiration")
 
-            response = requests.head(IEEE_OUI_URL, headers=headers)
-            log.critical(f"response.headers: {response.headers}")
+            response = requests.head(IEEE_OUI_URL, headers=USER_AGENT_HEADER)
+            log.info(f"IEEE OUI HEAD Request: {response.headers}")
 
             # Convert Last-Modified to timestamp for easy comparison: ['Last-Modified']: Thu, 26 Dec 2024 17:01:23 GMT
             url_last_modified_ts = datetime.datetime.strptime(response.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z").timestamp()
             url_last_modified_dt = datetime.datetime.fromtimestamp(url_last_modified_ts)
-            log.critical(f"{IEEE_OUI_URL} modified {response.headers['Last-Modified']} ({url_last_modified_dt.strftime(FS_ISO8601_DT)})")
+            log.info(f"{IEEE_OUI_URL} modified {response.headers['Last-Modified']} ({url_last_modified_dt.strftime(FS_ISO8601_DT)})")
+
             if url_last_modified_ts > ouis_text_modified_ts:  # URL is newer?
-                download(IEEE_OUI_URL, headers)
+                log.info(f"IEEE file updated: {url_last_modified_dt} > {ouis_text_expired_dt} text expiration")
+                download(IEEE_OUI_URL, USER_AGENT_HEADER)
+        else:
+            log.info(f"IEEE file current: {ouis_text_modified_dt} < {ouis_text_expired_dt} expiration")
 
     # Invalid OUI file?
     if os.path.getsize(IEEE_OUI_TXT_FILENAME) < 1000000:
@@ -139,7 +141,6 @@ def load_ieee_oui_dict(expiration: datetime.timedelta = datetime.timedelta(days=
         for row in csv_reader:
             if row:  # Ensure the row is not empty
                 oui_dict[row[0]] = row[1]  # { "OUI" : "Organization" }
-        log.info(f"Created `oui_dict` from {IEEE_OUI_CSV_FILENAME}")
         return oui_dict
 
 
@@ -160,7 +161,7 @@ def ntfy(topic: str = None, title: str = "", data: str = None, headers: dict = {
     Send a notification via ntfy.sh. Markdown is supported in the message body.
     """
     assert topic is not None
-    assert data is not None
+    data = data if data is not None else ""
     assert isinstance(headers, dict)
     log.debug(f"ntfy(topic={topic}, title={title}, data={data}, headers={headers})")
     if title and isinstance(title, str) and len(title) > 0:
@@ -187,49 +188,73 @@ ORDER BY create_time ASC
 """
 
 
-def query_endpoints(timestamp: int = 0) -> None:
-    """ """
+def send_endpoints_notification(endpoints: [dict] = None, topic: str = NTFY_TOPIC) -> None:
+    """
+    Package the notification message and send via ntfy.sh.
+    - endpoints ([dict]) : list of endpoint dictionaries
+    - topic (str) : ntfy.sh topic name
+    """
+    MAX_ENDPOINTS = 3  # maximum number of endpoints to send via NTFY
+
+    if len(endpoints) <= MAX_ENDPOINTS:
+        # Repackage dictionary attributes into key-value pairs for readability in each notification
+        for endpoint in endpoints:
+            attrs = "\n".join([f"{k}: {v}" for k, v in endpoint.items()])
+            ntfy(
+                topic,
+                title=f"New Endpoint: {endpoint['mac']}",
+                data=attrs,
+                headers={"Tags": "new"},
+            )
+    else:
+        # headline summary only to prevent a notification flood
+        log.debug(f"Notify on {type(endpoints)} Endpoints")
+        ntfy(topic, title=f"New Endpoints: {len(endpoints)}", headers={"Tags": "new"})
+
+
+def show(endpoints: [dict] = None) -> None:
+    """_summary_
+    Print a table of the ISE endpoints' attributes.
+    - endpoints ([dict]) : list of endpoint dictionaries
+    """
+    if len(endpoints) <= 0:
+        return
+    print(tabulate.tabulate(endpoints, headers="keys", tablefmt="markdown"), file=sys.stdout)
+
+
+def get_endpoints_after(timestamp: int = 0) -> [dict]:
+    """
+    Returns a list of of endpoint dictionaries for all new endpoints after `timestamp`.
+    - timestamp (int) : seconds since the Unix epoch
+    - returns ([dict]) : list of endpoint dictionaries with IEEE OUI attributes added
+    """
     timestamp = int(timestamp)  # remove milli/micro-seconds
     timestamp_dt_str = datetime.datetime.fromtimestamp(timestamp).strftime(FS_ISO8601_DT)
     dhms = timestamp_to_dhms(datetime.datetime.now().timestamp() - timestamp)
-    log.info(f"▽ {timestamp} ⏲ {timestamp_dt_str} ⧖ {dhms} ago")
-
     after_dt_str = datetime.datetime.fromtimestamp(timestamp).strftime(FS_ISO8601_DT)
     sql_endpoints_created_after = Template(SQL_ENDPOINTS_CREATED).substitute(timestamp=after_dt_str)
     touch_file = Path(ENDPOINTS_RUNTIME_FILEPATH).touch(mode=0o666, exist_ok=True)
     cursor = isedc.query(sql_endpoints_created_after)
     rows = cursor.fetchall()
+    endpoints = []
+    if len(rows) > 0:
+        headers = [f"{column[0]}".lower() for column in cursor.description]
+        endpoints = [dict(zip(headers, row)) for row in rows]  # make a list of dicts
+    log.info(f"{len(endpoints)} new endpoints since ⏲ {timestamp_dt_str} ▽ {timestamp} ⧖ {dhms} ago")
+    return endpoints
 
-    if len(rows) <= 0:  # nothing to see here
-        log.info(f"No new endpoints")
-        return
 
-    headers = [f"{column[0]}".lower() for column in cursor.description]
-    endpoints = [dict(zip(headers, row)) for row in rows]  # make a list of dicts
-
-    if len(rows) <= MAX_NOTIFICATIONS:
-        # send endpoint details in each notification
-        for endpoint in endpoints:
-            endpoint["oui"] = endpoint["mac"].strip().translate(TR_NO_PUNCTUATION)[0:6].upper()
-            # Add feature column(s)
-            if endpoint["endpoint_policy"] == "Unknown":
-                endpoint["ieee_oui_org"] = oui_dict.get(endpoint["oui"], "Unknown")
-            # Repackage dictionary attributes into key-value pairs for readability
-            attrs = "\n".join([f"{k}: {v}" for k, v in endpoint.items()])
-            ntfy(NTFY_TOPIC, title=f"New Endpoint: {endpoint['mac']}", data=attrs, headers={"Tags": "new"})
-    else:
-        # summarize new endpoints to prevent a notification flood
-        log.debug(f"Notify on {type(endpoints)} Endpoints")
-        lines = []
-        for endpoint in endpoints:
-            endpoint["oui"] = endpoint["mac"].strip().translate(TR_NO_PUNCTUATION)[0:6].upper()
-            lines.append(
-                f"""{endpoint["mac"]} | {endpoint["endpoint_policy"]} | {endpoint["cf"]} | {oui_dict.get(endpoint["oui"], "Unknown")}"""
-            )
-        log.debug(f"New Endpoints: {len(lines)}\n{'\n'.join(lines)}")
-        ntfy(NTFY_TOPIC, title=f"New Endpoints: {len(endpoints)}", data="\n".join(lines), headers={"Tags": "new"})
-
-    print(tabulate.tabulate(endpoints, headers="keys", tablefmt="markdown"), file=sys.stdout)
+def add_ieee_oui_attributes(endpoints: [dict] = None) -> [dict]:
+    """
+    Add endpoint attributes `oui` and `ieee_oui_org` from the IEEE OUI table for reference.
+    - endpoints ([dict]) : list of endpoint dictionaries
+    - returns ([dict]) : list of endpoint dictionaries with IEEE OUI attributes added
+    """
+    NO_MAC_DELIMITERS = str.maketrans("", "", string.punctuation)  # remove delimiters from MAC address
+    for endpoint in endpoints:
+        endpoint["oui"] = endpoint["mac"].strip().translate(NO_MAC_DELIMITERS)[0:6].upper()
+        endpoint["ieee_oui_org"] = oui_dict.get(endpoint["oui"], "Unknown")
+    return endpoints
 
 
 if __name__ == "__main__":
@@ -240,15 +265,15 @@ if __name__ == "__main__":
 
     argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument("-f", "--format", choices=["table", "github"], default="table", help="output format or styling")
-    argp.add_argument("-i", "--insecure", action="store_true", default=False, help="do not verify certificates (allow self-signed certs)")
+    argp.add_argument("-i", "--insecure", action="store_true", default=False, help="do not verify certs (allow self-signed)")
     argp.add_argument("-l", "--level", default="WARNING", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], help="log threshold")
     argp.add_argument("-p", "--period", type=int, default=PERIOD_DEFAULT, help="query period, in seconds")
+    argp.add_argument("-s", "--show", action="store_true", help="show new endpoints")
     args = argp.parse_args()
 
     log.setLevel(args.level)
 
     oui_dict = load_ieee_oui_dict()
-    # print(list(oui_dict.keys()))
     with ISEDC(
         hostname=os.environ.get("ISE_PMNT"),
         password=os.environ.get("ISE_DC_PASSWORD"),
@@ -258,8 +283,13 @@ if __name__ == "__main__":
 
         # find new endpoints since last run
         last_run = os.path.getmtime(ENDPOINTS_RUNTIME_FILEPATH) if os.path.exists(ENDPOINTS_RUNTIME_FILEPATH) else 0
+        now = datetime.datetime.now(tz=None).timestamp()
+        period_start = max(now - PERIOD_MAX, last_run)  # limit timespan to avoid spamming with all endpoints
         while True:
-            now = datetime.datetime.now(tz=None).timestamp()  # tz=None uses the local system's timezone
-            query_endpoints(timestamp=last_run)
-            last_run = now
+            endpoints = get_endpoints_after(timestamp=period_start)
+            period_start = datetime.datetime.now(tz=None).timestamp()  # tz=None uses the local system's timezone
+            endpoints = add_ieee_oui_attributes(endpoints)
+            send_endpoints_notification(endpoints, NTFY_TOPIC)
+            if args.show:
+                show(endpoints)
             time.sleep(args.period)  # sleep until next poll
