@@ -187,6 +187,8 @@ class ISEDC:
         """
         if self.connection != None:
             return self.connection
+        if not self.enabled():
+            self.enable(True)
 
         for attempt in range(self.DB_CONNECT_RETRIES):
             try:
@@ -318,7 +320,6 @@ class ISEDC:
         """
         Get the ISE Data Connect status.
         """
-        self.log.debug(f"ISEDC.enabled()")
         with requests.Session() as session:
             # Initialize ISE REST API Session
             session.auth = (os.environ.get("ISE_REST_USERNAME"), os.environ.get("ISE_REST_PASSWORD"))
@@ -335,6 +336,7 @@ class ISEDC:
             #     }
             # }
             url = f"https://{self.hostname}/api/v1/mnt/data-connect/settings"
+            self.log.debug(f"Checking if {url} enabled")
             response = session.get(url)
             is_enabled = self.to_bool((response.json()["response"])["isEnabled"])
             self.log.debug(f"enabled:{is_enabled} response: {response.json()}")
