@@ -46,20 +46,14 @@ import json
 import logging
 import oracledb  # https://python-oracledb.readthedocs.io/en/latest/
 import os
-import pandas as pd
 import requests
 import signal
 import ssl
 import sys
 import tabulate  # https://pypi.org/project/tabulate/
 import traceback
-import tracemalloc
-import warnings
 import yaml
 from typing import Union
-
-# Ignore 'UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection.'
-warnings.simplefilter(action="ignore", category=UserWarning)
 
 # -----------------------------------------------------------------------------
 # Thick Client Option
@@ -113,7 +107,7 @@ class ISEDC:
         logging.basicConfig(
             stream=sys.stderr,
             format="%(asctime)s.%(msecs)03d | %(levelname)s | %(module)s | %(funcName)s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S.%f",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
         self.log = logging.getLogger()
         self.log.setLevel(level)  # logging threshold
@@ -265,7 +259,6 @@ class ISEDC:
         tb_text = "\n".join(traceback.format_exc().splitlines()[1:])  # remove 'Traceback (most recent call last):'
         self.log.error(f"{e.__class__} | {tb_text}")
 
-    @classmethod
     def read_sql_file(self, filepath: str = None) -> str:
         """
         Read and return the file contents at the filepath.
@@ -281,7 +274,6 @@ class ISEDC:
         with open(filepath, mode="r", encoding="utf-8") as fh:
             return fh.read()
 
-    @classmethod
     def csv_stream(self, cursor: oracledb.Cursor = None, filepath="-"):
         """
         Return the query results in a stream of comma-separated values (CSV) format.
@@ -307,7 +299,6 @@ class ISEDC:
                 break
             writer.writerows(rows)
 
-    @classmethod
     def cursor_headers(self, cursor: oracledb.Cursor = None):
         """
         Returns a list of the header names from the cursor.
