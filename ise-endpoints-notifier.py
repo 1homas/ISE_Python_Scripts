@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Send a notification when a new endpoint is detected in ISE.
+Send a notification when new endpoint(s) are detected in ISE.
 
-Notification requires a ntfy.sh account and environment variable with the topic name in the environment variable `NTFY_TOPIC`. 
+Notification implemented with ntfy.sh (account required) and environment variable with the topic name in the environment variable `NTFY_TOPIC`. 
 
 """
 __author__ = "Thomas Howard"
@@ -26,12 +26,10 @@ import sys
 import tabulate
 import time
 
-ENDPOINTS_RUNTIME_FILEPATH = "./.endpoints_last_run.txt"
 FS_ISO8601_DT = "%Y-%m-%d %H:%M:%S"  # 2024-11-05 00:15:40 local time
-FS_ISO8601_UTC = "%Y-%m-%dT%H:%M:%SZ"  # 2024-11-05T00:15:40Z (UTC)
-NTFY_TOPIC = "ise-endpoints-notifier"
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC") or "ise-endpoints-notifier"
 PERIOD_DEFAULT = 60  # seconds
-PERIOD_MAX = 60 * 60 * 24  # maximum lookback period for new endpoint notifications
+PERIOD_MIN = 5  # minimum query period, in seconds. If you need realtime, use Cisco pxGrid
 
 
 # Create a default logger to sys.stderr
@@ -144,18 +142,6 @@ def load_ieee_oui_dict(expiration: datetime.timedelta = datetime.timedelta(days=
         return oui_dict
 
 
-def read_file(filepath: str = None) -> str:
-    """
-    Read and return the file contents at the filepath.
-      filepath: an absolute or relative path from this script.
-      returns: the file contents as a string.
-    """
-    assert os.path.exists(filepath)
-    assert os.path.isfile(filepath)
-    with open(filepath, mode="r", encoding="utf-8") as fh:
-        return fh.read()
-
-
 def ntfy(topic: str = None, title: str = "", data: str = None, headers: dict = {}):
     """
     Send a notification via ntfy.sh. Markdown is supported in the message body.
@@ -212,14 +198,14 @@ def send_endpoints_notification(endpoints: [dict] = None, topic: str = NTFY_TOPI
         ntfy(topic, title=f"New Endpoints: {len(endpoints)}", headers={"Tags": "new"})
 
 
-def show(endpoints: [dict] = None) -> None:
+def show(endpoints: [dict] = None, format: str = "table") -> None:
     """_summary_
     Print a table of the ISE endpoints' attributes.
     - endpoints ([dict]) : list of endpoint dictionaries
     """
     if len(endpoints) <= 0:
         return
-    print(tabulate.tabulate(endpoints, headers="keys", tablefmt="markdown"), file=sys.stdout)
+    print(tabulate.tabulate(endpoints, headers="keys", tablefmt=format), file=sys.stdout)
 
 
 def get_endpoints_after(timestamp: int = 0) -> [dict]:
@@ -233,7 +219,6 @@ def get_endpoints_after(timestamp: int = 0) -> [dict]:
     dhms = timestamp_to_dhms(datetime.datetime.now().timestamp() - timestamp)
     after_dt_str = datetime.datetime.fromtimestamp(timestamp).strftime(FS_ISO8601_DT)
     sql_endpoints_created_after = Template(SQL_ENDPOINTS_CREATED).substitute(timestamp=after_dt_str)
-    touch_file = Path(ENDPOINTS_RUNTIME_FILEPATH).touch(mode=0o666, exist_ok=True)
     cursor = isedc.query(sql_endpoints_created_after)
     rows = cursor.fetchall()
     endpoints = []
@@ -264,7 +249,8 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, lambda signum, frame: sys.exit(0))  # Handle CTRL+C interrupts gracefully
 
     argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    argp.add_argument("-f", "--format", choices=["table", "github"], default="table", help="output format or styling")
+    argp.add_argument("-a", "--after", type=str, default=None, help="query after datetime, YYYY-MM-DD HH:MM:SS")
+    argp.add_argument("-f", "--format", choices=["github", "markdown", "table"], default="table", help="output format or styling")
     argp.add_argument("-i", "--insecure", action="store_true", default=False, help="do not verify certs (allow self-signed)")
     argp.add_argument("-l", "--level", default="WARNING", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], help="log threshold")
     argp.add_argument("-p", "--period", type=int, default=PERIOD_DEFAULT, help="query period, in seconds")
@@ -272,6 +258,8 @@ if __name__ == "__main__":
     args = argp.parse_args()
 
     log.setLevel(args.level)
+    if args.period < PERIOD_MIN:
+        sys.exit(f"period < {PERIOD_MIN}s")
 
     oui_dict = load_ieee_oui_dict()
     with ISEDC(
@@ -281,15 +269,14 @@ if __name__ == "__main__":
         level=args.level,
     ) as isedc:
 
-        # find new endpoints since last run
-        last_run = os.path.getmtime(ENDPOINTS_RUNTIME_FILEPATH) if os.path.exists(ENDPOINTS_RUNTIME_FILEPATH) else 0
-        now = datetime.datetime.now(tz=None).timestamp()
-        period_start = max(now - PERIOD_MAX, last_run)  # limit timespan to avoid spamming with all endpoints
+        # find new endpoints
+        now_ts = datetime.datetime.now(tz=None).timestamp()
+        period_start = datetime.datetime.strptime(args.after, FS_ISO8601_DT).timestamp() if args.after else now_ts
         while True:
             endpoints = get_endpoints_after(timestamp=period_start)
             period_start = datetime.datetime.now(tz=None).timestamp()  # tz=None uses the local system's timezone
             endpoints = add_ieee_oui_attributes(endpoints)
             send_endpoints_notification(endpoints, NTFY_TOPIC)
             if args.show:
-                show(endpoints)
+                show(endpoints, args.format)
             time.sleep(args.period)  # sleep until next poll
