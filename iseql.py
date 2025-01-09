@@ -3,26 +3,20 @@
 Query ISE using SQL via Data Connect on the ISE Monitoring and Troubleshooting (MNT) node.
 The default output format is a streamed CSV (comma-separated value) to minimize client memory usage with large datasets.
 ⚠ Many output formats are supported however they require buffering all query results in memory before printing to calculate column widths (grid,table) or map attriute names (json,yaml).
+⚡ Many SQL queries have been created for you in https://github.com/1homas/ISE_Python_Scripts/tree/main/data/SQL
 
-Example commands:
-  iseql.py -n ise.example.org -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list" -f table
-  iseql.py -it -n ise.example.org -u dataconnect -p "ISEisC00L" "SELECT COUNT(*) AS total FROM radius_authentications"
-  iseql.py "SELECT * FROM node_list" -f yaml  # ⚠ requires environment variables
-  iseql.py "SELECT * FROM radius_accounting ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
-  iseql.py -it "SELECT * FROM radius_accounting ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
-
-It is faster to edit and save your favorite or complex SQL queries into files then include them:
-  iseql.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
-
-Many SQL queries have been created for you in https://github.com/1homas/ISE_Python_Scripts/tree/main/data/SQL
-
-Supported environment variables:
+Usage with environment variables:
   export ISE_PMNT='1.2.3.4'             # hostname or IP address of ISE Primary MNT
   export ISE_DC_PASSWORD='D@t@C0nnect'  # Data Connect password
   export ISE_VERIFY=False               # Optional: Disable TLS certificate verification (allow self-signed certs)
 
-You may add these export lines to a text file and load with `source`:
-  source ~/.secrets/ise-dataconnect.sh
+  iseql.py data/SQL/node_list.sql
+  iseql.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
+  iseql.py "SELECT * FROM node_list" -f yaml
+  iseql.py -it "SELECT * FROM radius_accounting ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
+
+Without environment variables:
+  iseql.py -it -n ise.example.org -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list" -f table
 
 ⓘ Thin vs Thick oracledb Clients
   This script uses the oracledb package and runs as a "thin" client without the need for additional ODBC drivers.
@@ -55,6 +49,22 @@ ISE_DC_PORT = 2484  # Data Connect port
 ISE_DC_SID = "cpm10"  # Data Connect service name identifier
 ISE_DC_USERNAME = "dataconnect"  # Data Connect username
 FORMATS = ["csv", "grid", "json", "line", "markdown", "pretty", "yaml", "raw", "table", "text"]
+
+
+def read_sql_file(filepath: str = None) -> str:
+    """
+    Read and return the file contents at the filepath.
+    filepath (str) : an absolute or relative path from this script.
+    returns (str) : the file contents as a string.
+    """
+    log.debug(f"filepath={filepath}")
+
+    assert filepath.strip().lower().endswith(".sql")
+    assert os.path.exists(filepath)
+    assert os.path.isfile(filepath)
+
+    with open(filepath, mode="r", encoding="utf-8") as fh:
+        return fh.read()
 
 
 def show(table: list = None, headers: list = None, format: str = "text", filepath: str = "-") -> None:
@@ -131,7 +141,7 @@ if args.timer:
 logging.basicConfig(
     stream=sys.stderr,
     format="%(asctime)s.%(msecs)03d | %(levelname)s | %(module)s | %(funcName)s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S %z",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger()
 log.setLevel(args.level)  # logging threshold
@@ -171,7 +181,12 @@ log.debug(f"OracleDB Connection String: {params.get_connect_string()}")
 try:
     with oracledb.connect(params=params) as connection:
         with connection.cursor() as cursor:
-            cursor.execute(args.query)
+
+            # load SQL query from file?
+            query = read_sql_file(args.query) if args.query.strip().lower().endswith(".sql") else args.query
+
+            log.debug(f"SQL query:\n-----\n{query}\n-----")
+            cursor.execute(query)
 
             # Use CSV by default to stream results without large memory buffering
             if args.format == "csv":
