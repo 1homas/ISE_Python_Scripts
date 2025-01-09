@@ -66,6 +66,6 @@ FROM radius_accounting
 -- WHERE TRUNC(timestamp, 'HH24') = TRUNC(SYSDATE, 'HH24') -- sessions this hour
 -- WHERE TRUNC(timestamp, 'MI') = TRUNC(SYSDATE, 'MI') -- sessions this minute
 -- WHERE timestamp_timezone > '23-APR-22 08.25.35.839000000 PM +05:30' AND timestamp_timezone < '24-APR-22 08.25.35.839000000 PM +05:30'
-FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
 -- ORDER BY timestamp ASC -- first/oldest records
 ORDER BY timestamp DESC -- most recent records
+FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
