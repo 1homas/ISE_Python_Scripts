@@ -4,27 +4,20 @@ ISE Data Connect object wrapper in Python to query the ISE Monitoring and Troubl
 The default output format is a streamed CSV (comma-separated value) to minimize client memory usage with large datasets.
 ⚠ All other formats must store *all* results in memory for formatting column widths (grid|markdown|table) or attribute name mapping (JSON|YAML).
 ⚠ SQL statements must not contain a trailing semicolon (“;”) or they will fail with `oracledb`
+⚡ Many SQL queries have been created for you in https://github.com/1homas/ISE_Python_Scripts/tree/main/data/SQL
 
-Many example SQL queries have been created for you in https://github.com/1homas/ISE_Python_Scripts/tree/main/data/SQL
-
-Example commands:
-  isedc.py -n ise.demo.local -p "ISEisC00L" "SELECT * FROM node_list" -f table
-  isedc.py -it -n ise.demo.local -p "ISEisC00L" "SELECT COUNT(*) AS total FROM radius_authentications"
-  isedc.py "SELECT * FROM node_list" -f yaml  # ⚠ requires environment variables
-  isedc.py "SELECT * FROM radius_authentications ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
-  isedc.py -it "SELECT * FROM radius_authentications ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
-
-It is faster and easier to edit and save your favorite or complex SQL queries into files:
-  isedc.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
-  isedc.py data/SQL/radius_auths_by_policy.sql -f table
-
-Supported environment variables:
+Usage with environment variables:
   export ISE_PMNT='1.2.3.4'             # hostname or IP address of ISE Primary MNT
-  export ISE_DC_PASSWORD='DataC0nnect'  # Data Connect password
+  export ISE_DC_PASSWORD='D@t@C0nnect'  # Data Connect password
   export ISE_VERIFY=False               # Optional: Disable TLS certificate verification (allow self-signed certs)
 
-You may add these export lines to a text file and load with `source`:
-  source ~/.secrets/ise-dataconnect.sh
+  isedc.py data/SQL/node_list.sql
+  isedc.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
+  isedc.py "SELECT * FROM node_list" -f yaml
+  isedc.py -it "SELECT * FROM radius_accounting ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
+
+Without environment variables:
+  isedc.py -it -n ise.example.org -u dataconnect -p "D@t@C0nnect" "SELECT * FROM node_list" -f table
 
 ⚠ Thin vs Thick oracledb Clients
   This script uses the oracledb package and runs as a "thin" client without the need for additional ODBC drivers.
@@ -77,8 +70,7 @@ class ISEDC:
     DATACONNECT_USERNAME = "dataconnect"  # Data Connect username
     DATACONNECT_PASSWORD_DAYS_DEFAULT = 90
     DATACONNECT_PASSWORD_DAYS_MAX = 3650
-
-    FORMATS = ["csv", "grid", "json", "line", "markdown", "pretty", "yaml", "raw", "table", "text"]
+    FORMATS = ["csv", "grid", "json", "line", "markdown", "pretty", "table", "text", "yaml"]
 
     def __init__(
         self,
@@ -226,8 +218,8 @@ class ISEDC:
         assert q is not None
         assert q != ""
 
-        if q.strip().lower().endswith(".sql"):
-            q = self.read_sql_file(q)
+        q = self.read_sql_file(q) if q.strip().lower().endswith(".sql") else q  # load SQL query from file?
+        self.log.debug(f"SQL query:\n-----\n{q}\n-----")
 
         try:
             # ⚠ Do not close the cursor or it cannot be used by the calling function!
@@ -436,40 +428,36 @@ class ISEDC:
             widths += (column, cursor.fetchone()[0])
             return widths
 
-    def cursor_show(self, cursor: oracledb.Cursor = None, format: str = "table", filepath: str = "-") -> None:
-        """
-        Print the cursor data.
-        """
-        # normalize cursor to a header and [list] of iterables
-        if isinstance(table, oracledb.Cursor):
-            headers = [f"{column[0]}".lower() for column in table.description]
-            table = table.fetchall()
-
-        if len(table) <= 0:
-            self.log.error(f"cursor_show(): table size <= 0")
-            return
-
-        self.show(table, headers, format, filepath)
-
-    def show(self, table: Union[list, oracledb.Cursor] = None, headers: list = None, format: str = "text", filepath: str = "-") -> None:
+    def show(self, data: Union[list, oracledb.Cursor] = None, headers: list = None, format: str = "text", filepath: str = "-") -> None:
         """
         Print the table in the specified format to the file. Default: `sys.stdout` ('-').
 
-        - table (list) : a list of list items to show
+        - data (list) : a list of lists/tuples or an oracledb.Cursor with data to show
         - headers (list) : the column names for the table
         - format (str): one the following formats:
-        - `csv`   : Show the items in a Comma-Separated Value (CSV) format
-        - `grid`  : Show the items in a table grid with borders
-        - `json`  : Show the items as a single JSON string
-        - `line`  : Show the items each on their own line in JSON format
-        - `markdown`: Show the items in Markdown format
-        - `pretty`: Show the items in an indented JSON format
-        - `table` : Show the items in a text-based table
-        - `text`  : Show the items in a text-based table (no header line separator)
-        - `yaml`  : Show the items in a YAML format
+          - `csv`     : Show the items in a Comma-Separated Value (CSV) format
+          - `grid`    : Show the items in a table grid with borders
+          - `json`    : Show the items as a single, unformatted JSON string
+          - `line`    : Show the items each on their own line in JSON format
+          - `markdown`: Show the items in Markdown table format
+          - `pretty`  : Show the items in an indented JSON format
+          - `table`   : Show the items in a text-based table
+          - `text`    : Show the items in a text-based table (no header line separator)
+          - `yaml`    : Show the items in a YAML format
         - filepath (str) : Default: `sys.stdout`
         """
-        assert table != None
+        assert data != None
+
+        # normalize cursor results to a `data` table ([list] of iterables) and headers
+        if isinstance(data, oracledb.Cursor):
+            headers = [f"{column[0]}".lower() for column in data.description]
+            table = data.fetchall()  # returns a list of tuples
+        else:
+            table = data
+
+        if len(table) <= 0:
+            self.log.info(f"No rows to show")
+            return
 
         try:
             # 💡 Do not close sys.stdout or it may not be re-opened with multiple cursor_show() calls
@@ -564,7 +552,7 @@ if __name__ == "__main__":
                         break
                     writer.writerows(rows)
             else:
-                isedc.cursor_show(table=isedc.query(args.query), format=args.format)
+                isedc.show(data=isedc.query(args.query), format=args.format)
 
         except oracledb.DatabaseError as e:
             if "DPY-3022" in str(e):
