@@ -48,7 +48,7 @@ import yaml
 ISE_DC_PORT = 2484  # Data Connect port
 ISE_DC_SID = "cpm10"  # Data Connect service name identifier
 ISE_DC_USERNAME = "dataconnect"  # Data Connect username
-FORMATS = ["csv", "grid", "json", "line", "markdown", "pretty", "yaml", "raw", "table", "text"]
+FORMATS = ["csv", "grid", "json", "line", "markdown", "pretty", "yaml", "table", "text"]
 
 
 def read_sql_file(filepath: str = None) -> str:
