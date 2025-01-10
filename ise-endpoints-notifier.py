@@ -1,8 +1,25 @@
 #!/usr/bin/env python3
 """
-Send a notification when new endpoint(s) are detected in ISE.
+Periodically queries ISE via the Data Connect feature for new endpoints and sends a notification when new endpoint(s) are detected.
+The default query period is 1 minute.
+The endpoint data is augmented with the respective IEEE OUI Organization name.
+You may optionally specify an initial `--after` datetime for the first query.
+The default notification goes to ntfy.sh using the public `ise-endpoints-notifier` topic but you may create your own topic or alternate notification mechanism (email, SMS, webhook, etc.).
 
-Notification implemented with ntfy.sh (account required) and environment variable with the topic name in the environment variable `NTFY_TOPIC`. 
+Rquired environment variables:
+- ISE_PMNT
+- ISE_DC_PASSWORD
+- ISE_VERIFY
+
+Optional environment variable for ntfy.sh notification topic name (account required):
+- NTFY_TOPIC 
+
+Usage:
+  ise-endpoints-notifier.py --help
+  ise-endpoints-notifier.py
+  ise-endpoints-notifier.py --level INFO
+  ise-endpoints-notifier.py --show --format github
+  ise-endpoints-notifier.py --after "2025-01-01 00:00:00"
 
 """
 __author__ = "Thomas Howard"
@@ -36,7 +53,6 @@ PERIOD_MIN = 5  # minimum query period, in seconds. If you need realtime, use Ci
 logging.basicConfig(
     stream=sys.stderr,
     format="%(asctime)s.%(msecs)03d | %(levelname)s | %(module)s | %(funcName)s | %(message)s",
-    # format="%(asctime)s | %(levelname)s | %(module)s | %(funcName)s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger()
