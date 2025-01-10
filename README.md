@@ -4,10 +4,10 @@ A collection of useful Python scripts for working with the Cisco Identity Servic
 
 ## Quick Start
 
-1. Create your Python environment and install necessary Python packages :
+1. Create your Python environment and install the necessary packages from the `requirements.txt` list then launch your Python environment:
 
 ```sh
-pyenv-install.sh
+pipenv install -r requirements.txt
 pipenv shell
 ```
 
@@ -18,31 +18,28 @@ export ISE_PPAN='1.2.3.4'             # hostname or IP address of ISE Primary PA
 export ISE_PMNT='1.2.3.4'             # hostname or IP address of ISE Primary MNT
 export ISE_REST_USERNAME='admin'      # ISE ERS admin or operator username
 export ISE_REST_PASSWORD='C1sco12345' # ISE ERS admin or operator password
-export ISE_CERT_VERIFY=false          # validate the ISE certificate
+export ISE_VERIFY=False               # validate the ISE certificate (used by some scripts)
+export ISE_CERT_VERIFY=$ISE_VERIFY    # validate the ISE certificate (used by some scripts)
 ```
 
-You may conveniently edit these export lines in an `ise-env.sh` text file and load them into your terminal environment with `source`:
+You may disable TLS certificate verification and allow self-signed certs using the `-i`/`--insecure` command line option or the environment variable `ISE_VERIFY=False`.
 
-```sh
-source ise-env.sh
-```
-
-Then verify your environment variables using `env` or `echo`:
+You may conveniently import these environment variables from a `.env` text file into your terminal environment using `source .env` then verify your environment variables using `env` or `echo`:
 
 ```sh
 env
 echo $ISE_PPAN
 ```
 
-3. These Python use ISE REST APIs so ensure your ISE node (Primary Administration Node) has the APIs enabled or you may run this script to enable them:
+3. Enable and verify the ISE REST APIs on your ISE PAN (Primary Administration Node) :
 
 ```sh
 ise-api-enabled.py
 ```
 
-4. Run the other scripts.
+4. Run the scripts.
 
-## cmdb-ci-generator.py
+## `cmdb-ci-generator.py`
 
 Cisco Identity Services Engine (ISE) 3.2 and later has a feature called pxGrid Direct with the ability to retrieve JSON-formatted data representing tables of endpoint attributes and save them to data dictionaries in ISE. This capability is used to download configuration items (CIs) from configuration management databases (CMDBs) for use in authorizing endpoints as shown in the [Cisco ISE Webinar](https://cs.co/ise-webinars) [ISE pxGrid Direct with CMDBs](https://youtu.be/g8fzBPY8gU8).
 
@@ -58,7 +55,7 @@ cmdb-ci-generator.py -f line -tvn 1_000_000 > CMDB_1M.json  # save 1M CIs and ti
 
 You may customize the script to included more or fewer columns/fields representing whichever attributes you think are interesting. Creating your new attributes and random data should be straightforward given the many examples in the script.
 
-## ise-api-enabled.py / ise-api-enabled-aio.py
+## `ise-api-enabled.py` / `ise-api-enabled-aio.py`
 
 Enable the ISE ERS and OpenAPI APIs.
 
@@ -73,7 +70,7 @@ Response:
 ✅ ISE ERS APIs Enabled
 ```
 
-## ise-dc-enable.py
+## `ise-dc-enable.py`
 
 Enable the ISE Data Connect feature via REST APIs.
 
@@ -87,7 +84,15 @@ Data Connect Settings: {'isEnabled': True, 'isPasswordChanged': True, 'passwordE
 Data Connect Details: {'hostname': 'ise.securitydemo.net', 'port': 2484, 'servicename': 'cpm10', 'username': 'dataconnect'}
 ```
 
-## ise-ers-count.py
+## `ise-endpoints-notifier.py`
+
+Send a notification when a new, non-random MAC address(es) are detected in your ISE deployment by periodically querying ISE using the Data Connect feature and the ISEDC (ISE Data Connect Client)`isedc.py`.
+
+```sh
+ise-endpoints-notifier.py
+```
+
+## `ise-ers-count.py`
 
 Get the total resource count of a specified ISE ERS resource.
 
@@ -101,18 +106,18 @@ Response:
 20
 ```
 
-## ise-get.py
+## `ise-get.py`
 
-Show ISE ERS REST API data in a variety of ways.
+Show ISE ERS REST API data in a variety of formats. Uses Python `asyncio` to do it quickly for 100's or 1000's of resources.
 
-- `csv`   : Show the items in a Comma-Separated Value (CSV) format
-- `grid`  : Show the items in a grid with borders
+- `csv` : Show the items in a Comma-Separated Value (CSV) format
+- `grid` : Show the items in a grid with borders
 - `table` : Show the items in a text table
-- `id`    : Show only the id column for the objects (if available)
-- `json`  : Show the items as a single JSON string
-- `line`  : Show the items as JSON with each item on it's own line
+- `id` : Show only the id column for the objects (if available)
+- `json` : Show the items as a single JSON string
+- `line` : Show the items as JSON with each item on it's own line
 - `pretty`: Show the items as JSON pretty-printed with 2-space indents
-- `yaml`  : Show the items as YAML with 2-space indents
+- `yaml` : Show the items as YAML with 2-space indents
 
 ```sh
 ise-get.py sgt
@@ -120,48 +125,22 @@ ise-get.py sgt
 
 Response:
 
-```json
-{
-  "sgt": [
-    {
-      "id": "8337f3e6-fdc7-449b-86a4-ba787c305f21",
-      "name": "Cameras"
-    },
-    {
-      "id": "93ad6890-8c01-11e6-996c-525400b48521",
-      "name": "Employees",
-      "description": "Employee Security Group"
-    },
-    {
-      "id": "93c66ed0-8c01-11e6-996c-525400b48521",
-      "name": "Guests",
-      "description": "Guest Security Group"
-    },
-    {
-      "id": "ccaf14ab-d8d7-438f-832d-0fdab0b07cfb",
-      "name": "IOT"
-    },
-    {
-      "id": "62cc161e-05c8-48bc-ac8b-cde3d77fad4e",
-      "name": "NetServices",
-      "description": "TrustSec Devices Security Group"
-    },
-    {
-      "id": "947832a0-8c01-11e6-996c-525400b48521",
-      "name": "TrustSec_Devices",
-      "description": "TrustSec Devices Security Group"
-    },
-    {
-      "id": "92adf9f0-8c01-11e6-996c-525400b48521",
-      "name": "Unknown",
-      "description": "Unknown Security Group"
-    }
-  ]
-}
+```text
+id                                    name              description
+------------------------------------  ----------------  --------------------------------
+8337f3e6-fdc7-449b-86a4-ba787c305f21  Cameras
+93ad6890-8c01-11e6-996c-525400b48521  Employees         Employee Security Group
+93c66ed0-8c01-11e6-996c-525400b48521  Guests            Guest Security Group
+ccaf14ab-d8d7-438f-832d-0fdab0b07cfb  IOT"
+62cc161e-05c8-48bc-ac8b-cde3d77fad4e  NetServices       TrustSec Devices Security Group
+947832a0-8c01-11e6-996c-525400b48521  TrustSec_Devices  TrustSec Devices Security Group
+92adf9f0-8c01-11e6-996c-525400b48521  Unknown           Unknown Security Group
 ```
 
+Use the `-d/--details` flag to perform an additional lookup for each resource to get all of their attributes:
+
 ```sh
-ise-get.py sgt -dtf grid --noid
+ise-get.py sgt --time --format grid --details --hide id
 ```
 
 Response:
@@ -189,7 +168,7 @@ Response:
 ⏲ 0.774 seconds
 ```
 
-## ise-get-ers-raw.py
+## `ise-get-ers-raw.py`
 
 Get the raw output from an REST GET for resource list or resource.
 
@@ -281,7 +260,7 @@ Response:
 }
 ```
 
-## ise-get-ers.py
+## `ise-get-ers.py`
 
 Get the detailed contents of all resources of the specified type :
 
@@ -326,7 +305,7 @@ Response:
 }
 ```
 
-## ise-post-dacls.py
+## `ise-post-dacls.py`
 
 Generates the specified number of randomly named ISE downloadable ACLs using a REST API.
 
@@ -337,7 +316,7 @@ ise-post-dacls.py 3
 ✔ 3 201 https://ise.securitydemo.net/ers/config/downloadableacl/f71eb6b0-f04c-11ee-a00b-42be146d113b
 ```
 
-## ise-post-endpoints.py
+## `ise-post-endpoints.py`
 
 Generate the specified number of random ISE endpoint resources using REST APIs.
 
@@ -347,7 +326,7 @@ ise-post-endpoints.py 2
 ✔ 2 201 https://ise.securitydemo.net/ers/config/endpoint/0b6328e0-f04d-11ee-a00b-42be146d113b
 ```
 
-## ise-post-internalusers.py
+## `ise-post-internalusers.py`
 
 Generates the specified number of ISE internaluser resources using a REST API.
 
@@ -363,7 +342,7 @@ ise-post-internalusers.py -vt 3
 ⏲ 0.540 seconds
 ```
 
-## ise-post-ers-embedded.py
+## `ise-post-ers-embedded.py`
 
 A simple REST POST example using JSON data embedded in the script. You may use `ise-get-ers-raw.py` to get sample resource JSON data to embed in your script.
 
@@ -379,7 +358,7 @@ Response:
    https://198.18.133.27/ers/config/networkdevice/4aedf8f0-8b5a-11ec-ac96-46ca1867e58d
 ```
 
-## ise-post-ers-from-file.py
+## `ise-post-ers-from-file.py`
 
 Another REST POST example using JSON data in a separate file. This allows more flexibility to specify any resource type and the data file on the command line.
 
@@ -395,7 +374,7 @@ Response:
    https://198.18.133.27/ers/config/networkdevice/a1f86c60-8b5b-11ec-ac96-46ca1867e58d
 ```
 
-## ise-version.py
+## `ise-version.py`
 
 Very simple ISE version query that also generates a [semantic version](https://semver.org) for convenience.
 
@@ -417,7 +396,7 @@ Response:
 }
 ```
 
-## ise-walk.py
+## `ise-walk.py`
 
 Walk the ISE ERS resources to get a summary count of all of the objects.
 
@@ -486,23 +465,59 @@ C▶198.18.133.27
  ┣╸ancpolicy [0]
 ```
 
-## iseql.py
+## `isedc.py`
 
-The ISE Data Connect feature was added in version 3.2 and offers you the ability to use any ODBC (Open Database Connectivity) driver to run Oracle PL/SQL queries directly against the ISE database.
+This builds on `iseql.py` by creating an ISEDC (ISE Data Connect Client) Python class that may be used to establish a single, long-lived connection for many SQL queries to generate charts, reports, etc. While meant to be used by other scripts (see `ise-endpoints-notifier.py`), it conveniently has the same command line arguments as `iseql.py` wrapped around the ISEDC class if you only want to use it.
 
-Refer to the ISE [DataConnect documentation](https://cs.co/ise-dataconnect) for the [list of available database table views](https://cs.co/ise-dataconnect#!database-views) and [many SQL query examples](https://cs.co/ise-dataconnect#!guides).
+## `iseql.py`
 
-The following environment variables are *required* to use `iseql.py`:
+Conveniently run an Oracle PL/SQL query directly against the ISE database from the command line. This script uses ISE Data Connect feature - added in ISE 3.2 - and works with any ODBC (Open Database Connectivity) driver. To learn more about the [ISE Data Connect](https://cs.co/ise-dataconnect) documentation with the list of available [database table views](https://cs.co/ise-dataconnect#!database-views) and [SQL query examples](https://cs.co/ise-dataconnect#!guides). The ISE Webinars ▷ [Next Generation ISE Telemetry, Monitoring, and Custom Reporting Part 2](https://youtu.be/dp7HWthncks) and ▷[How to Get Data Out of ISE](https://youtu.be/vBw4CxX_EhM) also cover it.
+
+The following environment variables are _recommended_ with `iseql.py`:
 
 ```sh
 export ISE_PMNT='1.2.3.4'             # hostname or IP of the ISE Primary MNT node
-export ISE_DC_PASSWORD='#DataC0nnect' # Data Connect password
+export ISE_DC_PASSWORD='D@t@C0nnect'  # Data Connect password
+export ISE_VERIFY=Fals                # for self-signed certs
 ```
+
 
 Example:
 
 ```sh
 iseql.py "SELECT * FROM network_devices"
+id,name,ip_mask,profile_name,location,type
+c81f36f0-89cb-11ef-9c62-6ecbd13ff78e,thomas-mx68-3vq7,10.1.10.1/32,Cisco,Location#All Locations#Networks#thomas,Device Type#All Device Types#Meraki#MX#MX68
 ```
 
-You may disable TLS certificate verification and allow self-signed certs using the `-i`/`--insecure` command line option or the environment variable `ISE_CERT_VERIFY=False`.
+The default output is instantly streamed as CSV (comma-separated values) because "pretty" table formats require *buffering all results in memory* first to calculate maximum column widths *then* write the beautifully aligned table. 
+
+Be careful with queries of large tables like `radius_authentications` and `radius_accounting`! Downloading 10,000+ rows will take many seconds and 3X or more with some "pretty" formats. A quick performance time test using the `-t/timer` option to retrieve 10,000 RADIUS Accounting rows (`iseql.py "SELECT * FROM radius_accounting FETCH FIRST 10000 ROWS ONLY" -tf csv`):
+
+| Format          | Time (seconds) |
+|-----------------|----------------|
+| `csv` (default) |            3.9 |
+| `json`          |            4.7 |
+| `line`          |            4.9 |
+| `pretty`        |            4.9 |
+| `text`          |           11.8 |
+| `table`         |           11.9 |
+| `markdown`      |           12.0 |
+| `yaml`          |           29.0 |
+
+
+Edit, save, and use your complex queries in `*.sql` files or try some of mine from the `data/SQL/` directory:
+
+```sh
+iseql.py data/sql/radius_acct_counts_by_day.sql -f markdown
+| timestamp   |   starts |   stops |   interims |   others |   total |
+|-------------|----------|---------|------------|----------|---------|
+| 2024-09-01  |       22 |      21 |          0 |        0 |      43 |
+| 2024-09-02  |       29 |      30 |          0 |        0 |      59 |
+| 2024-09-03  |       22 |      21 |          0 |        0 |      43 |
+| 2024-09-04  |       20 |      20 |          0 |        0 |      40 |
+| 2024-09-05  |       40 |      40 |          0 |        0 |      80 |
+| 2024-09-06  |       68 |      64 |          0 |       56 |     188 |
+| 2024-09-07  |       67 |      67 |          0 |        0 |     134 |
+```
+
