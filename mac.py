@@ -22,12 +22,16 @@ MAC formats (default separator is '-'):
 __license__ = "MIT - https://mit-license.org/"
 
 import argparse
+import csv
+import datetime
 import enum
-import re
-import time
+import os
 import random
+import re
+import requests
 import string
 import sys
+import time
 
 
 class MAC:
@@ -36,7 +40,18 @@ class MAC:
     BITMASK_OR_LOCALLY_ADMINISTERED = 0b000000100000000000000000
     BITMASK_AND_UNICAST = 0b111111101111111111111111
     SEPARATORS = ":-."
+    TD_30D = datetime.timedelta(days=30)
     TR_NO_PUNCTUATION = str.maketrans("", "", string.punctuation)
+
+    # lazy load singletons
+    ieee_oui_dict = None
+    log = None
+
+    def __init__(cls, load_ieee: bool = False, expiration: datetime.timedelta = TD_30D) -> None:
+        if not isinstance(load_ieee, bool):
+            raise TypeError(f"load_ieee is not bool")
+        # Lazy load IEEE data
+        cls.ieee_oui_dict = cls.get_ieee_oui_dict(expiration) if load_ieee else None
 
     class FORMATS(enum.Enum):
         NONE = "0"  # no separators: XXXXXXXXXXXX
@@ -50,6 +65,118 @@ class MAC:
                 if attr.value == value.strip().lower():
                     return attr
             raise ValueError(f"{value} is not valid for {cls.__name__}")
+
+    @classmethod
+    def get_ieee_oui_dict(cls, expiration: datetime.timedelta = TD_30D) -> dict:
+        """
+        Returns the `ieee_oui_dict` singleton instance.
+
+        - returns (dict): dictionary of { "oui" : "organization", ... }
+        """
+        if cls.ieee_oui_dict == None:
+            # lazy init logging
+            if cls.log == None:
+                import logging
+
+                logging.basicConfig(
+                    stream=sys.stderr,
+                    format="%(asctime)s.%(msecs)03d | %(levelname)s | %(module)s | %(funcName)s | %(message)s",
+                    datefmt="%Y-%m-%d %H:%M:%S",
+                )
+                level = "INFO"
+                cls.log = logging.getLogger()
+                cls.log.setLevel(level)  # logging threshold
+                cls.log.debug(f"MAC logging initialized @ level={level})")
+
+            # lazy download & init IEEE OUI dict
+            cls.ieee_oui_dict = cls._load_ieee_oui_dict(expiration)
+
+        return cls.ieee_oui_dict
+
+    @classmethod
+    def _load_ieee_oui_dict(cls, expiration: datetime.timedelta = TD_30D):
+        """
+        Return a dict of IEEE {OUI:Organization}, downloading the data from the IEEE, if necessary.
+
+        - expiration (datetime.timedelta) : time duration until the IEEE OUI file is expired and needs to be downloaded
+        """
+        IEEE_OUI_URL = "https://standards-oui.ieee.org/oui/oui.txt"
+        IEEE_OUI_TXT_FILENAME = "ieee_ouis.txt"
+        IEEE_OUI_CSV_FILENAME = "ieee_ouis.csv"
+        # use a fake User-Agent or the IEEE site will reject your requests as a bot
+        USER_AGENT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/89.0"}
+
+        def download(url: str = None, headers: dict = None):
+            cls.log.critical(f"load_ieee_oui_dict().download({IEEE_OUI_URL})")
+            try:
+                response = requests.get(IEEE_OUI_URL, headers=USER_AGENT_HEADER)
+                with open(IEEE_OUI_TXT_FILENAME, "w") as file:
+                    file.write(response.text)
+                    cls.log.critical(f"load_ieee_oui_dict().download(): Saved {IEEE_OUI_TXT_FILENAME}")
+            except requests.exceptions.ConnectionError:
+                cls.log.error(f"load_ieee_oui_dict().download(): Connection problem.")
+
+        # Download IEEE OUIs locally if missing or older than `expiration`
+        if not os.path.exists(IEEE_OUI_TXT_FILENAME):
+            # No OUI file - download it
+            download(IEEE_OUI_URL, USER_AGENT_HEADER)
+        else:
+            # Check file modification, cache expiration, document Last-Modified header before downloading
+            now_dt = datetime.datetime.now()
+            ouis_text_modified_ts = os.path.getmtime(IEEE_OUI_TXT_FILENAME)
+            ouis_text_modified_dt = datetime.datetime.fromtimestamp(int(ouis_text_modified_ts))  # use int() to drop μseconds
+            ouis_text_expired_dt = ouis_text_modified_dt + expiration  # expire after `expiration` timedelta
+
+            if now_dt.timestamp() > ouis_text_expired_dt.timestamp():
+                cls.info(f"IEEE file expired: {now_dt} (now) > {ouis_text_expired_dt} text expiration")
+
+                response = requests.head(IEEE_OUI_URL, headers=USER_AGENT_HEADER)
+                cls.log.info(f"IEEE OUI HEAD Request: {response.headers}")
+
+                # Convert Last-Modified to timestamp for easy comparison: ['Last-Modified']: Thu, 26 Dec 2024 17:01:23 GMT
+                url_last_modified_ts = datetime.datetime.strptime(response.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z").timestamp()
+                url_last_modified_dt = datetime.datetime.fromtimestamp(url_last_modified_ts)
+                cls.log.info(
+                    f"{IEEE_OUI_URL} modified {response.headers['Last-Modified']} ({url_last_modified_dt.strftime(FS_ISO8601_DT)})"
+                )
+
+                if url_last_modified_ts > ouis_text_modified_ts:  # URL is newer?
+                    cls.log.info(f"IEEE file updated: {url_last_modified_dt} > {ouis_text_expired_dt} text expiration")
+                    download(IEEE_OUI_URL, USER_AGENT_HEADER)
+            else:
+                cls.log.info(f"IEEE file current: {ouis_text_modified_dt} < {ouis_text_expired_dt} expiration")
+
+        # Invalid OUI file?
+        if os.path.getsize(IEEE_OUI_TXT_FILENAME) < 1000000:
+            cls.log.debug(f"Invalid size: {IEEE_OUI_TXT_FILENAME}: Verify HTTP User-Agent ")
+            raise Exception("Invalid OUI file - should be much larger")
+
+        # Parse IEEE OUIs for only the "base 16" lines
+        if not os.path.exists(IEEE_OUI_CSV_FILENAME):
+            with open(IEEE_OUI_TXT_FILENAME, "r") as file:
+                lines = file.readlines()
+                oui_table = [["OUI", "Organization"]]  # list of lists for CSV file
+                for line in lines:
+                    if re.search(r"\s+\(base 16\)\s+", line):
+                        # 00000C     (base 16)		Cisco Systems, Inc
+                        oui, org = re.split(r"\s+\(base 16\)\s+", line)
+                        oui_table.append([oui.strip(), org.strip()])
+                cls.log.debug(f"IEEE OUI base16 lines parsed")
+
+            # Save filtered oui_table to CSV file
+            with open(IEEE_OUI_CSV_FILENAME, "w", encoding="utf-8", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerows(oui_table)
+                cls.log.info(f"Saved {IEEE_OUI_CSV_FILENAME}")
+
+        # Read CSV ["OUI", "Organization"] into MAC lookup dictionary
+        with open(IEEE_OUI_CSV_FILENAME, "r", newline="") as csvfile:
+            csv_reader = csv.reader(csvfile)
+            oui_dict = {}
+            for row in csv_reader:
+                if row:  # Ensure the row is not empty
+                    oui_dict[row[0]] = row[1]  # { "OUI" : "Organization" }
+            return oui_dict
 
     @classmethod
     def is_hex(cls, s: str = None):
@@ -237,10 +364,44 @@ class MAC:
             raise ValueError(f"mac is not a string: {mac}")
         return cls.normalize(mac)[6:]
 
+    @classmethod
+    def org(cls, mac: str = None) -> str:
+        """
+        Returns the IEEE organization name registered to the specified OUI or None is there is not one.
+
+        - mac (str): a MAC address or OUI.
+        """
+        print(f"org({mac})")
+        if not isinstance(mac, str):
+            raise ValueError(f"mac is not a string: {mac}")
+        if cls.ieee_oui_dict is None:
+            cls.ieee_oui_dict = cls._load_ieee_oui_dict(cls.TD_30D)  # lazy load the dict
+
+        return cls.ieee_oui_dict.get(cls.normalize(mac)[0:6], None) if len(mac) > 6 else cls.ieee_oui_dict.get(mac, None)
+
+    @classmethod
+    def ouis(cls, org: str = None) -> [str]:
+        """
+        Returns all known OUIs for a given organization name.
+
+        - org (str): an organization name from the IEEE OUI list
+        - returns ([str]): a list of OUIs belonging to that organization in `org`
+        """
+        print(f"ouis({org})")
+
+        oui_dict = cls.get_ieee_oui_dict()
+        # print(f"🐛 ouis({org})")
+        ouis = []
+        for k, v in oui_dict.items():
+            if v == org:
+                # print(f"{v} has {k}")
+                ouis.append(k)
+        print(f"org {org} has {len(ouis)} OUIs")
+        return ouis
+
 
 if __name__ == "__main__":
     argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    argp.description = __doc__
     argp.add_argument(
         "-f",
         "--format",

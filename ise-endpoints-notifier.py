@@ -22,18 +22,17 @@ Usage:
   ise-endpoints-notifier.py --after "2025-01-01 00:00:00"
 
 """
-__author__ = "Thomas Howard"
-__email__ = "thomas@cisco.com"
+
 __license__ = "MIT - https://mit-license.org/"
 
 from isedc import ISEDC
-from pathlib import Path
 from string import Template
 from typing import Union
 import argparse
 import csv
 import datetime
 import logging
+import mac
 import os
 import re
 import requests
@@ -65,7 +64,7 @@ def timestamp_to_dhms(seconds: Union[int, float] = 0) -> str:
         days, hours, minutes, seconds = timestamp_to_dhms(seconds)
         print(f"{seconds} seconds is {days}d {hours}h, {minutes}m, {seconds}s")
     """
-    seconds = int(seconds)  # drop milliseconds
+    seconds = int(seconds)  # drop fractional seconds from floats
     days = seconds // (24 * 3600)
     seconds %= 24 * 3600  # seconds remainder from days
     hours = seconds // 3600
@@ -75,87 +74,6 @@ def timestamp_to_dhms(seconds: Union[int, float] = 0) -> str:
 
     # return (days, hours, minutes, seconds)
     return f"{days}d {hours}h {minutes}m {seconds}s"
-
-
-def load_ieee_oui_dict(expiration: datetime.timedelta = datetime.timedelta(days=7)):
-    """
-    Return a dict of IEEE {OUI:Organization}, downloading the data from the IEEE, if necessary.
-    """
-    IEEE_OUI_URL = "https://standards-oui.ieee.org/oui/oui.txt"
-    IEEE_OUI_TXT_FILENAME = "ieee_ouis.txt"
-    IEEE_OUI_CSV_FILENAME = "ieee_ouis.csv"
-    # use a fake User-Agent or the IEEE site will reject your requests as a bot
-    USER_AGENT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/89.0"}
-
-    def download(url: str = None, headers: dict = None):
-        log.critical(f"load_ieee_oui_dict().download({IEEE_OUI_URL})")
-        try:
-            response = requests.get(IEEE_OUI_URL, headers=USER_AGENT_HEADER)
-            with open(IEEE_OUI_TXT_FILENAME, "w") as file:
-                file.write(response.text)
-                log.critical(f"load_ieee_oui_dict().download(): Saved {IEEE_OUI_TXT_FILENAME}")
-        except requests.exceptions.ConnectionError:
-            log.error(f"load_ieee_oui_dict().download(): Connection problem.")
-
-    # Download IEEE OUIs locally if missing or older than `expiration`
-    if not os.path.exists(IEEE_OUI_TXT_FILENAME):
-        # No OUI file - download it
-        download(IEEE_OUI_URL, USER_AGENT_HEADER)
-    else:
-        # Check file modification, cache expiration, document Last-Modified header before downloading
-        now_dt = datetime.datetime.now()
-        ouis_text_modified_ts = os.path.getmtime(IEEE_OUI_TXT_FILENAME)
-        ouis_text_modified_dt = datetime.datetime.fromtimestamp(int(ouis_text_modified_ts))  # use int() to drop μseconds
-        ouis_text_expired_dt = ouis_text_modified_dt + expiration  # expire after `expiration` timedelta
-
-        if now_dt.timestamp() > ouis_text_expired_dt.timestamp():
-            log.info(f"IEEE file expired: {now_dt} (now) > {ouis_text_expired_dt} text expiration")
-
-            response = requests.head(IEEE_OUI_URL, headers=USER_AGENT_HEADER)
-            log.info(f"IEEE OUI HEAD Request: {response.headers}")
-
-            # Convert Last-Modified to timestamp for easy comparison: ['Last-Modified']: Thu, 26 Dec 2024 17:01:23 GMT
-            url_last_modified_ts = datetime.datetime.strptime(response.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z").timestamp()
-            url_last_modified_dt = datetime.datetime.fromtimestamp(url_last_modified_ts)
-            log.info(f"{IEEE_OUI_URL} modified {response.headers['Last-Modified']} ({url_last_modified_dt.strftime(FS_ISO8601_DT)})")
-
-            if url_last_modified_ts > ouis_text_modified_ts:  # URL is newer?
-                log.info(f"IEEE file updated: {url_last_modified_dt} > {ouis_text_expired_dt} text expiration")
-                download(IEEE_OUI_URL, USER_AGENT_HEADER)
-        else:
-            log.info(f"IEEE file current: {ouis_text_modified_dt} < {ouis_text_expired_dt} expiration")
-
-    # Invalid OUI file?
-    if os.path.getsize(IEEE_OUI_TXT_FILENAME) < 1000000:
-        log.debug(f"Invalid size: {IEEE_OUI_TXT_FILENAME}: Verify HTTP User-Agent ")
-        raise Exception("Invalid OUI file - should be much larger")
-
-    # Parse IEEE OUIs for only the "base 16" lines
-    if not os.path.exists(IEEE_OUI_CSV_FILENAME):
-        with open(IEEE_OUI_TXT_FILENAME, "r") as file:
-            lines = file.readlines()
-            oui_table = [["OUI", "Organization"]]  # list of lists for CSV file
-            for line in lines:
-                if re.search(r"\s+\(base 16\)\s+", line):
-                    # 00000C     (base 16)		Cisco Systems, Inc
-                    oui, org = re.split(r"\s+\(base 16\)\s+", line)
-                    oui_table.append([oui.strip(), org.strip()])
-            log.debug(f"IEEE OUI base16 lines parsed")
-
-        # Save filtered oui_table to CSV file
-        with open(IEEE_OUI_CSV_FILENAME, "w", encoding="utf-8", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerows(oui_table)
-            log.info(f"Saved {IEEE_OUI_CSV_FILENAME}")
-
-    # Read CSV ["OUI", "Organization"] into MAC lookup dictionary
-    with open(IEEE_OUI_CSV_FILENAME, "r", newline="") as csvfile:
-        csv_reader = csv.reader(csvfile)
-        oui_dict = {}
-        for row in csv_reader:
-            if row:  # Ensure the row is not empty
-                oui_dict[row[0]] = row[1]  # { "OUI" : "Organization" }
-        return oui_dict
 
 
 def ntfy(topic: str = None, title: str = "", data: str = None, headers: dict = {}):
@@ -228,7 +146,7 @@ def get_endpoints_after(timestamp: int = 0) -> [dict]:
     """
     Returns a list of of endpoint dictionaries for all new endpoints after `timestamp`.
     - timestamp (int) : seconds since the Unix epoch
-    - returns ([dict]) : list of endpoint dictionaries with IEEE OUI attributes added
+    - returns ([dict]) : list of new endpoints as dictionaries
     """
     timestamp = int(timestamp)  # remove milli/micro-seconds
     timestamp_dt_str = datetime.datetime.fromtimestamp(timestamp).strftime(FS_ISO8601_DT)
@@ -254,7 +172,7 @@ def add_ieee_oui_attributes(endpoints: [dict] = None) -> [dict]:
     NO_MAC_DELIMITERS = str.maketrans("", "", string.punctuation)  # remove delimiters from MAC address
     for endpoint in endpoints:
         endpoint["oui"] = endpoint["mac"].strip().translate(NO_MAC_DELIMITERS)[0:6].upper()
-        endpoint["ieee_oui_org"] = oui_dict.get(endpoint["oui"], "Unknown")
+        endpoint["ieee_oui_org"] = ieee_oui_dict.get(endpoint["oui"], "Unknown")
     return endpoints
 
 
@@ -277,7 +195,8 @@ if __name__ == "__main__":
     if args.period < PERIOD_MIN:
         sys.exit(f"period < {PERIOD_MIN}s")
 
-    oui_dict = load_ieee_oui_dict()
+    mac_utils = mac.MAC(load_ieee=True)
+    ieee_oui_dict = mac_utils.get_ieee_oui_dict()
     with ISEDC(
         hostname=os.environ.get("ISE_PMNT"),
         password=os.environ.get("ISE_DC_PASSWORD"),
@@ -291,7 +210,8 @@ if __name__ == "__main__":
         while True:
             endpoints = get_endpoints_after(timestamp=period_start)
             period_start = datetime.datetime.now(tz=None).timestamp()  # tz=None uses the local system's timezone
-            endpoints = add_ieee_oui_attributes(endpoints)
+            if ieee_oui_dict:
+                endpoints = add_ieee_oui_attributes(endpoints)
             send_endpoints_notification(endpoints, NTFY_TOPIC)
             if args.show:
                 show(endpoints, args.format)
