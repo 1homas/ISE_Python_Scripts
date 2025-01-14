@@ -212,8 +212,6 @@ class ISEDC:
         Returns the results of the query, `q`.
         - q (str): a PL/SQL query string or `*.sql` filepath
         """
-        self.log.debug(f"q={q}")
-
         assert isinstance(q, str)
         assert q is not None
         assert q != ""
