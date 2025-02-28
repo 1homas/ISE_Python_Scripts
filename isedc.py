@@ -40,8 +40,8 @@ import logging
 import oracledb  # https://python-oracledb.readthedocs.io/en/latest/
 import os
 import requests
-import signal
-import ssl
+import signal  # handle Ctrl+C gracefully
+import ssl  # handle self-signed certificates
 import sys
 import tabulate  # https://pypi.org/project/tabulate/
 import traceback
@@ -183,8 +183,8 @@ class ISEDC:
                 if self.connection:
                     self.log.info(f"Connected successfully")
                     return self.connection
-            except oracledb.DatabaseError:
-                pass
+            except oracledb.DatabaseError as e:
+                self.log.error(e)
         raise Exception("Failed to connect to the database after {self.DB_CONNECT_RETRIES} attempts")
 
     def close(self):
@@ -225,24 +225,18 @@ class ISEDC:
             return self.connect().cursor().execute(q)
         except oracledb.DatabaseError as e:
             if "DPY-4011" in str(e):
-                self.log.error(f"DPY-4011: Database connecting closed")
-                self.close()
-                return self.connect().cursor().execute(q)
+                self.log.error(f"DPY-4011: Database connection closed")
             elif "ORA-02399" in str(e):
                 # 60 minute max connect time
                 self.log.error(f"ORA-02399: exceeded maximum connect time, you are being logged off")
-                self.close()
-                return self.connect().cursor().execute(q)
             elif "ORA-03113" in str(e):
                 # 12 minutes?
                 self.log.error(f"ORA-03113 Session timeout")
-                self.close()
-                return self.connect().cursor().execute(q)
             else:
                 self.log.error(f"Unknown error: {str(e)}")
-                self.close()
-                return self.connect().cursor().execute(q)
-                # raise
+
+            self.close()
+            return self.connect().cursor().execute(q)
 
     def _handle_exception(self, e: Exception = None) -> None:
         """Handle an Exception."""
@@ -288,14 +282,6 @@ class ISEDC:
             if not rows:
                 break
             writer.writerows(rows)
-
-    def cursor_headers(self, cursor: oracledb.Cursor = None):
-        """
-        Returns a list of the header names from the cursor.
-        """
-        # Get header names from cursor.description, a list of sets about each column:
-        #   [ (name, type_code, display_size, internal_size, precision, scale, null_ok), ... ]
-        return [f"{column[0]}".lower() for column in cursor.description]
 
     def enabled(self) -> bool:
         """
@@ -499,7 +485,7 @@ class ISEDC:
 
 if __name__ == "__main__":
     """
-    Run from script
+    Run from script.
     """
     signal.signal(signal.SIGINT, lambda signum, frame: sys.exit(1))  # Handle CTRL+C interrupts gracefully
 
@@ -507,7 +493,8 @@ if __name__ == "__main__":
     argp = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     argp.add_argument("query", help="an Oracle PL/SQL Query in double-quotes or *.sql filepath", default=None)
     argp.add_argument("-n", "--hostname", action="store", default=None, help="ISE MNT hostname or IP address", type=str)
-    argp.add_argument("-p", "--password", action="store", default=None, help="password", type=str)
+    argp.add_argument("-u", "--username", action="store", default=None, help="Data Connect username", type=str)
+    argp.add_argument("-p", "--password", action="store", default=None, help="Data Connect password", type=str)
     argp.add_argument("-f", "--format", choices=ISEDC.FORMATS, default="csv")
     argp.add_argument("-i", "--insecure", action="store_true", default=False, help="do not verify certificates (allow self-signed certs)")
     argp.add_argument("-l", "--level", default="WARNING", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], help="log threshold")
