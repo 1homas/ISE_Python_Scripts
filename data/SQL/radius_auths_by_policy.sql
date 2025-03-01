@@ -7,12 +7,14 @@
 
 SELECT
     policy_set_name AS policy_set, -- 
-    access_service AS allowed_protocols, -- 
+    -- access_service AS allowed_protocols, -- 
     authentication_method AS authn_method, -- 
     authentication_protocol AS authn_protocol, -- 
     NVL(authorization_rule, '-') AS authz_rule, -- 
     NVL(authorization_profiles, 'ACCESS-REJECT') AS authz_profile, -- 
     MAX(security_group) AS security_group, -- 
+    TO_CHAR(AVG(response_time), '9999999') || 'ms' AS rt_avg, -- avg response time
+    TO_CHAR(MAX(response_time), '9999999') || 'ms' AS rt_max, -- max response time
     COUNT(CASE WHEN passed = 'Pass' THEN 1 END) AS passed,
     COUNT(CASE WHEN passed = 'Fail' THEN 1 END) AS failed,
     COUNT(timestamp) AS total,
