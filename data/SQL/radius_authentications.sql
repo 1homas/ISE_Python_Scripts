@@ -57,4 +57,4 @@ FROM radius_authentications
 -- WHERE timestamp_timezone < '24-APR-22 08.25.35.839000000 PM +05:30' AND timestamp_timezone > '23-APR-22 08.25.35.839000000 PM +05:30'
 ORDER BY timestamp ASC -- first/oldest records
 -- ORDER BY timestamp DESC -- most recent records
--- FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
+FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
