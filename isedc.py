@@ -24,9 +24,13 @@ Without environment variables:
   The main limitation with the ISE database has been timestamp fields containing TimeZone information.
   You may workaround this problem by simply excluding those columns in your queries.
   Refer to the ISE Data Connect documentation (https://cs.co/ise-dataconnect) for tables with TimeZone fields.
-  If you want to run in "thick" mode, you will need to locally install the 
-  Oracle Instant Client (https://www.oracle.com/database/technologies/instant-client/downloads.html) 
-  which is not currently available for the macOS ARM architecture.
+  If you want to run in "thick" mode, you will need to locally install the Oracle Instant Client
+    https://www.oracle.com/database/technologies/instant-client/downloads.html
+  Installation:
+    hdiutil mount ~/Downloads/instantclient-basic-macos-arm64.dmg 
+    cd /Volumes/instantclient-basic-macos.arm64-23.3.0.23.09/
+    sh ./install_ic.sh 
+    /usr/bin/hdiutil unmount /Volumes/instantclient-basic-macos.arm64-23.3.0.23.09
 
 """
 __author__ = "Thomas Howard"
@@ -50,7 +54,9 @@ from typing import Union
 
 # -----------------------------------------------------------------------------
 # Thick Client Option
+#
 # import platform
+#
 # d = None  # On Linux, no directory should be passed
 # if platform.system() == "Darwin":  # macOS
 #     d = os.environ.get("HOME") + ("/Downloads/instantclient_23_3")
