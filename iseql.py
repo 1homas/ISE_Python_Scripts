@@ -7,16 +7,16 @@ The default output format is a streamed CSV (comma-separated value) to minimize 
 
 Usage with environment variables:
   export ISE_PMNT='1.2.3.4'             # hostname or IP address of ISE Primary MNT
-  export ISE_DC_PASSWORD='D@t@C0nnect'  # Data Connect password
+  export ISE_DC_PASSWORD='DataC0nnect$' # Data Connect password
   export ISE_VERIFY=False               # Optional: Disable TLS certificate verification (allow self-signed certs)
 
-  iseql.py data/SQL/node_list.sql
-  iseql.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
   iseql.py "SELECT * FROM node_list" -f yaml
   iseql.py -it "SELECT * FROM radius_accounting ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
+  iseql.py data/SQL/node_list.sql
+  iseql.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
 
 Without environment variables:
-  iseql.py -it -n ise.example.org -u dataconnect -p "ISEisC00L" "SELECT * FROM node_list" -f table
+  iseql.py -it -n ise.example.org -p "ISEisC00L" "SELECT * FROM node_list" -f table
 
 ⓘ Thin vs Thick oracledb Clients
   This script uses the oracledb package and runs as a "thin" client without the need for additional ODBC drivers.
