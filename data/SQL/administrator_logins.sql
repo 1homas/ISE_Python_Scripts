@@ -18,7 +18,6 @@ SELECT
     -- ipv6_address, -- comment
     -- interface, -- [GUI, ERS]
 FROM administrator_logins
--- ORDER BY timestamp ASC
 WHERE admin_name = 'readonly'
 -- WHERE admin_name = 'iseadamin'
 ORDER BY timestamp ASC -- first/oldest records
