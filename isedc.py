@@ -8,13 +8,13 @@ The default output format is a streamed CSV (comma-separated value) to minimize 
 
 Usage with environment variables:
   export ISE_PMNT='1.2.3.4'             # hostname or IP address of ISE Primary MNT
-  export ISE_DC_PASSWORD='D@t@C0nnect'  # Data Connect password
+  export ISE_DC_PASSWORD='DataC0nnect$' # Data Connect password
   export ISE_VERIFY=False               # Optional: Disable TLS certificate verification (allow self-signed certs)
 
-  isedc.py data/SQL/node_list.sql
-  isedc.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
   isedc.py "SELECT * FROM node_list" -f yaml
   isedc.py -it "SELECT * FROM radius_accounting ORDER BY timestamp ASC FETCH FIRST 10 ROWS ONLY"
+  isedc.py data/SQL/node_list.sql
+  isedc.py "$(cat data/SQL/radius_auths_by_policy.sql)" -f table
 
 Without environment variables:
   isedc.py -it -n ise.example.org -u dataconnect -p "D@t@C0nnect" "SELECT * FROM node_list" -f table
@@ -173,8 +173,6 @@ class ISEDC:
         """
         if self.connection != None:
             return self.connection
-        if not self.enabled():
-            self.enable(True)
 
         for attempt in range(self.DB_CONNECT_RETRIES):
             try:
@@ -282,92 +280,6 @@ class ISEDC:
             if not rows:
                 break
             writer.writerows(rows)
-
-    def enabled(self) -> bool:
-        """
-        Get the ISE Data Connect status.
-        """
-        with requests.Session() as session:
-            # Initialize ISE REST API Session
-            session.auth = (os.environ.get("ISE_REST_USERNAME"), os.environ.get("ISE_REST_PASSWORD"))
-            session.headers.update({"Content-Type": "application/json", "Accept": "application/json"})
-            session.verify = False if os.environ.get("ISE_VERIFY")[0:1].lower() in ["f", "n"] else True
-
-            # Returns the settings of the Dataconnect feature.
-            # {
-            #     "response": {
-            #         "isEnabled": true,
-            #         "isPasswordChanged": true,
-            #         "passwordExpiresInDays": 45,
-            #         "passwordExpiresOn": "15 December 2021 at 18:05 PST"
-            #     }
-            # }
-            url = f"https://{self.hostname}/api/v1/mnt/data-connect/settings"
-            self.log.debug(f"Checking if {url} enabled")
-            response = session.get(url)
-            is_enabled = self.to_bool((response.json()["response"])["isEnabled"])
-            self.log.debug(f"enabled:{is_enabled} response: {response.json()}")
-            return is_enabled
-
-    def enable(self, enable: bool = True):
-        """
-        Enable/Disable the ISE Data Connect service and returns the state as a boolean.
-        """
-        assert isinstance(enable, bool)
-        self.log.debug(f"enable={enable}")
-
-        if self.enabled() == enable:
-            return enable
-
-        with requests.Session() as session:
-            # Initialize ISE REST API Session
-            session.auth = (os.environ.get("ISE_REST_USERNAME"), os.environ.get("ISE_REST_PASSWORD"))
-            session.headers.update({"Content-Type": "application/json", "Accept": "application/json"})
-            session.verify = False if os.environ.get("ISE_VERIFY")[0:1].lower() in ["f", "n"] else True
-
-            url = f"https://{self.hostname}/api/v1/mnt/data-connect/details"
-            self.log.debug(f"ISEDC.enable() details: {session.get(url).ok}")
-
-            # 💡 Must set password BEFORE enabling!
-            #    - Password must contain one or more special characters [#$%&*+,-.:;] ⚠ No @ or !
-            #    - Password can't be set to one of the earlier 5 password(s)
-            url = f"https://{self.hostname}/api/v1/mnt/data-connect/settings/password"
-            response = session.put(url, json={"password": os.environ.get("ISE_DC_PASSWORD")})
-            self.log.debug(f"ISEDC.enable() password: {response.json()}")
-
-            # Set Password Expiration
-            url = f"https://{self.hostname}/api/v1/mnt/data-connect/settings/password/expiry"
-            response = session.put(url, json={"passwordExpiresInDays": self.DATACONNECT_PASSWORD_DAYS_MAX})
-            self.log.debug(f"ISEDC.enable() password-expiry:\n{response.json}")
-
-            # Enable ISE DataConnect via API
-            url = f"https://{self.hostname}/api/v1/mnt/data-connect/settings/status"
-            response = session.put(url, json={"isEnabled": True})
-            self.log.debug(f"ISEDC.enable() status: {response.json()}")
-
-            # Returns the settings of the Dataconnect feature.
-            # {
-            #     "response": {
-            #         "isEnabled": true,
-            #         "isPasswordChanged": true,
-            #         "passwordExpiresInDays": 45,
-            #         "passwordExpiresOn": "15 December 2021 at 18:05 PST"
-            #     }
-            # }
-            url = f"https://{self.hostname}/api/v1/mnt/data-connect/settings"
-            self.log.debug(f"ISEDC.enable() settings: {session.get(url).json()['response']}")
-
-            # Returns the Dataconnect ODBC details - but these don't change.
-            # {
-            #     "response": {
-            #         "hostname": "isenode",
-            #         "port": 2484,
-            #         "servicename": "cpm10",
-            #         "username": "Admin"
-            #     }
-            # }
-            url = f"https://{self.hostname}/api/v1/mnt/data-connect/details"
-            self.log.debug(f"ISEDC.enable() details: {session.get(url).json()['response']}")
 
     def tables(self):
         """
@@ -511,15 +423,11 @@ if __name__ == "__main__":
     # Merge settings from 1) CLI args, 2) environment variables and 3) static defaults
     with ISEDC(
         hostname=(args.hostname or os.environ.get("ISE_PMNT")),
+        username=(args.username or os.environ.get("ISE_DC_USERNAME", ISEDC.DATACONNECT_USERNAME)),
         password=(args.password or os.environ.get("ISE_DC_PASSWORD")),
         insecure=args.insecure or os.environ.get("ISE_VERIFY", "True")[0:1].lower() in ["f", "n"],
         level=args.level,
     ) as isedc:
-
-        if not isedc.enabled():
-            print(f"ISEDC NOT Enabled")
-            enabled = isedc.enable(True)
-            print(f"ISEDC {'' if enabled else 'NOT '}Enabled")
 
         try:
 
