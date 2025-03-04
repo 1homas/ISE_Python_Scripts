@@ -13,7 +13,7 @@ SELECT
     nas_ip_address AS nas_ip_address, --  
     device_name AS device_name, --  
     -- MAX(nas_ip_address) AS nas_ip_address, --  
-    MAX(location) AS location, --  
+    -- MAX(location) AS location, --  
     MAX(calling_station_id) AS mac, --  
     MAX(username) AS username, --  
     MAX(endpoint_profile) AS endpoint_profile, --  
@@ -50,7 +50,7 @@ SELECT
     MAX(passed) AS passed -- 'Fail' for username='INVALID'
 FROM radius_authentications
 GROUP BY nas_ip_address, device_name
--- HAVING MAX(timestamp) < (;;sysdate - INTERVAL '30' DAY) -- Last seen >30 days ago
+-- HAVING MAX(timestamp) < (sysdate - INTERVAL '30' DAY) -- Last seen >30 days ago
 ORDER BY timestamp ASC -- first/oldest records
 -- ORDER BY timestamp DESC -- most recent records
 -- FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
