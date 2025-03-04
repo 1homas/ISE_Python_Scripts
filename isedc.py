@@ -147,7 +147,7 @@ class ISEDC:
             retry_count=3,  # connection attempts retries before being terminated. Default: 0
             retry_delay=3,  # seconds to wait before a new connection attempt. Default: 0
             ssl_context=self.ssl_context,  # an SSLContext object which is used for connecting to the database using TLS
-            # ssl_server_dn_match=False, # boolean indicating if the server certificate distinguished name (DN) should be matched. Default: True
+            ssl_server_dn_match=False,  # boolean indicating if the server certificate distinguished name (DN) should be matched. Default: True
             # ssl_server_cert_dn=False # the distinguished name (DN), which should be matched with the server
             # wallet_location=DIR_EWALLET, # the directory containing the PEM-encoded wallet file, ewallet.pem
         )
