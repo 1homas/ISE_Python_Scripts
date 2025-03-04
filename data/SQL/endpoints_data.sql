@@ -4,6 +4,8 @@
 
 SELECT
   mac_address,
+  -- create_time, -- ⚠ not supported in thin mode
+  -- update_time, -- ⚠ not supported in thin mode
   endpoint_ip,
   endpoint_policy, -- endpoint profile classification
   static_group_assignment,
