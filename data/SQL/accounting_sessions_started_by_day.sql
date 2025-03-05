@@ -7,7 +7,7 @@
 
 SELECT
     TO_CHAR(timestamp, 'YYYY-MM-DD') AS timestamp, -- drop fractional seconds
-    COUNT(*)
+    COUNT(*) AS starts
 FROM radius_accounting
 WHERE acct_status_type = 'Start'
 GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD')
