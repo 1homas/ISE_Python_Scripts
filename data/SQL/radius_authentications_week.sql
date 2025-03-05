@@ -1,12 +1,11 @@
 --
 -- radius_authentications_week
 --
--- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
---
 -- ⚠ This table is limited to only 1 week of data!
 --
 
-SELECT * 
+SELECT
+    * -- all columns
     -- id,
     -- timestamp_timezone,
     -- ise_node,
@@ -49,6 +48,6 @@ SELECT *
     -- authorization_policy,
     -- nad_profile_name
 FROM radius_authentications_week
--- ORDER BY timestamp ASC -- first/oldest records
-ORDER BY timestamp DESC -- most recent records
+ORDER BY timestamp ASC -- first/oldest records
+-- ORDER BY timestamp DESC -- most recent records
 FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
