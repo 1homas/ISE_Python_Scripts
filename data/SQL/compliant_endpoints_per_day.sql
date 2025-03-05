@@ -6,7 +6,7 @@
 
 SELECT
     -- * 
-    TO_CHAR(timestamp, 'YYYY-MM-DD') AS day, -- drop fractional seconds
+    TO_CHAR(timestamp, 'YYYY-MM-DD') AS day, -- date only
     COUNT(DISTINCT username) AS count -- 
     -- am_installed, -- anti-malware installed on the endpoint
     -- anti_spyware_installed, -- installed anti-spyware
