@@ -17,7 +17,12 @@ SELECT
     TO_CHAR(timestamp, 'YYYY-MM-DD') AS timestamp, -- per day (2024-12-01)
     COUNT(CASE WHEN acct_status_type = 'Start' THEN 1 END) AS starts,
     COUNT(CASE WHEN acct_status_type = 'Stop' THEN 1 END) AS stops,
+    CASE 
+        WHEN COUNT(CASE WHEN acct_status_type = 'Start' THEN 1 END) = 0 THEN 0 
+        ELSE ROUND(COUNT(CASE WHEN acct_status_type = 'Stop' THEN 1 END) / COUNT(CASE WHEN acct_status_type = 'Start' THEN 1 END), 2)
+    END AS stop_to_start,
     COUNT(CASE WHEN acct_status_type = 'Interim-Update' THEN 1 END) AS interims,
+    ROUND(COUNT(CASE WHEN acct_status_type = 'Interim-Update' THEN 1 END) / COUNT(*), 2) AS interim_to_total,
     COUNT(CASE WHEN syslog_message_code > '3002' THEN 1 END) AS others,
     COUNT(*) AS total -- total
     -- access_service, -- ISE Allowed Protocls
