@@ -1,5 +1,5 @@
 --
--- Show All Cisco ISE RADIUS Accounting Sessions by ID with start, stop and session time.
+-- Show All Cisco ISE RADIUS Accounting Sessions by ID with start, last update and session time.
 -- Session states are in the `ℹ` column: □ stopped, ! ghosted, ⧖ interim, ▷ started
 -- An active session is generally considered 'ghosted' after >24 hours without a Stop or Interim Update.
 -- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
@@ -8,12 +8,11 @@
 -- License: MIT - https://mit-license.org
 --
 
-
 SELECT
     acct_session_id,
     CASE WHEN MAX(syslog_message_code) = 3001 THEN '□' WHEN (MAX(timestamp) < (SYSDATE - 1)) THEN '!' WHEN MAX(syslog_message_code) = '3002' THEN '⧖'  ELSE '▷' END AS ℹ, -- [□ stopped, ! ghosted, ⧖ interim, ▷ started] alternatives: ▷ | □ ⏹ ⚠ ! ◌ ⍉ ⬚ ◯ ▶ ◻ □ ○ ◌
     TO_CHAR(MIN(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS started, -- drop fractional seconds
-    TO_CHAR(MAX(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS stopped, -- drop fractional seconds
+    TO_CHAR(MAX(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS updated, -- drop fractional seconds
     MAX(syslog_message_code) AS code, -- 3000=Acct-Start, 3001=Acct-Stop, 3002=Interim-Update, 3003=Acct-On, 3004=Acct-Off
     COUNT(timestamp) AS num, -- total accounting updates
     NVL(MAX(acct_session_time), 0) AS time, -- time (seconds) for which the session has been Started
@@ -77,7 +76,7 @@ WHERE syslog_message_code != 3003 AND syslog_message_code != 3004 -- ignore Acco
     -- AND timestamp > sysdate - INTERVAL '10' SECOND -- last N seconds
     -- AND timestamp > sysdate - INTERVAL '1' MINUTE  -- last N minutes
     -- AND timestamp > sysdate - INTERVAL '1' HOUR -- last N hours
-    -- AND timestamp > sysdate - INTERVAL '1' DAY -- last N days
+    -- AND timestamp > sysdate - INTERVAL '7' DAY -- last N days
     -- AND timestamp > TIMESTAMP '2024-11-01 19:39:00' -- after a timestamp
     -- AND timestamp > TIMESTAMP '2024-11-01 19:00:00' AND timestamp < TIMESTAMP '2024-11-01 20:00:00' -- time window
     -- AND timestamp BETWEEN Date '2024-11-01' and Date '2024-11-02' -- exclusive of end date
