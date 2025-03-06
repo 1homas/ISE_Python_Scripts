@@ -1,5 +1,5 @@
 --
--- RADIUS Authentications by Failure Reason
+-- RADIUS Authentications by Failure Reason Counts
 --
 -- Author: Thomas Howard, thomas@cisco.com
 -- License: MIT - https://mit-license.org
