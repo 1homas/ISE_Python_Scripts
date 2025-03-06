@@ -1,19 +1,19 @@
 --
 -- ISE Endpoints with an 'Unknown' endpoint profile.
 --
--- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
---
 -- Author: Thomas Howard, thomas@cisco.com
 -- License: MIT - https://mit-license.org
 --
 
 SELECT
-  TO_CHAR(create_time, 'YYYY-MM-DD HH24:MI:SS') AS created, -- Time when record added; drop milliseconds. ⚠ (TIMESTAMP(6)+TZ)
   mac_address, -- MAC address of the endpoint
-  -- CASE WHEN REGEXP_LIKE(mac_address, '^.[26AE].*', 'i') THEN '✔' END AS random, -- Indicator: ✔
+  -- CASE WHEN REGEXP_LIKE(mac_address, '^.[26AE].*', 'i') THEN SUBSTR(mac_address, 2, 1) ELSE ' ' END AS random, -- random MAC feature column
+  CASE WHEN REGEXP_LIKE(mac_address, '^.[26AE].*', 'i') THEN '✔' END AS random, -- Indicator: ✔
   -- endpoint_ip, -- the IP address of the endpoint
   endpoint_policy, -- matched endpoint profiling policy
   matched_value AS cf, -- Matched Certainty Factor (CF)
+  CAST(create_time AS TIMESTAMP) AS create_time, -- time when record added ⚠ (TIMESTAMP(6)+TZ)
+  CAST(update_time AS TIMESTAMP) AS update_time, -- time when record added ⚠ (TIMESTAMP(6)+TZ)
   -- auth_store_id, -- the auth store ID
   -- byod_reg, -- the BYOD Registration status
   -- custom_attributes, -- the custom attributes
