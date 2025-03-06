@@ -9,7 +9,8 @@
 --
 
 SELECT
-    TO_CHAR(MAX(timestamp), 'YYYY-MM-DD HH24:MI:SS') AS timestamp, -- seconds
+    CAST(MAX(timestamp) AS DATE) AS last_auth, -- drop fractional seconds
+    ROUND(CAST(SYSTIMESTAMP AS DATE) - CAST(MAX(timestamp) AS DATE), 2) AS inactive_days,
     nas_ip_address AS nas_ip_address, --  
     device_name AS device_name, --  
     -- MAX(nas_ip_address) AS nas_ip_address, --  
@@ -51,6 +52,6 @@ SELECT
 FROM radius_authentications
 GROUP BY nas_ip_address, device_name
 -- HAVING MAX(timestamp) < (sysdate - INTERVAL '30' DAY) -- Last seen >30 days ago
-ORDER BY timestamp ASC -- first/oldest records
+ORDER BY last_auth ASC -- first/oldest records
 -- ORDER BY timestamp DESC -- most recent records
 -- FETCH FIRST 10 ROWS ONLY -- limit default number of rows returned for large datasets
