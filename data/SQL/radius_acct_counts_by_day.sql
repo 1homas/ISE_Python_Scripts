@@ -1,7 +1,6 @@
 --
--- Show All Cisco ISE RADIUS Accounting Session Start events.
---
--- 💡 Un/Comment columns to quickly customize queries. Remember the last SELECT column must not end with a `,`.
+-- Summarize all Cisco ISE RADIUS Accounting events per day.
+-- You may also do this per hour/minute/second by changing the timestamp format and GROUP BY statement.
 --
 -- Author: Thomas Howard, thomas@cisco.com
 -- License: MIT - https://mit-license.org
