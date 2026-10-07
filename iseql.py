@@ -156,7 +156,8 @@ if hostname is None:
 if password is None:
     sys.exit("Missing password: Set ISE_DC_PASSWORD environment variable or use --password option")
 
-ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+# ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+ssl_context = ssl.create_default_context()
 if insecure:
     ssl_context.check_hostname = False  # required before setting verify_mode == ssl.CERT_NONE
     ssl_context.verify_mode = ssl.CERT_NONE  # any cert is accepted; validation errors are ignored
